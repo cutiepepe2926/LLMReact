@@ -1,0 +1,41 @@
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 24px;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.project-title {
+    margin: 0;
+}
+
+.project-period {
+    color: #9ca3af;
+    margin: 0;
+}
+
+.d-day-badge {
+    background-color: #e5e7eb;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.ai-button {
+    background-color: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+}

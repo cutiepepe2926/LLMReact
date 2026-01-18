@@ -1,0 +1,26 @@
+/* --- 탭 메뉴 --- */
+.tab-menu {
+    display: flex;
+    width: 100%;                 /* 전체 폭 */
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 32px;
+}
+
+/* 각 버튼이 동일 비율로 차지 */
+.tab-btn {
+    flex: 1;                      /* n개면 자동으로 1/n */
+    text-align: center;
+    padding: 16px 0;              /* 좌우 패딩 때문에 폭이 어긋나는 거 방지 */
+    background: none;
+    border: none;
+    font-weight: bold;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+/* active */
+.tab-btn.active {
+    color: var(--primary-blue);
+    border-bottom: 4px solid var(--primary-blue);
+    margin-bottom: -2px;
+}

@@ -16,62 +16,6 @@
   color: var(--text-main);
 }
 
-/* --- 프로젝트 타이틀 --- */
-.project-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 24px;
-}
-
-.title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.d-day-badge {
-  background-color: #e5e7eb;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.ai-button {
-  background-color: var(--primary-blue);
-  color: white;
-  border: none;
-  padding: 12px 32px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 1.1rem;
-  cursor: pointer;
-}
-
-/* --- 탭 메뉴 --- */
-.tab-menu {
-  display: flex;
-  border-bottom: 2px solid var(--border-color);
-  margin-bottom: 32px;
-}
-
-.tab-item {
-  padding: 16px 40px;
-  background: none;
-  border: none;
-  font-weight: bold;
-  color: #9ca3af;
-  cursor: pointer;
-}
-
-.tab-item.active {
-  color: var(--primary-blue);
-  border-bottom: 4px solid var(--primary-blue);
-  margin-bottom: -2px;
-}
-
 /* --- 그리드 레이아웃 --- */
 .dashboard-grid {
   display: grid;

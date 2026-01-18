@@ -1,32 +1,38 @@
 import React from 'react';
-import TopNav from "./component/shared/TopNav";
+import TopNav from "./component/TopNav/TopNav";
+import ProjectHeader from "./component/ProjectHeader/ProjectHeader";
+import TabMenu from "./component/TabMenu/TabMenu";
 import './App.css';
 
 function App() {
+
+  const TABS = [
+    { key: "dashboard", label: "대시보드" },
+    { key: "task", label: "업무" },
+    { key: "report", label: "AI 리포트" },
+    { key: "final_report", label: "최종 리포트" },
+    { key: "member", label: "멤버"},
+  ];
+
+  const [activeTab, setActiveTab] = React.useState("project");
+
+
   return (
       <div className="dashboard-container">
         {/* 1. 상단 네비게이션 */}
         <TopNav></TopNav>
 
         {/* 2. 프로젝트 헤더 */}
-        <section className="project-header">
-          <div>
-            <div className="title-row">
-              <h1 style={{margin: 0}}>프로젝트 제목입니다</h1>
-              <span className="d-day-badge">D - 10</span>
-            </div>
-            <p style={{color: '#9ca3af', margin: 0}}>기간: 2026.01.01 ~ 2026.02.02</p>
-          </div>
-          <button className="ai-button">AI 리포트</button>
-        </section>
+        <ProjectHeader
+            title="프로젝트 제목입니다"
+            dDay={10}
+            periodText="기간: 2026.01.01 ~ 2026.02.02"
+            onClickAiReport={() => console.log("AI 리포트 클릭")}
+        />
+
 
         {/* 3. 탭 메뉴 */}
-        <nav className="tab-menu">
-          <button className="tab-item active">대시보드</button>
-          <button className="tab-item">업무</button>
-          <button className="tab-item">이슈 트래커</button>
-          <button className="tab-item">멤버/설정</button>
-        </nav>
+        <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
 
         {/* 4. 대시보드 메인 그리드 */}
         <main className="dashboard-grid">
