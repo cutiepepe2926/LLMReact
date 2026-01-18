@@ -1,0 +1,43 @@
+/* TopNav.css */
+
+/* --- 상단 헤더 --- */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    border-bottom: 4px solid rgba(0, 0, 0, 0.18);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-blue);
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.icon-group {
+    display: flex;
+    gap: 12px;
+}
+
+.icon-circle {
+    width: 36px;
+    height: 36px;
+    background-color: #eff6ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
