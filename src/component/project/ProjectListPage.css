@@ -1,0 +1,177 @@
+/* 전체 컨테이너 */
+.list-container {
+  padding: 40px;
+  background-color: #f8f9fa; /* 배경색 */
+  min-height: 100vh;
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 헤더 */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.list-header h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #111;
+}
+
+.new-project-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* 그리드 레이아웃 */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3열 */
+  gap: 24px;
+}
+
+/* --- 카드 디자인 --- */
+.project-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+  overflow: hidden; /* 하단 둥근 모서리 유지용 */
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+/* 상단 영역 (흰색) */
+.card-body {
+  padding: 24px;
+  flex-grow: 1;
+}
+
+/* 1. 타이틀 */
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.globe-icon { font-size: 1.2rem; }
+
+.title-group h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* 뱃지 스타일 */
+.type-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+.type-badge.public { background-color: #dcfce7; color: #166534; } /* 연두색 */
+.type-badge.private { background-color: #f3e8ff; color: #6b21a8; } /* 보라색 */
+
+/* 2. 날짜 */
+.date-range {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+/* 3. 진행 상태 텍스트 */
+.task-status-text {
+  margin-bottom: 24px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.task-status-text .highlight {
+  color: #3b82f6; /* 파란색 강조 */
+  font-size: 1.2rem;
+}
+.task-status-text .divider {
+  margin: 0 4px;
+  color: #9ca3af;
+}
+.task-status-text .total {
+  color: #6b7280;
+}
+
+/* 4. 정보열 (참여자, 이슈) */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+}
+.member-info .label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 4px; }
+.member-info .value { font-size: 0.9rem; font-weight: 600; color: #1f2937; }
+
+.issue-badge {
+  background-color: #fee2e2; /* 연한 빨강 */
+  color: #991b1b;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.issue-badge.clean {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+/* --- 하단 영역 (회색) --- */
+.card-footer {
+  background-color: #e5e5e5; /* 짙은 회색 배경 */
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #4b5563;
+  border-top: 1px solid #e5e7eb;
+}
+
+.git-branch-icon { margin-right: 6px; font-size: 1rem; }
+.branch-name { font-weight: 700; margin-right: 4px; color: #374151; }
+.commit-msg { 
+  margin-right: auto; /* 남은 공간 차지 */
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  max-width: 140px; 
+}
+.commit-time { font-size: 0.8rem; color: #6b7280; }
