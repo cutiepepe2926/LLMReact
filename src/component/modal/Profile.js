@@ -1,6 +1,13 @@
+import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 
-const Profile = () => {
+const Profile = ({onClose}) => {
+  const navigate = useNavigate();
+
+  const handleMyPageClick = () => {
+        navigate('/myPage'); // [추가] 마이 페이지로 이동
+        if (onClose) onClose(); // [추가] 모달 닫기
+    };
   return (
     <div className="profile-modal">
       <div className="profile-info">
@@ -11,7 +18,7 @@ const Profile = () => {
         </div>
       </div>
       <div className="profile-menu">
-        <button className="profile-menu-item">마이 페이지</button>
+        <button className="profile-menu-item" onClick={handleMyPageClick}>마이 페이지</button>
         <button className="profile-menu-item">설정</button>
         <div className="divider"></div>
         <button className="profile-menu-item logout">로그아웃</button>

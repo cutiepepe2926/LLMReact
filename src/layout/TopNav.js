@@ -3,14 +3,17 @@ import siteLogo from "./Site_logo.svg";
 import bell from "./Bell.svg";
 import help from "./Help.svg";
 import "./TopNav.css";
-import { Outlet } from "react-router-dom"; 
+import { Outlet, useLocation } from "react-router-dom"; 
 import Profile from '../component/modal/Profile';
 
 export default function TopNav() {
-
+    const location = useLocation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     const profileRef = useRef(null);
+
+    //  로그인 또는 회원가입 페이지인지 확인하는 변수
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
     const toggleProfile = () => {
         setIsProfileOpen(!isProfileOpen);
@@ -46,28 +49,30 @@ export default function TopNav() {
                     />
                 </div>
 
-                <div className="header-right">
-                    <div className="icon-group">
-                        <div className="icon-circle">
-                            <img src={bell} alt="clock icon" className="clock-icon" style={{ width: 25 }} />
-                        </div>
-                        <div className="icon-circle">
-                            <img src={help} alt="help icon" className="clock-icon" style={{ width: 25 }} />
-                        </div>
-                        <div className="icon-circle" style={{position: 'relative'}} ref={profileRef}>
-                            <img 
-                                src="/img/Profile.svg" 
-                                alt="profile icon" 
-                                className="profile"
-                                onClick={toggleProfile}
-                                style={{ width: 25 }} 
-                            />
+                {!isAuthPage && (
+                    <div className="header-right">
+                        <div className="icon-group">
+                            <div className="icon-circle">
+                                <img src={bell} alt="clock icon" className="clock-icon" style={{ width: 25 }} />
+                            </div>
+                            <div className="icon-circle">
+                                <img src={help} alt="help icon" className="clock-icon" style={{ width: 25 }} />
+                            </div>
+                            <div className="icon-circle" style={{position: 'relative'}} ref={profileRef}>
+                                <img 
+                                    src="/img/Profile.svg" 
+                                    alt="profile icon" 
+                                    className="profile"
+                                    onClick={toggleProfile}
+                                    style={{ width: 25 }} 
+                                />
 
-                            {isProfileOpen && <Profile/>}
+                                {isProfileOpen && <Profile/>}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </header>
+                    )}
+                </header>
 
             <main>
                 <Outlet />
