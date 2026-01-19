@@ -78,13 +78,13 @@
 }
 
 /* 회원가입 링크 (분홍색) */
-.regist-link {
+.signup-link {
   color: #ff69b4; /* 핫핑크 색상 */
   font-weight: bold;
   text-decoration: none; /* 밑줄 제거 */
   margin-left: 5px;
 }
 
-.regist-link:hover {
+.signup-link:hover {
   text-decoration: underline; /* 호버 시 밑줄 */
 }
