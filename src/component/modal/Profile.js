@@ -5,9 +5,15 @@ const Profile = ({onClose}) => {
   const navigate = useNavigate();
 
   const handleMyPageClick = () => {
-        navigate('/myPage'); // [추가] 마이 페이지로 이동
-        if (onClose) onClose(); // [추가] 모달 닫기
-    };
+    navigate('/myPage');
+    if (onClose) onClose();
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/modProfile'); // 프로필 수정 페이지 경로
+    if (onClose) onClose();
+  };
+  
   return (
     <div className="profile-modal">
       <div className="profile-info">
@@ -19,7 +25,7 @@ const Profile = ({onClose}) => {
       </div>
       <div className="profile-menu">
         <button className="profile-menu-item" onClick={handleMyPageClick}>마이 페이지</button>
-        <button className="profile-menu-item">설정</button>
+        <button className="profile-menu-item" onClick={handleSettingsClick}>설정</button>
         <div className="divider"></div>
         <button className="profile-menu-item logout">로그아웃</button>
       </div>

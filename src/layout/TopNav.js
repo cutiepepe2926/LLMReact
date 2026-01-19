@@ -67,7 +67,7 @@ export default function TopNav() {
                                     style={{ width: 25 }} 
                                 />
 
-                                {isProfileOpen && <Profile/>}
+                                {isProfileOpen && (<Profile onClose={()=>setIsProfileOpen(false)}/>)}
                             </div>
                         </div>
                     </div>
