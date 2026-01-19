@@ -1,12 +1,12 @@
 import React from 'react';
-import ProjectHeader from "../ProjectHeader/ProjectHeader";
+import ProjectHeader from "../projectHeader/ProjectHeader";
 import TabMenu from "../TabMenu/TabMenu";
 import DashboardGrid from "./Grids/DashBoardGrid/DashBoardGrid";
 import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid";
-import './ProjectDetail.css';
+import './ProjectDashBoard.css';
 import {useNavigate} from "react-router-dom";
 
-function ProjectDetail() {
+function ProjectDashBoard() {
 
     const navigate = useNavigate();
 
@@ -53,4 +53,4 @@ function ProjectDetail() {
         </div>
     );
 }
-export default ProjectDetail;
+export default ProjectDashBoard;

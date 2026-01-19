@@ -1,9 +1,9 @@
 import {Route, Routes} from "react-router-dom";
 import TopNav from "./layout/TopNav";
 import './App.css';
-import Login from "./component/Login/Login";
+import Login from "./component/login/Login";
 import ProjectList from "./component/project/ProjectListPage";
-import ProjectDetail from "./component/ProjectDetail/ProjectDetail";
+import ProjectDashBoard from "./component/projectDashBoard/ProjectDashBoard";
 import AiReport from "./component/report/AiReportPage";
 
 function App() {
@@ -13,7 +13,7 @@ function App() {
       <Route element={<TopNav/>}>
         <Route path={'/login'} element={<Login/>}/>
         <Route path={'/projectList'} element={<ProjectList/>}/>
-        <Route path={'/projectDetail'} element={<ProjectDetail/>}/>
+        <Route path={'/projectDetail'} element={<ProjectDashBoard/>}/>
         <Route path={'/aiReport'} element={<AiReport/>}/>
       </Route>
     </Routes>
