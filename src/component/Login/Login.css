@@ -1,0 +1,90 @@
+/* 전체 페이지 배경 (이미지처럼 흰색 배경이나 아주 연한 회색) */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f8f9fa; /* 배경색은 필요에 따라 변경하세요 */
+}
+
+/* 로그인 카드 박스 */
+.login-container {
+  background-color: white;
+  width: 400px;
+  padding: 50px 40px;
+  border-radius: 20px; /* 둥근 모서리 */
+  border: 1px solid #ddd; /* 외곽선 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* "로그인" 타이틀 */
+.login-title {
+  margin-bottom: 30px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 폼 레이아웃 */
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* 입력창 사이 간격 */
+  margin-bottom: 25px;
+}
+
+/* 입력창 (아이디, 비밀번호) */
+.login-input {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 50px; /* 완전 둥근 알약 모양 */
+  border: 1px solid #333; /* 검은색 테두리 */
+  font-size: 1rem;
+  box-sizing: border-box; /* 패딩 포함 크기 계산 */
+  outline: none;
+}
+
+.login-input:focus {
+  border-color: #007bff; /* 포커스 시 색상 변경 (선택사항) */
+}
+
+/* 로그인 버튼 */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 50px; /* 완전 둥근 알약 모양 */
+  background-color: white;
+  border: 1px solid #333;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+.login-btn:hover {
+  background-color: #f0f0f0; /* 호버 시 약간 어둡게 */
+}
+
+/* 하단 텍스트 (계정이 없으신가요?) */
+.login-footer {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* 회원가입 링크 (분홍색) */
+.regist-link {
+  color: #ff69b4; /* 핫핑크 색상 */
+  font-weight: bold;
+  text-decoration: none; /* 밑줄 제거 */
+  margin-left: 5px;
+}
+
+.regist-link:hover {
+  text-decoration: underline; /* 호버 시 밑줄 */
+}
