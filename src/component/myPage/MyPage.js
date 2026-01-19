@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './MyPage.css';
 
 function MyPage() {
     const [activeTab, setActiveTab] = useState('profile');
+    const navigate = useNavigate();
 
     const renderContent = () => {
         switch (activeTab) {
@@ -18,7 +20,7 @@ function MyPage() {
                                 <span className="user-name">사용자 이름</span>
                                 <span className="user-email">user@example.com</span>
                             </div>
-                            <button className="btn-edit">프로필 편집</button>
+                            <button className="btn-edit" onClick={() => navigate('/modProfile')}>프로필 편집</button>
                         </div>
                         
                         <div className="form-group">
