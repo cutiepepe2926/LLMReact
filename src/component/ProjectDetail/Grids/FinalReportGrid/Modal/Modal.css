@@ -1,0 +1,120 @@
+/* 선택 버튼 */
+.fr-select-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+
+    padding: 10px 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.fr-select-btn:hover { border-color: var(--primary-blue); }
+
+.fr-select-btn--danger:hover { border-color: #e74c3c; }
+
+.fr-caret { font-size: 12px; opacity: 0.7; }
+
+/* 모달 */
+.fr-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.fr-modal {
+    width: min(520px, calc(100% - 32px));
+    background: var(--white);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.fr-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.fr-modal-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 6px 8px;
+}
+
+.fr-modal-body { padding: 14px 16px; }
+
+.fr-modal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.fr-modal-item {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.fr-modal-item:hover { border-color: var(--primary-blue); }
+
+.fr-modal-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.fr-modal-ok {
+    background: var(--primary-blue);
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.fr-check-list {
+    display: grid;
+    gap: 10px;
+}
+
+.fr-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--white);
+}
+
+.fr-check-item:hover {
+    border-color: var(--primary-blue);
+}
+
+.fr-check-item input {
+    width: 16px;
+    height: 16px;
+}

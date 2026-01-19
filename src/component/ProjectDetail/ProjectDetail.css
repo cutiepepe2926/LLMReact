@@ -1,0 +1,17 @@
+/* 기본 변수 설정 */
+:root {
+    --primary-blue: #3b82f6;
+    --bg-gray: #f8f9fa;
+    --border-color: #e5e7eb;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --white: #ffffff;
+}
+
+.dashboard-container {
+    min-height: 100vh;
+    background-color: var(--bg-gray);
+    padding: 24px;
+    font-family: 'Pretendard', sans-serif;
+    color: var(--text-main);
+}

@@ -1,0 +1,77 @@
+/* --- 최종 리포트 --- */
+.final-report-card {
+    grid-column: 1 / -1;
+    padding: 10px; /* meta에 padding 줄 거라 카드 padding 제거 */
+}
+
+/* meta: 100% 채우고 좌우 여백 + 양끝 정렬 */
+.final-report-meta {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    box-sizing: border-box;
+
+    padding: 18px 22px; /* 좌우 여백 */
+    border-bottom: 1px solid var(--border-color);
+}
+
+.final-report-meta-right {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* body: grid + 버튼을 우측 하단으로 보내기 위해 row 하나 확보 */
+.final-report-body {
+    padding: 22px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 28px;
+    align-items: start;
+}
+
+/* 기존 */
+.final-report-step {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.final-report-source {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 버튼: body 안에서 우측 하단 */
+.final-report-actions {
+    grid-column: 2;          /* 오른쪽 컬럼에 두고 */
+    justify-self: end;       /* 오른쪽 끝 */
+    align-self: end;         /* 아래 끝 */
+    margin-top: 8px;
+}
+
+.final-report-btn {
+    background: var(--primary-blue);
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.fr-project-input {
+    width: min(360px, 100%);
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    outline: none;
+    background: var(--white);
+}
+
+.fr-project-input:focus {
+    border-color: var(--primary-blue);
+}
