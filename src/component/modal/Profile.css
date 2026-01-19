@@ -1,0 +1,77 @@
+.profile-modal {
+  position: absolute;
+  top: 120%; /* 프로필 버튼 바로 아래 위치 (간격 조절 가능) */
+  right: 0;   /* 버튼의 오른쪽 라인에 맞춤 */
+  width: 250px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-modal-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+}
+
+.profile-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+}
+
+.profile-email {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.profile-menu {
+  padding: 8px 0;
+}
+
+.profile-menu-item {
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profile-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.profile-menu-item.logout {
+  color: #e02424;
+}
+
+.divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 4px 0;
+}
