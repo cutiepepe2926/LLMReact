@@ -32,7 +32,7 @@ export default function TopNav() {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [profileRef]);
+    }, []);
 
     return (
         <> 
