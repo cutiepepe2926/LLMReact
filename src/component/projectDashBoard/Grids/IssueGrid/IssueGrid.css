@@ -1,0 +1,117 @@
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    width: 100%;
+}
+
+.issue-grid-wrap {
+    position: relative; /* 내부 레이아웃 기준 */
+    width: 100%;
+    padding: 0;
+    min-height: 520px;
+}
+
+/* 3컬럼 그리드 */
+.issue-columns {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+}
+
+/* 컬럼 박스 */
+.issue-col {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.issue-col-title {
+    margin: 0 0 14px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.issue-col-body {
+    display: grid;
+    gap: 14px;
+}
+
+/* 카드 */
+.issue-card {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.issue-card-top {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.issue-id {
+    color: #ef4444;
+    font-weight: 800;
+}
+
+.issue-title {
+    font-weight: 700;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.issue-card-bottom {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.issue-updated {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* 우측 하단 플로팅 버튼 */
+.issue-fab {
+    position: fixed; /* 화면 우측 하단 고정 */
+    right: 28px;
+    bottom: 28px;
+
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+
+    background: #22c55e;
+    color: #0b2a12;
+    font-size: 28px;
+    line-height: 56px;
+    text-align: center;
+
+    z-index: 9999; /* 다른 css보다 맨 앞 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.issue-fab:active {
+    transform: translateY(1px);
+}
+
+/* 반응형: 화면 좁으면 1~2열로 */
+/*@media (max-width: 1100px) {*/
+/*    .issue-columns {*/
+/*        grid-template-columns: 1fr;*/
+/*    }*/
+/*}*/

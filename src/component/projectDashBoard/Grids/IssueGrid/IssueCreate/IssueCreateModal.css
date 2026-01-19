@@ -1,0 +1,143 @@
+.issue-create-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+}
+
+.issue-create-modal {
+    width: 720px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+    padding: 24px 26px;
+}
+
+.issue-create-title {
+    margin: 0 0 18px 0;
+    font-size: 24px;
+    font-weight: 900;
+    text-align: center;
+}
+
+.issue-create-row {
+    margin-top: 14px;
+}
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.three-col {
+    display: grid;
+    grid-template-columns: 1.3fr 0.8fr 0.8fr;
+    gap: 18px;
+}
+
+.field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.field-input {
+    width: 90%;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    padding: 0 12px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.field-input:disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.field-textarea {
+    width: 100%;
+    height: 120px;
+    resize: none;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn {
+    height: 38px;                 /* 추가 */
+    padding: 0 14px;              /* 기존 padding 대신 세로 0 */
+    display: inline-flex;         /* 추가 */
+    align-items: center;          /* 추가 */
+    justify-content: center;      /* 추가 */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    box-sizing: border-box;
+}
+.btn.gray {
+    background: #e5e7eb;
+}
+
+.btn.gray:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn.select {
+    width: 100%;
+    background: #e5e7eb;
+    text-align: center;
+}
+
+.btn.primary {
+    background: #2563eb;
+    color: #fff;
+    flex: 1;
+}
+
+.btn.danger {
+    background: #ef4444;
+    color: #fff;
+    flex: 1;
+}
+
+.issue-create-actions {
+    margin-top: 18px;
+    display: flex;           /* 같은 가로선 */
+    gap: 14px;
+}
+
+.field-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-dash {
+    font-weight: 900;
+    color: #6b7280;
+}

@@ -15,3 +15,11 @@
     font-family: 'Pretendard', sans-serif;
     color: var(--text-main);
 }
+
+/* Issue 탭에서만 dashboard-grid의 3칸 규칙을 뚫고 전체 폭으로 확장 */
+.issue-grid-only {
+    grid-column: 1 / -1;   /* 부모가 grid여도 "전체 칸" 먹기 */
+    width: 100%;
+    padding: 0 25px;       /* 좌우 공백 25px */
+    box-sizing: border-box;
+}
