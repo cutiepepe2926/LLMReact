@@ -1,12 +1,19 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./ProjectHeader.css";
 
 export default function ProjectHeader({
       title = "프로젝트 제목입니다",
       dDay = 10,
       periodText = "기간: 2026.01.01 ~ 2026.02.02",
-      onClickAiReport,
     }) {
+
+    const navigate = useNavigate();
+
+    const onClickAiReport = () => {
+        navigate("/aiReport");
+    }
+
     return (
         <section className="project-header">
             <div>

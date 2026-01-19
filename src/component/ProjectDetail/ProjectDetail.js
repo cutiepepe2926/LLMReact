@@ -4,8 +4,11 @@ import TabMenu from "../TabMenu/TabMenu";
 import DashboardGrid from "./Grids/DashBoardGrid/DashBoardGrid";
 import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid";
 import './ProjectDetail.css';
+import {useNavigate} from "react-router-dom";
 
 function ProjectDetail() {
+
+    const navigate = useNavigate();
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -31,6 +34,7 @@ function ProjectDetail() {
         <div className="dashboard-container">
 
             {/* 2. 프로젝트 헤더 */}
+            <button onClick={() => navigate(-1)} style={{ marginRight: '10px', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.2rem' }}>←</button>
             <ProjectHeader
                 title="프로젝트 제목입니다"
                 dDay={10}
