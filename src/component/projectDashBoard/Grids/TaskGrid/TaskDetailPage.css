@@ -1,0 +1,243 @@
+/* 전체 페이지 컨테이너 */
+.task-detail-page {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 100%;
+    background-color: #f5f6f8;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 헤더 --- */
+.detail-header {
+    padding: 16px 32px;
+    background-color: #fff;
+    border-bottom: 1px solid #dfe1e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.header-left { display: flex; align-items: center; gap: 16px; }
+.back-btn { 
+    background: none; border: none; font-size: 0.9rem; font-weight: 600; 
+    color: #5e6c84; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: 0.2s; 
+}
+.back-btn:hover { background-color: #ebecf0; color: #172b4d; }
+.divider { width: 1px; height: 16px; background: #dfe1e6; display: block; }
+.task-key { font-size: 0.85rem; color: #0052cc; font-weight: bold; background: #deebff; padding: 2px 6px; border-radius: 3px; }
+.task-title { margin: 0; font-size: 1.4rem; color: #172b4d; font-weight: 700; letter-spacing: -0.5px; }
+
+.header-right { display: flex; align-items: center; gap: 12px; }
+/* 상태 토글 (가장 오른쪽 강조) */
+.status-select { 
+    padding: 8px 12px; 
+    border: 1px solid #dfe1e6; 
+    border-radius: 4px; 
+    font-weight: 700; 
+    color: #42526e; 
+    cursor: pointer; 
+    background-color: #f4f5f7;
+    transition: 0.2s;
+    min-width: 120px;
+}
+.status-select:hover { background-color: #ebecf0; }
+.action-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+.btn-action { 
+    padding: 8px 16px;
+    border: 1px solid #dfe1e6; 
+    border-radius: 4px; 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    background: white; 
+    color: #42526e; 
+    white-space: nowrap; /* 글씨 줄바꿈 방지 */
+    transition: 0.2s;
+}
+.btn-action:hover { background-color: #ebecf0; }
+.btn-action.delete:hover { background-color: #ffebe6; color: #de350b; border-color: #ffbdad; }
+.btn-action.delete { color: #de350b; }
+.btn-action.delete:hover { background-color: #ffebe6; border-color: #ffbdad; }
+
+/* 구분선 스타일 */
+.vertical-divider {
+    width: 1px;
+    height: 24px;
+    background: #dfe1e6;
+}
+/* --- 본문 (3단 레이아웃) --- */
+.detail-body {
+    flex: 1;
+    display: flex;
+    padding: 24px 32px;
+    gap: 24px;
+    overflow-y: auto; /* 세로 스크롤 */
+}
+
+/* 패널 공통 */
+.detail-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; 
+}
+
+/* [왼쪽 패널] - 기본 정보 */
+.left-panel { flex: 0 0 280px; } 
+
+/* 카드 디자인 적용 */
+.info-card {
+    background: white; border: 1px solid #dfe1e6; border-radius: 8px;
+    padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.panel-title { font-size: 0.9rem; font-weight: 700; color: #172b4d; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.info-item { margin-bottom: 16px; }
+.info-item:last-child { margin-bottom: 0; }
+.info-item label { display: block; font-size: 0.75rem; font-weight: 700; color: #6b778c; margin-bottom: 6px; }
+
+.user-badge-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.user-badge { 
+    display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; color: #172b4d; 
+    background: #f4f5f7; padding: 4px 8px 4px 4px; border-radius: 16px; 
+}
+.avatar { width: 24px; height: 24px; background: #0052cc; color: white; border-radius: 50%; font-size: 0.7rem; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+
+.date-text { font-size: 0.9rem; color: #172b4d; font-weight: 500; }
+
+.priority-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; }
+.priority-badge.high { background: #ffebe6; color: #de350b; }
+.priority-badge.medium { background: #fffae6; color: #b65c02; }
+.priority-badge.low { background: #e3fcef; color: #006644; }
+
+.branch-badge { 
+    background: #e9f2ff; color: #0052cc; padding: 6px 10px; border-radius: 4px; 
+    font-family: 'Courier New', monospace; font-size: 0.85rem; display: inline-block; border: 1px solid #b3d4ff;
+}
+
+.desc-text { 
+    font-size: 0.9rem; line-height: 1.6; color: #172b4d; 
+    background: #f9f9f9; padding: 12px; border-radius: 6px; border: 1px solid #f0f0f0; 
+}
+
+
+/* [중앙 패널] - 작업 영역 */
+.center-panel { flex: 1; min-width: 0; } 
+
+/* 섹션 블록 디자인 */
+.section-block {
+    background: white; border: 1px solid #dfe1e6; border-radius: 8px;
+    padding: 20px; margin-bottom: 16px; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.section-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f4f5f7; 
+}
+.section-header h4 { margin: 0; font-size: 1rem; font-weight: 700; color: #172b4d; display: flex; align-items: center; gap: 8px; }
+
+.text-btn { background: none; border: none; color: #0052cc; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+.text-btn:hover { text-decoration: underline; }
+
+.checklist-container { display: flex; flex-direction: column; gap: 4px; }
+.check-item { 
+    display: flex; align-items: center; gap: 10px; padding: 10px; 
+    border-radius: 6px; transition: 0.2s; cursor: pointer; border: 1px solid transparent;
+}
+.check-item:hover { background: #f4f5f7; border-color: #dfe1e6; }
+.check-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #0052cc; cursor: pointer; }
+.check-item span { font-size: 0.95rem; color: #172b4d; }
+
+
+/* [우측 패널] - 로그 */
+.right-panel { flex: 0 0 260px; }
+.log-card {
+    background: white; border: 1px solid #dfe1e6; border-radius: 8px;
+    padding: 20px; height: 100%; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.timeline { margin-top: 10px; display: flex; flex-direction: column; gap: 0; }
+.timeline-item { 
+    position: relative; padding-left: 24px; padding-bottom: 24px; 
+}
+.timeline-item::before { 
+    content: ''; position: absolute; left: 7px; top: 18px; bottom: 0; 
+    width: 2px; background: #ebecf0; 
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item:last-child::before { display: none; }
+
+.timeline-item .dot { 
+    position: absolute; left: 0; top: 4px; width: 12px; height: 12px; 
+    background: #fff; border: 2px solid #0052cc; border-radius: 50%; z-index: 1; 
+}
+
+.content { font-size: 0.85rem; color: #172b4d; line-height: 1.4; }
+.content .time { display: block; font-size: 0.75rem; color: #6b778c; margin-top: 4px; }
+
+/* --- 체크리스트 스타일 --- */
+.checklist-input-row {
+    display: flex; gap: 8px; margin-bottom: 8px;
+}
+.checklist-input-row input {
+    flex: 1; padding: 8px; border: 1px solid #dfe1e6; border-radius: 4px;
+}
+.checklist-input-row button {
+    padding: 0 12px; border: 1px solid #dfe1e6; background: white; border-radius: 4px; cursor: pointer;
+}
+.checklist-input-row button.cancel { color: #de350b; border-color: transparent; }
+
+.check-item.completed span {
+    text-decoration: line-through; color: #999;
+}
+.empty-state {
+    color: #888; font-size: 0.9rem; text-align: center; padding: 20px 0; background: #f9f9f9; border-radius: 6px;
+}
+
+/* --- 댓글 섹션 스타일 --- */
+.comment-list {
+    display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;
+    max-height: 300px; overflow-y: auto; /* 댓글 많아지면 스크롤 */
+}
+
+.comment-item {
+    display: flex; gap: 12px;
+}
+.comment-avatar {
+    width: 32px; height: 32px; background: #ebecf0; color: #5e6c84;
+    border-radius: 50%; display: flex; justify-content: center; align-items: center;
+    font-weight: bold; flex-shrink: 0;
+}
+.comment-bubble {
+    background: #f4f5f7; padding: 10px 14px; border-radius: 0 12px 12px 12px; flex: 1;
+}
+.comment-meta {
+    display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.8rem;
+}
+.user-name { font-weight: 700; color: #172b4d; }
+.time { color: #6b778c; }
+.comment-text { font-size: 0.9rem; color: #172b4d; line-height: 1.5; white-space: pre-wrap; }
+
+/* 댓글 입력창 */
+.comment-input-area {
+    display: flex; gap: 10px; border-top: 1px solid #f4f5f7; padding-top: 16px;
+}
+.comment-input-area textarea {
+    flex: 1; height: 40px; padding: 10px; border: 1px solid #dfe1e6; border-radius: 6px;
+    resize: none; font-family: inherit; font-size: 0.9rem;
+}
+.comment-input-area textarea:focus { outline: 2px solid #0052cc; border-color: transparent; }
+
+.btn-send {
+    height: 40px; padding: 0 20px; background: #0052cc; color: white; border: none; 
+    border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s;
+}
+.btn-send:hover { background: #0747a6; }
