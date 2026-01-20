@@ -6,7 +6,7 @@ import {MEMBER_DEMO_LIST} from "./MemberSettingsGridDemoData";
 import "./MemberSettingsGrid.css";
 
 
-export default function MemberSettingsGrid({ members = [] }) {
+export default function MemberSettingsGrid() {
 
     const [activeSub, setActiveSub] = useState("members");
 
