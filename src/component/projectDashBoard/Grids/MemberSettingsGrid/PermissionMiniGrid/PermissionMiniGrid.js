@@ -23,6 +23,7 @@ export default function PermissionMiniGrid({ onCancel }) {
     const [open, setOpen] = React.useState(false);
 
     const toggle = (permKey, role) => {
+        if (role === "OWNER") return;
         setMatrix((prev) => ({
             ...prev,
             [permKey]: {
@@ -56,8 +57,9 @@ export default function PermissionMiniGrid({ onCancel }) {
                                     <div key={r} className="pmg-center">
                                         <button
                                             type="button"
-                                            className={`pmg-check ${matrix[p.key][r] ? "on" : "off"}`}
+                                            className={`pmg-check ${matrix[p.key][r] ? "on" : "off"} ${r === "OWNER" ? "locked" : ""}`}
                                             onClick={() => toggle(p.key, r)}
+                                            disabled={r === "OWNER"}
                                             aria-label={`${p.label} - ${r}`}
                                         >
                                             {matrix[p.key][r] ? "✓" : "✕"}

@@ -70,3 +70,72 @@
     color: rgba(0,0,0,0.35);
     font-weight: 900;
 }
+
+.mm-role-btn{
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+/* ===== Modal ===== */
+.mm-modal-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.mm-modal{
+    width: min(320px, 90vw);
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid rgba(0,0,0,0.12);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+    text-align: center;
+}
+
+.mm-modal-title{
+    font-weight: 900;
+    margin-bottom: 10px;
+}
+
+.mm-modal-body{
+    font-weight: 700;
+    display: grid;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.mm-modal-role{
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+}
+
+.mm-radio{
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    font-weight: 900;
+}
+
+.mm-modal-actions{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.mm-modal-btn{
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 900;
+    background: rgba(0,0,0,0.06);
+}

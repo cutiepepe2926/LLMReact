@@ -1,0 +1,60 @@
+.nig-card {
+    width: 100%;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 14px;
+    background: #fff;
+    padding: 18px 20px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+.nig-section-title {
+    font-weight: 900;
+    margin: 8px 0 14px;
+}
+
+.nig-row {
+    display: grid;
+    grid-template-columns: 160px auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.nig-label {
+    font-weight: 800;
+}
+
+.nig-toggle {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 900;
+    padding: 6px 10px;
+    border-radius: 10px;
+}
+
+.nig-toggle.on {
+    color: rgba(0,0,0,0.9);
+}
+
+.nig-toggle.off {
+    color: rgba(0,0,0,0.6);
+}
+
+.nig-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.10);
+    margin: 18px 0;
+}
+
+.nig-status {
+    font-weight: 900;
+}
+
+.nig-status.on {
+    color: #16a34a; /* CONNECTED 초록 */
+}
+
+.nig-status.off {
+    color: #ef4444;
+}

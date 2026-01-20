@@ -4,6 +4,7 @@ import MemberMiniGrid from "./MemberMiniGrid/MemberMiniGrid";
 import PermissionMiniGrid from "./PermissionMiniGrid/PermissionMiniGrid";
 import {MEMBER_DEMO_LIST} from "./MemberSettingsGridDemoData";
 import "./MemberSettingsGrid.css";
+import NotifyIntegrationMiniGrid from "./NotifyIntegrationMiniGrid/NotifyIntegrationMiniGrid";
 
 
 export default function MemberSettingsGrid() {
@@ -41,9 +42,7 @@ export default function MemberSettingsGrid() {
                     <div className="ms-empty">프로젝트 설정 그리드(추가 예정)</div>
                 )}
 
-                {activeSub === "notify" && (
-                    <div className="ms-empty">알림/연동 설정 그리드(추가 예정)</div>
-                )}
+                {activeSub === "notify" && <NotifyIntegrationMiniGrid />}
 
                 {activeSub === "security" && (
                     <PermissionMiniGrid onCancel={() => setActiveSub("members")} />
