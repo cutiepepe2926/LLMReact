@@ -39,3 +39,52 @@
     font-size: 1.1rem;
     cursor: pointer;
 }
+
+.ai-report-btn-glow {
+    background: linear-gradient(135deg, #58A6FF 0%, #2563EB 100%);
+    color: white;
+    border: none;
+    
+    padding: 12px 24px;
+    border-radius: 12px; /* 조금 더 둥글게 */
+    
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    
+    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 부드러운 애니메이션 */
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-report-btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(88, 166, 255, 0.6);
+    background: linear-gradient(135deg, #6ab0ff 0%, #3570f0 100%); /* 살짝 더 밝게 */
+}
+
+.ai-report-btn-glow:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(88, 166, 255, 0.4);
+}
+
+.ai-report-btn-glow::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes shine {
+    0% { left: -100%; opacity: 0; }
+    50% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+}

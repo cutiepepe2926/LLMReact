@@ -1,0 +1,191 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+
+:root {
+    --primary-color: #58A6FF;
+    --primary-soft: rgba(88, 166, 255, 0.12);
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --text-label: #9CA3AF;
+    --bg-sidebar: #FFFFFF;
+    --border-color: #E5E7EB;
+}
+
+/* 전체 컨테이너 */
+.sidebar-container {
+    width: 260px;
+    height: 100vh;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    z-index: 1000;
+    font-family: 'Pretendard', sans-serif;
+    box-sizing: border-box;
+}
+
+/* 1. 로고 */
+.sidebar-brand {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+}
+
+.brand-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #111;
+    letter-spacing: -0.5px;
+}
+
+/* 2. 프로젝트 카드 */
+.project-context-card {
+    margin: 12px 16px 8px 16px;
+    padding: 12px;
+    background-color: #FAFAFA;
+    border: 1px solid #F3F4F6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.context-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #58A6FF 0%, #2563EB 100%);
+    color: white;
+    border-radius: 6px;
+    display: flex; justify-content: center; align-items: center;
+    font-weight: 700; font-size: 1rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(88, 166, 255, 0.25);
+}
+
+.context-info {
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+.context-label { font-size: 0.7rem; color: #9CA3AF; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
+.context-title { font-size: 0.9rem; font-weight: 700; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 3. 메뉴 리스트 */
+.sidebar-menu {
+    flex: 1;
+    padding: 8px 12px;
+    overflow-y: auto;
+}
+
+.menu-section-label {
+    padding: 16px 12px 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-label);
+    letter-spacing: 0.5px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-bottom: 2px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+    background-color: #F9FAFB;
+    color: #111;
+    transform: translateX(4px);
+}
+
+.menu-item.active {
+    background-color: var(--primary-soft);
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.menu-item.back-btn {
+    margin-bottom: 12px;
+    color: #9CA3AF;
+}
+.menu-item.back-btn:hover { transform: none; color: var(--primary-color); }
+
+.menu-icon-box {
+    display: flex; align-items: center; justify-content: center;
+    width: 20px;
+    opacity: 0.8;
+}
+.menu-item.active .menu-icon-box { opacity: 1; }
+
+/* 4. 유저 프로필 */
+.sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+    background-color: #FFFFFF;
+}
+
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.user-card:hover {
+    background-color: #F9FAFB;
+    border-color: #F3F4F6;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.user-avatar {
+    width: 36px; height: 36px;
+    background-color: #EBF5FF;
+    color: #58A6FF;
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    font-weight: 700;
+    position: relative;
+    border: 1px solid rgba(88, 166, 255, 0.2);
+}
+
+.status-dot {
+    position: absolute; bottom: 0; right: 0;
+    width: 10px; height: 10px;
+    background-color: #10B981;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.user-meta {
+    flex: 1;
+    display: flex; flex-direction: column; gap: 2px;
+}
+
+.user-name { font-size: 0.9rem; font-weight: 700; color: #374151; }
+.user-git-status { 
+    display: flex; align-items: center; gap: 4px; 
+    font-size: 0.75rem; color: #6B7280; 
+}
+.user-git-status svg { width: 12px; height: 12px; }
+
+.footer-setting-btn {
+    background: none; border: none;
+    color: #D1D5DB; cursor: pointer;
+    padding: 4px;
+    display: flex; align-items: center;
+}
+.user-card:hover .footer-setting-btn { color: var(--text-secondary); }

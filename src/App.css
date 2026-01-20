@@ -1,11 +1,12 @@
 /* 기본 변수 설정 */
 :root {
-  --primary-blue: #3b82f6;
-  --bg-gray: #f8f9fa;
-  --border-color: #e5e7eb;
-  --text-main: #1f2937;
-  --text-muted: #6b7280;
-  --white: #ffffff;
+    --primary-color: #58A6FF;
+    --success-color: #2da44e;
+    --danger-color: #cf222e;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --bg-card: #ffffff;
+    --border-color: #e5e7eb;
 }
 
 .dashboard-container {
@@ -19,7 +20,7 @@
 /* --- 그리드 레이아웃 --- */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 24px;
 }
 
