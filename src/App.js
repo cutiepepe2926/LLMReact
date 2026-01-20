@@ -5,6 +5,8 @@ import Login from "./component/login/Login";
 import ProjectList from "./component/project/ProjectListPage";
 import ProjectDashBoard from "./component/projectDashBoard/ProjectDashBoard";
 import AiReport from "./component/report/AiReportPage";
+import FinalReportCreatePage
+    from "./component/projectDashBoard/Grids/FinalReportGrid/FinalReportCreatePage/FinalReportCreatePage";
 
 function App() {
 
@@ -15,6 +17,7 @@ function App() {
         <Route path={'/projectList'} element={<ProjectList/>}/>
         <Route path={'/projectDetail'} element={<ProjectDashBoard/>}/>
         <Route path={'/aiReport'} element={<AiReport/>}/>
+        <Route path={'/final-report/create'} element={<FinalReportCreatePage/>}/>
       </Route>
     </Routes>
   );

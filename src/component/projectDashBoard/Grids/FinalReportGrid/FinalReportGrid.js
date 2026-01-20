@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import ChoiceModal from "./Modal/ChoiceModal";
 import useFinalReportForm from "./useFinalReportForm";
 import "./FinalReportGrid.css";
@@ -7,7 +8,17 @@ import "./Modal/Modal.css"
 export default function FinalReportGrid() {
 
     const f = useFinalReportForm();
-
+    const navigate = useNavigate();
+    const goCreatePage = () => {
+        navigate("/final-report/create", {
+            state: {
+                projectName: f.projectName,
+                template: f.template,
+                sections: f.sections,
+                sources: f.sources,
+            },
+        });
+    };
 
     return (
         <section className="card final-report-card">
@@ -53,7 +64,7 @@ export default function FinalReportGrid() {
 
                 {/* 버튼: 우측 하단으로 갈 액션 영역 */}
                 <div className="final-report-actions">
-                    <button className="final-report-btn" type="button">
+                    <button className="final-report-btn" type="button" onClick={goCreatePage}>
                         최종 리포트 생성
                     </button>
                 </div>
