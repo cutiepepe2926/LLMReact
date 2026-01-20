@@ -1,0 +1,23 @@
+/* list/IssueFilterBar.css */
+.issue-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid #ededed;
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+.filter-pill {
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.filter-pill b {
+    font-weight: 700;
+}

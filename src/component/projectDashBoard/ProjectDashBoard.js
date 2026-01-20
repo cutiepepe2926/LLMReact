@@ -3,11 +3,10 @@ import ProjectHeader from "../projectHeader/ProjectHeader";
 import TabMenu from "../TabMenu/TabMenu";
 import DashboardGrid from "./Grids/DashBoardGrid/DashBoardGrid";
 import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid";
-import IssueGrid from "./Grids/IssueGrid/IssueGrid";
-
-import './ProjectDashBoard.css';
 import {useNavigate} from "react-router-dom";
 import MemberSettingsGrid from "./Grids/MemberSettingsGrid/MemberSettingsGrid";
+import IssueTrackerView from "./Grids/IssueViewGrid/IssueTrackerView";
+import './ProjectDashBoard.css';
 
 function ProjectDashBoard() {
 
@@ -27,7 +26,7 @@ function ProjectDashBoard() {
     const TAB_COMPONENTS = {
         dashboard: DashboardGrid,
         task: DashboardGrid,
-        issue: IssueGrid,
+        issue: IssueTrackerView,
         report: DashboardGrid,
         finalReport: FinalReportGrid,
         memberSettings: MemberSettingsGrid,
@@ -54,7 +53,7 @@ function ProjectDashBoard() {
             {/* 4. 대시보드 메인 그리드 */}
             {activeTab === "issue" || activeTab === "memberSettings" ? (
                 <div className="issue-grid-only">
-                    {activeTab === "issue" ? <IssueGrid /> : <MemberSettingsGrid />}
+                    {activeTab === "issue" ? <IssueTrackerView /> : <MemberSettingsGrid />}
                 </div>
             ) : (
                 <main className="dashboard-grid">

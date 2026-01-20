@@ -1,0 +1,46 @@
+/* list/IssueListPage.css */
+.issue-list-top{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.issue-back-btn{
+    border:1px solid #ddd;
+    background:#fff;
+    border-radius:8px;
+    padding:6px 10px;
+    cursor:pointer;
+}
+
+.issue-list-title{
+    font-weight:700;
+}
+
+
+.issue-list-page {
+    width: 100%;
+    padding: 18px;
+}
+
+.issue-list-panel {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.issue-list-grid {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.issue-empty {
+    grid-column: 1 / -1;
+    padding: 24px;
+    text-align: center;
+    color: #666;
+}

@@ -1,0 +1,77 @@
+/* modal/DateRangeModal.css */
+.drm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.drm-modal {
+    width: 360px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e6e6e6;
+    padding: 14px;
+}
+
+.drm-title {
+    margin: 0;
+    font-size: 16px;
+}
+
+.drm-body {
+    margin-top: 10px;
+    display: grid;
+    gap: 10px;
+}
+
+.drm-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.drm-label {
+    font-size: 14px;
+    color: #444;
+}
+
+.drm-input {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+.drm-hint {
+    font-size: 12px;
+    color: #777;
+}
+
+.drm-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.drm-btn {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.drm-btn.primary {
+    border-color: #2f6fed;
+    background: #2f6fed;
+    color: #fff;
+}
+
+.drm-btn.gray {
+    background: #f5f5f5;
+}
