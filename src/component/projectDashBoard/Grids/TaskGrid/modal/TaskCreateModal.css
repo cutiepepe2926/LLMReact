@@ -1,0 +1,51 @@
+/* 모달 배경 & 애니메이션 */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-content {
+    background: white; padding: 30px; border-radius: 16px; width: 500px; max-width: 90%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+.fade-in-up { animation: fadeInUp 0.3s ease-out; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 헤더 */
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.modal-header h2 { margin: 0; font-size: 1.5rem; color: #111; }
+.close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; }
+
+/* 폼 스타일 */
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 0.95rem; }
+.form-group input[type="text"], .form-group input[type="date"], .form-group textarea {
+    width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 0.95rem; transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: #3b82f6; }
+.form-group textarea { resize: vertical; }
+
+/* 날짜 범위 입력 */
+.date-range-input { display: flex; align-items: center; gap: 10px; }
+.date-range-input input { flex: 1; }
+
+/* 가로 배치용 */
+.form-row { display: flex; gap: 20px; }
+.flex-1 { flex: 1; }
+
+/* 라디오 버튼 그룹 */
+.radio-group { display: flex; gap: 15px; padding: 12px 0; }
+.radio-group label { font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.radio-group input[type="radio"] { accent-color: #3b82f6; }
+
+/* 브랜치 입력 */
+.branch-input-group { position: relative; }
+.branch-input-group input { padding-left: 36px !important; font-family: 'Courier New', monospace; }
+.branch-input-group .git-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; }
+
+/* 푸터 버튼 */
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; }
+.cancel-btn, .submit-btn { padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+.cancel-btn { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+.submit-btn { background: #3b82f6; color: white; border: none; }
+.submit-btn:hover { background: #2563eb; }

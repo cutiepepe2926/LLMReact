@@ -2,6 +2,7 @@ import React from 'react';
 import ProjectHeader from "../projectHeader/ProjectHeader";
 import TabMenu from "../TabMenu/TabMenu";
 import DashboardGrid from "./Grids/DashBoardGrid/DashBoardGrid";
+import TaskBoard from "./Grids/TaskGrid/TaskBoard";
 import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid";
 import {useNavigate} from "react-router-dom";
 import MemberSettingsGrid from "./Grids/MemberSettingsGrid/MemberSettingsGrid";
@@ -25,8 +26,8 @@ function ProjectDashBoard() {
 
     const TAB_COMPONENTS = {
         dashboard: DashboardGrid,
-        task: DashboardGrid,
         issue: IssueTrackerView,
+        task: TaskBoard,
         report: DashboardGrid,
         finalReport: FinalReportGrid,
         memberSettings: MemberSettingsGrid,
