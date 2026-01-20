@@ -1,18 +1,22 @@
 // src/component/memberSettingsGrid/MemberSettingsGrid.js
 import React, {useState} from "react";
 import MemberMiniGrid from "./MemberMiniGrid/MemberMiniGrid";
-import "./MemberSettingsGrid.css";
+import PermissionMiniGrid from "./PermissionMiniGrid/PermissionMiniGrid";
 import {MEMBER_DEMO_LIST} from "./MemberSettingsGridDemoData";
+import "./MemberSettingsGrid.css";
 
-const SUB_TABS = [
-    { key: "members", label: "멤버 관리 설정" },
-    { key: "project", label: "프로젝트 설정" },
-    { key: "notify", label: "알림/연동 설정" },
-    { key: "security", label: "권한/보안 설정" },
-];
 
-export default function MemberSettingsGrid() {
+export default function MemberSettingsGrid({ members = [] }) {
+
     const [activeSub, setActiveSub] = useState("members");
+
+    const SUB_TABS = [
+        { key: "members", label: "멤버 관리 설정" },
+        { key: "project", label: "프로젝트 설정" },
+        { key: "notify", label: "알림/연동 설정" },
+        { key: "security", label: "권한/보안 설정" },
+    ];
+
     return (
         <section className="ms-wrap">
             {/* 내부 탭 */}
@@ -31,7 +35,7 @@ export default function MemberSettingsGrid() {
 
             {/* 탭 컨텐츠 */}
             <div className="ms-panel">
-                {activeSub === "members" && <MemberMiniGrid member={MEMBER_DEMO_LIST} />}
+                {activeSub === "members" && <MemberMiniGrid members={MEMBER_DEMO_LIST} />}
 
                 {activeSub === "project" && (
                     <div className="ms-empty">프로젝트 설정 그리드(추가 예정)</div>
@@ -42,7 +46,7 @@ export default function MemberSettingsGrid() {
                 )}
 
                 {activeSub === "security" && (
-                    <div className="ms-empty">권한/보안 설정 그리드(추가 예정)</div>
+                    <PermissionMiniGrid onCancel={() => setActiveSub("members")} />
                 )}
             </div>
         </section>
