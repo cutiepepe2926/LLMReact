@@ -3,7 +3,7 @@ import './SignUp.css'; // 아래 작성할 CSS 파일 임포트
 
 function SignUp() {
   // 각 입력 필드의 상태 관리
-  const [name, setName] = useState('');
+  const [id, setId] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -12,7 +12,7 @@ function SignUp() {
   const handleSignUp = (e) => {
     e.preventDefault();
     // 여기에 회원가입 로직 추가 (예: API 호출)
-    console.log('회원가입 시도:', { name, email, password, passwordConfirm });
+    console.log('회원가입 시도:', { id, email, password, passwordConfirm });
   };
 
   return (
@@ -28,9 +28,9 @@ function SignUp() {
           {/* 이름 입력 */}
           <input
             type="text"
-            placeholder="이름"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder="아이디"
+            value={id}
+            onChange={(e) => setId(e.target.value)}
             className="signup-input"
             required
           />
