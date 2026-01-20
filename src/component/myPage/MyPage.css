@@ -208,3 +208,7 @@
     background-color: #dc3545;
     color: #fff;
 }
+
+html {
+  overflow-y: scroll;
+}
