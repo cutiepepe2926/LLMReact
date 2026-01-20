@@ -9,7 +9,6 @@ export default function IssueCard({ item, onClick }) {
             role="button"
             tabIndex={0}
             onClick={(e) => {
-                e.stopPropagation(); // 컬럼 클릭 이벤트로 전파 막기
                 onClick?.(item);
             }}
             onKeyDown={(e) => {

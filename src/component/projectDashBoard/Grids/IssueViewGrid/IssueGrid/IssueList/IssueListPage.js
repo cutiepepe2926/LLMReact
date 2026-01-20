@@ -7,7 +7,7 @@ import "./IssueListPage.css";
 
 const ALL = "ALL";
 
-export default function IssueListPage({ initialStatus = ALL, onBack }) {
+export default function IssueListPage({ initialStatus = ALL, onBack, onOpenDetail }) {
     const [filters, setFilters] = useState({
         status: initialStatus,
         assignee: ALL,
@@ -17,7 +17,7 @@ export default function IssueListPage({ initialStatus = ALL, onBack }) {
         endDate: "",
     });
 
-    // ✅ 컬럼 클릭으로 들어올 때 status를 반영
+    // 컬럼 클릭으로 들어올 때 status를 반영
     useEffect(() => {
         setFilters((prev) => ({ ...prev, status: initialStatus }));
     }, [initialStatus]);
@@ -58,7 +58,10 @@ export default function IssueListPage({ initialStatus = ALL, onBack }) {
 
                 <div className="issue-list-grid">
                     {filtered.map((it) => (
-                        <IssueCard key={`${it.status}-${it.id}`} item={it} onClick={() => console.log(it)} />
+                        <IssueCard
+                            key={`${it.status}-${it.id}`}
+                            item={it}
+                            onClick={() => onOpenDetail?.(it)} />
                     ))}
                 </div>
             </div>

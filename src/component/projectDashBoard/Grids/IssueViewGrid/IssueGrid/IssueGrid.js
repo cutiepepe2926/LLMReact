@@ -5,11 +5,11 @@ import IssueColumn from "./IssueColumn/IssueColumn";
 import IssueCreateModal from "./IssueCreate/IssueCreateModal";
 import "./IssueGrid.css";
 
-export default function IssueGrid({ onOpenList }) {
+export default function IssueGrid({ onOpenList, onOpenDetail }) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     const handleClickIssue = (issue) => {
-        console.log("카드 클릭:", issue);
+        onOpenDetail?.(issue);
     };
 
     return (

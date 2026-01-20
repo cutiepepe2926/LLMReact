@@ -1,0 +1,113 @@
+/* IssueChatModal/IssueChatModal.css */
+.issue-chat-overlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 11000; /* IssueDetail 위로 */
+}
+
+.issue-chat-modal{
+    width: 560px;
+    max-width: calc(100vw - 40px);
+    height: 640px;
+    max-height: calc(100vh - 40px);
+    background:#fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    display:flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.issue-chat-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 12px 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.issue-chat-title{
+    font-weight: 800;
+}
+
+.issue-chat-sub{
+    margin-left: 8px;
+    font-weight: 700;
+    opacity: .7;
+}
+
+.issue-chat-x{
+    border:none; background:transparent;
+    font-size: 22px; cursor:pointer;
+}
+
+.issue-chat-body{
+    flex: 1;
+    padding: 12px;
+    overflow: auto;
+    background: #fafafa;
+}
+
+.chat-row{
+    display:flex;
+    margin: 8px 0;
+}
+
+.chat-row.me{ justify-content: flex-end; }
+.chat-row.other{ justify-content: flex-start; }
+.chat-row.system{ justify-content: center; }
+
+.chat-bubble{
+    max-width: 78%;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 12px;
+}
+
+.chat-row.me .chat-bubble{
+    border-color: #cfe9d3;
+    background: #f3fff5;
+}
+
+.chat-row.system .chat-bubble{
+    max-width: 90%;
+    opacity: .8;
+}
+
+.chat-text{
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 14px;
+}
+
+.chat-time{
+    margin-top: 6px;
+    font-size: 12px;
+    opacity: .6;
+    text-align: right;
+}
+
+.issue-chat-input{
+    display:flex;
+    gap: 10px;
+    padding: 10px 12px;
+    border-top: 1px solid #eee;
+    background:#fff;
+}
+
+.chat-input{
+    flex: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    outline: none;
+}
+
+.chat-send{
+    border:none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor:pointer;
+    background:#18d32a;
+    font-weight: 800;
+}
