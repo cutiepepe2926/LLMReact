@@ -7,6 +7,7 @@ import IssueGrid from "./Grids/IssueGrid/IssueGrid";
 
 import './ProjectDashBoard.css';
 import {useNavigate} from "react-router-dom";
+import MemberSettingsGrid from "./Grids/MemberSettingsGrid/MemberSettingsGrid";
 
 function ProjectDashBoard() {
 
@@ -18,7 +19,7 @@ function ProjectDashBoard() {
         { key: "issue", label: "이슈" },
         { key: "report", label: "AI 리포트" },
         { key: "finalReport", label: "최종 리포트" },
-        { key: "member", label: "멤버"},
+        { key: "memberSettings", label: "멤버/설정"},
     ];
 
     const [activeTab, setActiveTab] = React.useState("dashboard");
@@ -29,7 +30,7 @@ function ProjectDashBoard() {
         issue: IssueGrid,
         report: DashboardGrid,
         finalReport: FinalReportGrid,
-        member: DashboardGrid,
+        memberSettings: MemberSettingsGrid,
     };
 
     const GridContent = TAB_COMPONENTS[activeTab] ?? DashboardGrid;
@@ -51,18 +52,16 @@ function ProjectDashBoard() {
             <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
 
             {/* 4. 대시보드 메인 그리드 */}
-            {/*<main className="dashboard-grid">*/}
-            {/*    <GridContent/>*/}
-            {/*</main>*/}
-            {activeTab === "issue" ? (
+            {activeTab === "issue" || activeTab === "memberSettings" ? (
                 <div className="issue-grid-only">
-                    <IssueGrid />
+                    {activeTab === "issue" ? <IssueGrid /> : <MemberSettingsGrid />}
                 </div>
             ) : (
                 <main className="dashboard-grid">
-                    <GridContent/>
+                    <GridContent />
                 </main>
             )}
+
 
         </div>
     );

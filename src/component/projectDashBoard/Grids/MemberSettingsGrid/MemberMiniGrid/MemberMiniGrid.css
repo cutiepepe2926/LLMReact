@@ -1,0 +1,72 @@
+.mm-card {
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+    width: 100%;
+}
+
+.mm-header-row {
+    display: grid;
+    grid-template-columns: 90px 1.2fr 0.9fr 0.9fr 0.8fr;
+    padding: 14px 16px;
+    font-weight: 900;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    justify-items: center; /* ✅ 각 그리드 칸(셀) 안의 요소를 가로 가운데 */
+    align-items: center;   /* ✅ 세로 가운데 */
+}
+
+.mm-body {
+    padding: 8px 0;
+}
+
+.mm-row {
+    display: grid;
+    grid-template-columns: 90px 1.2fr 0.9fr 0.9fr 0.8fr;
+    align-items: center;
+    padding: 12px 16px;
+    justify-items: center; /* ✅ 각 그리드 칸(셀) 안의 요소를 가로 가운데 */
+    align-items: center;   /* ✅ 세로 가운데 */
+}
+
+.mm-row + .mm-row {
+    border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.mm-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.12);
+    margin-left: 0;
+}
+.mm-avatar.admin { background: #ff2bd6; }
+.mm-avatar.me { background: #5fe7e3; }
+
+.mm-name {
+    font-weight: 800;
+    text-align: center;
+}
+
+.mm-pill {
+    font-weight: 900;
+}
+
+.mm-select {
+    font-weight: 900;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.mm-link {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.mm-disabled {
+    color: rgba(0,0,0,0.35);
+    font-weight: 900;
+}
