@@ -3,6 +3,7 @@ import RoleChangeModal from "./RoleChangeModal/RoleChangeModal";
 import ConfirmModal from "./RoleChangeModal/ConfirmModal";
 import MemberActionModal from "./MemberActionModal/MemberActionModal";
 import "./MemberMiniGrid.css";
+import InviteMemberModal from "./InviteMemberModal/InviteMemberModal";
 
 
 export default function MemberMiniGrid({ members = [] }) {
@@ -16,6 +17,8 @@ export default function MemberMiniGrid({ members = [] }) {
     const [actionModalOpen, setActionModalOpen] = React.useState(false);
     const [actionDoneOpen, setActionDoneOpen] = React.useState(false);
     const [actionLabel, setActionLabel] = React.useState(""); // "추방", "나가기", "초대취소"
+    const [inviteOpen, setInviteOpen] = React.useState(false);
+
 
 
     const openRoleModal = (m) => {
@@ -118,6 +121,15 @@ export default function MemberMiniGrid({ members = [] }) {
                                         [초대취소]
                                     </button>
                                 )}
+                                <button
+                                    type="button"
+                                    className="member-invite"
+                                    onClick={() => setInviteOpen(true)}
+                                    aria-label="멤버 초대"
+                                >
+                                    +
+                                </button>
+
                             </div>
 
                         </div>
@@ -151,6 +163,16 @@ export default function MemberMiniGrid({ members = [] }) {
                 open={actionDoneOpen}
                 message="수행되었습니다."
                 onClose={() => setActionDoneOpen(false)}
+            />
+
+            <InviteMemberModal
+                open={inviteOpen}
+                onClose={() => setInviteOpen(false)}
+                onInvite={(keyword) => {
+                    // 데모: 실제론 API 호출
+                    console.log("invite:", keyword);
+                    setInviteOpen(false);
+                }}
             />
 
         </>

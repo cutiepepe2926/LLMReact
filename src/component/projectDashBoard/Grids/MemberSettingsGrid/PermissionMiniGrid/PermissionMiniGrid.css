@@ -15,14 +15,16 @@
     background: #fff;
     padding: 18px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+
 }
 
 .pmg-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 220px repeat(3, minmax(120px, 1fr));
     gap: 10px 14px;
     align-items: center;
     padding: 8px 4px 16px;
+    width: 100%;
 }
 
 .pmg-head {

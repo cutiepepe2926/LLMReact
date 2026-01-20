@@ -41,8 +41,6 @@ export default function PermissionMiniGrid({ onCancel }) {
     return (
         <>
             <div className="pmg-wrap">
-                <h3 className="pmg-title">역할별 권한 매트릭스 설정</h3>
-
                 <div className="pmg-card">
                     <div className="pmg-grid">
                         <div className="pmg-head pmg-left">권한 항목</div>
