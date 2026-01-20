@@ -31,15 +31,19 @@ export default function IssueFilterBar({ filters, onChange }) {
         { label: "User", value: "User" },
     ]), []);
 
+    const getLabel = (options, value) =>
+        options.find(o => o.value === value)?.label ?? value;
+
+
     return (
         <>
             <div className="issue-filter-bar">
                 <button className="filter-pill" onClick={() => setOpenKey("status")}>
-                    상태 : {filters.status} ▼
+                    상태 : {getLabel(statusOptions, filters.status)} ▼
                 </button>
 
                 <button className="filter-pill" onClick={() => setOpenKey("assignee")}>
-                    담당자 : {filters.assignee} ▼
+                    담당자 : {getLabel(assigneeOptions, filters.assignee)} ▼
                 </button>
 
                 <button className="filter-pill" onClick={() => setOpenKey("date")}>
@@ -47,15 +51,15 @@ export default function IssueFilterBar({ filters, onChange }) {
                 </button>
 
                 <button className="filter-pill" onClick={() => setOpenKey("priority")}>
-                    우선도 : {filters.priority} ▼
+                    우선도 : {getLabel(priorityOptions, filters.priority)} ▼
                 </button>
 
                 <button className="filter-pill" onClick={() => setOpenKey("sort")}>
-                    정렬 : {filters.sort} ▼
+                    정렬 : {getLabel(sortOptions, filters.sort)} ▼
                 </button>
             </div>
 
-            {/* ✅ open은 반드시 boolean */}
+            {/* open은 반드시 boolean */}
             <SelectModal
                 open={openKey === "priority"}
                 title="우선도 선택"
