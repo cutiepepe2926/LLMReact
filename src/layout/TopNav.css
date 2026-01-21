@@ -1,45 +1,123 @@
-/* TopNav.css */
+:root {
+    --header-height: 64px;
+    --primary-color: #58A6FF;
+    --border-color: #E5E7EB;
+}
 
-/* --- 상단 헤더 --- */
 .top-header {
-    height: 60px;
+    height: var(--header-height);
+    background-color: rgba(255, 255, 255, 0.9); /* 살짝 투명 (Glassmorphism) */
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-color);
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    border-bottom: 4px solid rgba(0, 0, 0, 0.18);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-left: 20px;
-    color: var(--primary-blue);
-    font-weight: bold;
-    font-size: 1.25rem;
+/* 좌측 브레드크럼 */
+.header-left {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.9rem; color: #6B7280; font-weight: 500;
+    flex: 1; /* 공간 확보 */
 }
+.breadcrumb-current { color: #111; font-weight: 600; }
 
-.header-right {
+/* 중앙 검색창 */
+.header-center {
+    flex: 2;
     display: flex;
-    align-items: center;
-    gap: 24px;
-    font-size: 0.875rem;
-    color: var(--text-muted);
-}
-
-.icon-group {
-    display: flex;
-    gap: 12px;
-    padding-right: 30px;
-}
-
-.icon-circle {
-    width: 36px;
-    height: 36px;
-    background-color: #eff6ff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
     justify-content: center;
+}
+
+.search-bar-wrapper {
+    width: 100%;
+    max-width: 480px; /* 너무 넓지 않게 */
+    height: 40px;
+    background-color: #F3F4F6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.search-bar-wrapper:focus-within {
+    background-color: #FFF;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+
+.search-bar-wrapper input {
+    flex: 1;
+    background: none; border: none; outline: none;
+    font-size: 0.9rem; color: #1F2937; margin-left: 8px;
+}
+.search-bar-wrapper input::placeholder { color: #9CA3AF; }
+
+/* 우측 유틸리티 */
+.header-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 생성 버튼 */
+.create-btn {
+    display: flex; align-items: center; gap: 6px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 2px 4px rgba(88, 166, 255, 0.3);
+}
+.create-btn:hover { background-color: #2563EB; transform: translateY(-1px); }
+
+.divider-vertical {
+    width: 1px; height: 24px;
+    background-color: #E5E7EB;
+    margin: 0 4px;
+}
+
+.icon-btn {
+    width: 36px; height: 36px;
+    background: transparent; border: none;
+    color: #6B7280;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    display: flex; justify-content: center; align-items: center;
+    transition: 0.2s;
+}
+.icon-btn:hover { background-color: #F3F4F6; color: var(--primary-color); }
+
+.noti-badge {
+    position: absolute; top: 8px; right: 8px;
+    width: 8px; height: 8px;
+    background-color: #EF4444;
+    border: 2px solid #FFF;
+    border-radius: 50%;
+}
+
+.mini-avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #EBF5FF 0%, #58A6FF 100%);
+    color: white;
+    font-weight: 700; font-size: 0.8rem;
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px #E5E7EB;
 }

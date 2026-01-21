@@ -17,7 +17,6 @@ function ProjectDashBoard() {
         { key: "dashboard", label: "대시보드" },
         { key: "task", label: "업무" },
         { key: "issue", label: "이슈" },
-        { key: "report", label: "AI 리포트" },
         { key: "finalReport", label: "최종 리포트" },
         { key: "memberSettings", label: "멤버/설정"},
     ];
@@ -28,7 +27,6 @@ function ProjectDashBoard() {
         dashboard: DashboardGrid,
         issue: IssueTrackerView,
         task: TaskBoard,
-        report: DashboardGrid,
         finalReport: FinalReportGrid,
         memberSettings: MemberSettingsGrid,
     };

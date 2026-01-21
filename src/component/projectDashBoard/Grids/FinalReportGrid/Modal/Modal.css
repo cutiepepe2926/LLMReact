@@ -4,7 +4,7 @@
     align-items: center;
     gap: 8px;
 
-    background: var(--white);
+    background: #FFFFFF;
     border: 1px solid var(--border-color);
     border-radius: 10px;
 
@@ -32,7 +32,7 @@
 
 .fr-modal {
     width: min(520px, calc(100% - 32px));
-    background: var(--white);
+    background: #FFFFFF;
     border-radius: 14px;
     border: 1px solid var(--border-color);
     overflow: hidden;
@@ -68,7 +68,7 @@
     width: 100%;
     text-align: left;
     padding: 10px 12px;
-    background: var(--white);
+    background: #FFFFFF;
     border: 1px solid var(--border-color);
     border-radius: 10px;
     cursor: pointer;
@@ -107,7 +107,7 @@
     border: 1px solid var(--border-color);
     border-radius: 10px;
     cursor: pointer;
-    background: var(--white);
+    background: #FFFFFF;
 }
 
 .fr-check-item:hover {

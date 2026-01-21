@@ -9,7 +9,7 @@
     position: relative; /* 내부 레이아웃 기준 */
     width: 100%;
     padding: 0;
-    min-height: 520px;
+    height: 100%;
 }
 
 /* 3컬럼 그리드 */
@@ -22,7 +22,7 @@
 
 /* 컬럼 박스 */
 .issue-col {
-    background: var(--white);
+    background: #FFFFFF;
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 18px;
@@ -43,7 +43,7 @@
 
 /* 카드 */
 .issue-card {
-    background: var(--white);
+    background: #FFFFFF;
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 14px 16px;
@@ -108,10 +108,3 @@
 .issue-fab:active {
     transform: translateY(1px);
 }
-
-/* 반응형: 화면 좁으면 1~2열로 */
-/*@media (max-width: 1100px) {*/
-/*    .issue-columns {*/
-/*        grid-template-columns: 1fr;*/
-/*    }*/
-/*}*/
