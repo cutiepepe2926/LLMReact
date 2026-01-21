@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Login.css';
+import './Login.css'; //
 
-const Login = () => {
+function Login() {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // 여기에 로그인 처리 로직을 작성하세요 (예: API 호출)
     console.log('Login attempt:', id, password);
   };
 
@@ -40,14 +39,13 @@ const Login = () => {
 
         <div className="login-footer">
           <span>계정이 없으신가요? </span>
-          {/* 회원가입 페이지 경로가 /regist라고 가정했습니다 */}
-          <Link to="/regist" className="regist-link">
+          <Link to="/signup" className="signup-link">
             회원가입
           </Link>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default Login;
