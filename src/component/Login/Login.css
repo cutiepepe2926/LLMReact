@@ -78,13 +78,78 @@
 }
 
 /* 회원가입 링크 (분홍색) */
-.regist-link {
+.signup-link {
   color: #ff69b4; /* 핫핑크 색상 */
   font-weight: bold;
   text-decoration: none; /* 밑줄 제거 */
   margin-left: 5px;
 }
 
-.regist-link:hover {
+.signup-link:hover {
   text-decoration: underline; /* 호버 시 밑줄 */
 }
+
+
+
+
+/**/
+/* ===== Auth 전용 Nav ===== */
+.auth-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e5e7eb;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.auth-nav {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #111827;
+  font-weight: 700;
+}
+
+.auth-logo-text {
+  font-size: 1rem;
+}
+
+.auth-nav-right {
+  display: flex;
+  gap: 12px;
+}
+
+.auth-nav-link {
+  text-decoration: none;
+  color: #6b7280;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.auth-nav-link:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* ✅ 현재 페이지 표시: Bold + 색만 강조(요구사항) */
+.auth-nav-link.active {
+  font-weight: 700;
+  color: #111827;
+}
+

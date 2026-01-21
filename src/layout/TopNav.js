@@ -1,5 +1,14 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import Profile from '../component/modal/Profile';
 import "./TopNav.css";
+
+
+
+// import siteLogo from "./Site_logo.svg";
+// import bell from "./Bell.svg";
+// import help from "./Help.svg";
+
 
 // Icons
 const Icons = {
@@ -10,6 +19,36 @@ const Icons = {
 };
 
 export default function TopNav() {
+    const location = useLocation();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+    const profileRef = useRef(null);
+
+    //  로그인 또는 회원가입 페이지인지 확인하는 변수
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+
+    const toggleProfile = () => {
+        setIsProfileOpen(!isProfileOpen);
+    };
+
+    // 외부 클릭 감지 로직 추가
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // profileRef가 현재 존재하고, 클릭한 대상(event.target)이 profileRef 내부가 아니라면
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsProfileOpen(false); // 모달 닫기
+            }
+        };
+
+        // 문서 전체에 클릭 이벤트 리스너 추가
+        document.addEventListener('mousedown', handleClickOutside);
+
+        // 컴포넌트가 언마운트될 때 리스너 제거 (메모리 누수 방지)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
         <header className="top-header">
             {/* 1. 중앙: 글로벌 검색창 */}
@@ -21,25 +60,72 @@ export default function TopNav() {
             </div>
 
             {/* 2. 우측: 유틸리티 버튼 */}
-            <div className="header-right">
+            {!isAuthPage && (
+                <div className="header-right">
+                    <div className="divider-vertical"></div>
 
-                <div className="divider-vertical"></div>
+                    <button className="icon-btn" title="알림">
+                        <Icons.Bell />
+                        <span className="noti-badge"></span>
+                    </button>
 
-                {/* 알림 */}
-                <button className="icon-btn" title="알림">
-                    <Icons.Bell />
-                    <span className="noti-badge"></span>
-                </button>
-                
-                <button className="icon-btn" title="도움말">
-                    <Icons.Help />
-                </button>
+                    <button className="icon-btn" title="도움말">
+                        <Icons.Help />
+                    </button>
 
-                {/* 프로필 */}
-                <div className="header-profile">
-                    <div className="mini-avatar">홍</div>
+                    <div className="header-profile" ref={profileRef}>
+                        <div className="mini-avatar" onClick={toggleProfile}>홍</div>
+                        {isProfileOpen && (
+                            <Profile onClose={() => setIsProfileOpen(false)} />
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
+            {/*<div className="header-right">*/}
+
+            {/*    <div className="divider-vertical"></div>*/}
+
+            {/*    /!* 알림 *!/*/}
+            {/*    <button className="icon-btn" title="알림">*/}
+            {/*        <Icons.Bell />*/}
+            {/*        <span className="noti-badge"></span>*/}
+            {/*    </button>*/}
+            {/*    */}
+            {/*    <button className="icon-btn" title="도움말">*/}
+            {/*        <Icons.Help />*/}
+            {/*    </button>*/}
+
+            {/*    /!* 프로필 *!/*/}
+            {/*    <div className="header-profile">*/}
+            {/*        <div className="mini-avatar"*/}
+            {/*        onClick={toggleProfile}*/}
+            {/*        >홍</div>*/}
+            {/*    </div>*/}
+            {/*</div>*/}
         </header>
+
+//     {!isAuthPage && (
+//         <div className="header-right">
+//             <div className="icon-group">
+//                 <div className="icon-circle" style={{position: 'relative'}} ref={profileRef}>
+//                     <img
+//                         src="/img/Profile.svg"
+//                         alt="profile icon"
+//                         className="profile"
+//                         onClick={toggleProfile}
+//                         style={{ width: 25 }}
+//                     />
+//
+//                     {isProfileOpen && (<Profile onClose={()=>setIsProfileOpen(false)}/>)}
+//                 </div>
+//             </div>
+//         </div>
+//     )}
+// </header>
+//
+//     <main>
+//         <Outlet />
+//     </main>
+// </>
     );
 }

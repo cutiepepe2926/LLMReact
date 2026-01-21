@@ -1,0 +1,115 @@
+<svg width="257" height="50" viewBox="0 0 257 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Chain gradient -->
+    <linearGradient id="chainGrad" x1="0" y1="0" x2="60" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#19B5FF"/>
+      <stop offset="1" stop-color="#006BFF"/>
+    </linearGradient>
+
+    <!-- Text gradient -->
+    <linearGradient id="textGrad" x1="56" y1="10" x2="240" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B1220"/>
+      <stop offset="0.6" stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#006BFF"/>
+    </linearGradient>
+
+    <!-- Soft shadow for text -->
+    <filter id="textShadow" x="-20%" y="-40%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" flood-color="#000000" flood-opacity="0.18"/>
+    </filter>
+
+    <!-- Subtle glow for chain -->
+    <filter id="chainGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.4" flood-color="#0088FF" flood-opacity="0.35"/>
+    </filter>
+
+    <!-- Dot glow -->
+    <filter id="dotGlow" x="-70%" y="-70%" width="240%" height="240%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.0" flood-color="#FFFFFF" flood-opacity="0.95"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.4" flood-color="#0088FF" flood-opacity="0.35"/>
+    </filter>
+
+    <!-- Motion blur-ish trail (cheap but effective) -->
+    <filter id="trailBlur" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="1.4" />
+    </filter>
+  </defs>
+
+  <!-- Animated chain path -->
+  <path
+    id="chainPath"
+    d="M20.8333 27.0834C21.728 28.2795 22.8694 29.2692 24.1802 29.9854C25.4911 30.7015 26.9406 31.1274 28.4305 31.2341C29.9203 31.3408 31.4157 31.1259 32.8152 30.6038C34.2147 30.0817 35.4856 29.2648 36.5416 28.2084L42.7916 21.9584C44.6891 19.9938 45.739 17.3625 45.7153 14.6313C45.6916 11.9001 44.596 9.28748 42.6647 7.35615C40.7334 5.42481 38.1207 4.3293 35.3895 4.30557C32.6583 4.28184 30.027 5.33178 28.0624 7.22926L24.4791 10.7918M29.1666 22.9168C28.2719 21.7207 27.1304 20.731 25.8196 20.0148C24.5088 19.2986 23.0593 18.8728 21.5694 18.7661C20.0795 18.6594 18.5841 18.8743 17.1846 19.3964C15.7851 19.9184 14.5143 20.7354 13.4583 21.7918L7.20826 28.0418C5.31078 30.0064 4.26084 32.6376 4.28457 35.3689C4.30831 38.1001 5.40382 40.7127 7.33515 42.644C9.26649 44.5754 11.8791 45.6709 14.6103 45.6946C17.3415 45.7183 19.9728 44.6684 21.9374 42.7709L25.4999 39.2084"
+    stroke="url(#chainGrad)"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#chainGlow)"
+  />
+
+  <!-- === DOT 1 (main) === -->
+  <g>
+    <!-- trail behind dot: a few blurred copies with fading opacity -->
+    <circle r="3.0" fill="white" opacity="0.12" filter="url(#trailBlur)">
+      <animateMotion dur="2.8s" repeatCount="indefinite" rotate="auto" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+        <mpath href="#chainPath" />
+      </animateMotion>
+    </circle>
+    <circle r="2.6" fill="white" opacity="0.18" filter="url(#trailBlur)">
+      <animateMotion dur="2.8s" repeatCount="indefinite" rotate="auto">
+        <mpath href="#chainPath" />
+      </animateMotion>
+      <animate attributeName="opacity" values="0.10;0.22;0.10" dur="1.4s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- the actual dot -->
+    <circle r="2.35" fill="white" filter="url(#dotGlow)">
+      <animateMotion dur="2.8s" repeatCount="indefinite" rotate="auto">
+        <mpath href="#chainPath" />
+      </animateMotion>
+    </circle>
+  </g>
+
+  <!-- === DOT 2 (half-cycle offset) === -->
+  <g>
+    <!-- trail -->
+    <circle r="3.0" fill="white" opacity="0.10" filter="url(#trailBlur)">
+      <animateMotion dur="2.8s" begin="-1.4s" repeatCount="indefinite" rotate="auto">
+        <mpath href="#chainPath" />
+      </animateMotion>
+    </circle>
+    <circle r="2.6" fill="white" opacity="0.16" filter="url(#trailBlur)">
+      <animateMotion dur="2.8s" begin="-1.4s" repeatCount="indefinite" rotate="auto">
+        <mpath href="#chainPath" />
+      </animateMotion>
+      <animate attributeName="opacity" values="0.08;0.20;0.08" dur="1.4s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- dot -->
+    <circle r="2.35" fill="white" filter="url(#dotGlow)">
+      <animateMotion dur="2.8s" begin="-1.4s" repeatCount="indefinite" rotate="auto">
+        <mpath href="#chainPath" />
+      </animateMotion>
+    </circle>
+  </g>
+
+  <!-- Modern text -->
+  <g filter="url(#textShadow)">
+    <text
+      x="56"
+      y="33"
+      font-family="Inter, Pretendard, 'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif"
+      font-size="24"
+      font-weight="750"
+      letter-spacing="0.3"
+      fill="url(#textGrad)"
+    >
+      <tspan fill="#0B1220">Link</tspan>
+      <tspan fill="url(#textGrad)" font-weight="850">Log</tspan>
+      <tspan fill="#0B1220" opacity="0.92">Mate</tspan>
+    </text>
+
+    <!-- accent underline -->
+    <path d="M56 38.5H156" stroke="#0B1220" stroke-opacity="0.08" stroke-width="3" stroke-linecap="round"/>
+    <path d="M156 38.5H205" stroke="#006BFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

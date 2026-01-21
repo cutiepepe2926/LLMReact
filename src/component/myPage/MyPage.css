@@ -1,0 +1,214 @@
+.mypage-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 40px auto;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    min-height: 600px;
+    overflow: hidden;
+}
+
+/* 왼쪽 사이드바 */
+.mypage-sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    padding: 30px 20px;
+    border-right: 1px solid #eee;
+}
+
+.mypage-sidebar h2 {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    color: #333;
+    font-weight: 700;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: #555;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.sidebar-menu li:hover {
+    background-color: #e9ecef;
+    color: #333;
+}
+
+.sidebar-menu li.active {
+    background-color: #007bff; /* 메인 컬러에 맞춰 변경 가능 */
+    color: #fff;
+    font-weight: 600;
+}
+
+/* 오른쪽 콘텐츠 영역 */
+.mypage-content {
+    flex: 1;
+    padding: 40px;
+}
+
+.content-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 15px;
+    color: #333;
+}
+
+/* 프로필 헤더 */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+}
+
+.profile-img-large img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.profile-info-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.user-email {
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: 4px;
+}
+
+.btn-edit {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: 0.2s;
+}
+
+.btn-edit:hover {
+    background-color: #f1f1f1;
+}
+
+/* 폼 스타일 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.github-oauth {
+    margin-top: 20px;      /* 위쪽 요소와의 간격 */
+    display: flex;         /* 플렉스 박스 사용 */
+    flex-direction: column; /* 내부 요소를 세로로 정렬 */
+    align-items: flex-start; /* 왼쪽 정렬 */
+    gap: 10px;             /* 라벨과 버튼(이미지) 사이의 간격 */
+}
+
+.github-oauth label {
+    font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.github-button {
+    /* 필요에 따라 이미지 크기 조절 */
+    height: 40px; 
+    width: auto;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.github-button:hover {
+    opacity: 0.8;
+}
+
+.btn-save {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-save:hover {
+    background-color: #0056b3;
+}
+
+.divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 30px 0;
+}
+
+.delete-account h4 {
+    color: #dc3545;
+    margin-bottom: 10px;
+}
+
+.btn-danger {
+    background-color: #fff;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+html {
+  overflow-y: scroll;
+}
