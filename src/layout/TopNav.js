@@ -12,14 +12,7 @@ const Icons = {
 export default function TopNav() {
     return (
         <header className="top-header">
-            {/* 1. 좌측: 브레드크럼 */}
-            <div className="header-left">
-                <span className="breadcrumb-item">Workspace</span>
-                <span className="breadcrumb-separator">/</span>
-                <span className="breadcrumb-current">Project Name</span>
-            </div>
-
-            {/* 2. 중앙: 글로벌 검색창 */}
+            {/* 1. 중앙: 글로벌 검색창 */}
             <div className="header-center">
                 <div className="search-bar-wrapper">
                     <Icons.Search />
@@ -27,7 +20,7 @@ export default function TopNav() {
                 </div>
             </div>
 
-            {/* 3. 우측: 유틸리티 버튼 */}
+            {/* 2. 우측: 유틸리티 버튼 */}
             <div className="header-right">
 
                 <div className="divider-vertical"></div>

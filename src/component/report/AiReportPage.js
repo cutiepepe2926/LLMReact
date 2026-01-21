@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AiReportPage.css';
+import ProjectHeader from "../projectHeader/ProjectHeader";
 
 const AiReportPage = () => {
   // view 상태: 'list'(목록), 'editor'(작성), 'read'(읽기)
@@ -27,38 +28,44 @@ const AiReportPage = () => {
     }
   };
 
+  const renderHeader = () => (
+    <div className="header-wrapper">
+      {/* 1. 공통 헤더 사용 */}
+      <ProjectHeader 
+        title="프로젝트 제목입니다"
+        dDay={10}
+        periodText="기간: 2026.01.01 ~ 2026.02.02"
+      />
+
+      {/* 2. 닫기 버튼 (공통 헤더 위에 겹쳐서 띄움) */}
+      <button className="close-btn-overlay" onClick={() => navigate(-1)} aria-label="닫기">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  );
+
   // --- 1. 메인 리스트 화면 ---
   if (view === 'list') {
     return (
       <div className="report-container fade-in">
-        {/* 상단 헤더 (타이머 포함) */}
-        <header className="report-header">
-          <div>
-            <div className="title-row">
-              <h1>프로젝트 제목입니다</h1>
-              <span className="d-day">D - 10</span>
-            </div>
-            <p className="period">기간: 2026.01.01 ~ 2026.02.02</p>
-          </div>
-          <div className="header-right">
-             {/* 타이머 */}
-            <button className="close-btn" onClick={() => navigate(-1)}>대시보드로 돌아가기</button>
-          </div>
-        </header>
+        {renderHeader()}
 
-        {/* 날짜 네비게이션 */}
-        <div className="date-nav">
-          <button className="nav-arrow">«</button>
-          <h2>2026.01.15</h2>
-          <button className="nav-arrow">»</button>
-          <button className="calendar-btn">📅 2026.01.15 ▾</button>
-        </div>
+      {/* 날짜 네비게이션 */}
+      <div className="date-nav">
+        <button className="nav-arrow">«</button>
+        <h2>2026.01.15</h2>
+        <button className="nav-arrow">»</button>
+        <button className="calendar-btn">📅 2026.01.15 ▾</button>
+      </div>
 
-        {/* 멤버 카드 그리드 */}
-        <div className="card-grid">
-          {members.map((m) => (
-            <div 
-              key={m.id} 
+      {/* 멤버 카드 그리드 */}
+      <div className="card-grid">
+        {members.map((m) => (
+          <div 
+            key={m.id} 
               className={`member-card ${m.status === 'NONE' ? 'empty' : ''}`}
               onClick={() => {
                 if (m.isMe && m.status === 'AI_DRAFT') setView('editor');

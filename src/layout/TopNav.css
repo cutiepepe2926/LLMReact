@@ -12,30 +12,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
-/* 좌측 브레드크럼 */
-.header-left {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.9rem; color: #6B7280; font-weight: 500;
-    flex: 1; /* 공간 확보 */
-}
-.breadcrumb-current { color: #111; font-weight: 600; }
-
 /* 중앙 검색창 */
 .header-center {
-    flex: 2;
+    position: absolute;      
+    left: 50%;            
+    transform: translateX(-55%);
+    width: 100%; 
     display: flex;
     justify-content: center;
+    pointer-events: none;
 }
 
 .search-bar-wrapper {
     width: 100%;
-    max-width: 480px; /* 너무 넓지 않게 */
+    max-width: 480px;
     height: 40px;
     background-color: #F3F4F6;
     border-radius: 8px;
@@ -44,6 +39,7 @@
     padding: 0 12px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
+    pointer-events: auto;
 }
 
 .search-bar-wrapper:focus-within {
@@ -61,11 +57,11 @@
 
 /* 우측 유틸리티 */
 .header-right {
-    flex: 1;
+    margin-left: auto;
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     gap: 12px;
+    z-index: 1;
 }
 
 /* 생성 버튼 */

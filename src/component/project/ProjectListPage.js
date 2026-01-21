@@ -64,7 +64,14 @@ const ProjectListPage = ({ onEnterDashboard }) => {
       {/* 헤더 */}
       <header className="list-header">
         <h2>프로젝트 대시보드</h2>
-        <button className="new-project-btn" onClick={() => setIsModalOpen(true)}>+ 새 프로젝트</button>
+        <button className="new-project-btn" onClick={() => setIsModalOpen(true)}>
+          {/* 플러스 아이콘 SVG */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>새 프로젝트</span>
+        </button>
       </header>
 
       {/* 카드 그리드 */}
@@ -90,23 +97,30 @@ const ProjectListPage = ({ onEnterDashboard }) => {
               <div className="task-status-text">
                 <span className="highlight">{p.completedTasks}</span>
                 <span className="divider">/</span>
-                <span className="total">{p.totalTasks} 완료</span>
+                <span className="total">{p.totalTasks} 업무 완료</span>
               </div>
 
               {/* 4. 참여자 & 이슈 */}
               <div className="info-row">
                 <div className="member-info">
                   <span className="label">참여자</span>
-                  <span className="value">{p.members}</span>
+                  <div className="avatar-stack">
+                    {[1, 2, 3].map((_, i) => (
+                      <div key={i} className="avatar-circle" style={{zIndex: 3-i}}>                       
+                        U{i+1}
+                      </div>
+                    ))}
+                    <div className="avatar-circle more">+3</div>
+                  </div>
                 </div>
                 
                 {p.issueCount > 0 ? (
                    <div className="issue-badge">
-                     ⚠️ {p.issueCount} Issue
+                     {p.issueCount} Issue
                    </div>
                 ) : (
                   <div className="issue-badge clean">
-                     ✅ No Issue
+                     No Issue
                   </div>
                 )}
               </div>
@@ -114,7 +128,6 @@ const ProjectListPage = ({ onEnterDashboard }) => {
 
             {/* --- 하단 영역 (회색) --- */}
             <div className="card-footer">
-              <span className="git-branch-icon">🌱</span>
               <span className="branch-name">main:</span>
               <span className="commit-msg">{p.lastCommit}</span>
               <span className="commit-time">({p.lastCommitTime})</span>

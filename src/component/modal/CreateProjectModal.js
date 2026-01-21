@@ -131,7 +131,11 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
               <div className="collaborator-list">
                 {collaborators.map((user, idx) => (
                   <span key={idx} className="user-tag">
-                    👤 {user} <button onClick={() => handleRemoveCollaborator(user)}>×</button>
+                    <div className="user-avatar">{user.charAt(0).toUpperCase()}</div> {/* 첫 글자 이니셜 */}
+                    <span className="user-name">{user}</span>
+                    <button className="remove-tag-btn" onClick={() => handleRemoveCollaborator(user)}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                   </span>
                 ))}
               </div>

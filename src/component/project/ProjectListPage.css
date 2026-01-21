@@ -20,15 +20,43 @@
   color: #111;
 }
 
+/* 새 프로젝트 버튼 꾸미기 */
 .new-project-btn {
-  background-color: #3b82f6;
+  /* 1. 배치 및 크기 */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 아이콘과 글자 사이 간격 */
+  padding: 12px 24px;
+  height: 48px;
+  
+  /* 2. 색상 및 배경 (그라데이션 적용) */
+  background: linear-gradient(135deg, #3b82f6, #2563eb); 
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+  border-radius: 12px; /* 동글동글하게 */
+  
+  /* 3. 폰트 */
+  font-weight: 700;
   font-size: 1rem;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  
+  /* 4. 애니메이션 및 그림자 */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); /* 파란색 그림자 */
+}
+
+/* 마우스 올렸을 때 효과 */
+.new-project-btn:hover {
+  transform: translateY(-2px); /* 살짝 위로 뜸 */
+  box-shadow: 0 8px 15px rgba(59, 130, 246, 0.4); /* 그림자가 진해짐 */
+  background: linear-gradient(135deg, #2563eb, #1d4ed8); /* 색상이 조금 더 진해짐 */
+}
+
+/* 클릭했을 때 효과 */
+.new-project-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 /* 그리드 레이아웃 */
@@ -46,14 +74,15 @@
   border: 1px solid #e5e7eb;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
 }
 
 .project-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.08); 
+  border-color: #d1d5db;
 }
 
 /* 상단 영역 (흰색) */
@@ -80,9 +109,10 @@
 
 .title-group h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #1f2937;
+  color: #111827;
+  letter-spacing: -0.02em;
 }
 
 /* 뱃지 스타일 */
@@ -107,21 +137,33 @@
 /* 3. 진행 상태 텍스트 */
 .task-status-text {
   margin-bottom: 24px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #374151;
+  display: flex;
+  align-items: baseline
 }
 
 .task-status-text .highlight {
-  color: #3b82f6; /* 파란색 강조 */
-  font-size: 1.2rem;
+  color: #3b82f6;
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+  border: none !important
 }
+
 .task-status-text .divider {
-  margin: 0 4px;
-  color: #9ca3af;
+  color: #d1d5db;
+  font-weight: 400;
+  font-size: 1rem;    
+  margin: 0 8px;
+
+  border: none !important;
+  background: none !important;
+  text-decoration: none !important;
 }
 .task-status-text .total {
   color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none !important;
 }
 
 /* 4. 정보열 (참여자, 이슈) */
@@ -139,12 +181,13 @@
 .member-info .value { font-size: 0.9rem; font-weight: 600; color: #1f2937; }
 
 .issue-badge {
-  background-color: #fee2e2; /* 연한 빨강 */
-  color: #991b1b;
+  background-color: #fef2f2;
+  color: #ef4444;
   font-weight: 700;
   font-size: 0.85rem;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 4px 12px;
+  border: 1px solid #fee2e2;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -152,17 +195,18 @@
 .issue-badge.clean {
     background-color: #f3f4f6;
     color: #6b7280;
+    border: 1px solid #e5e7eb;
 }
 
 /* --- 하단 영역 (회색) --- */
 .card-footer {
-  background-color: #e5e5e5; /* 짙은 회색 배경 */
-  padding: 12px 24px;
+  background-color: #f9fafb;
+  padding: 14px 24px;
   display: flex;
   align-items: center;
-  font-size: 0.85rem;
-  color: #4b5563;
-  border-top: 1px solid #e5e7eb;
+  font-size: 1rem;
+  color: #6b7280;
+  border-top: 1px solid #f3f4f6;
 }
 
 .git-branch-icon { margin-right: 6px; font-size: 1rem; }
@@ -175,3 +219,49 @@
   max-width: 140px; 
 }
 .commit-time { font-size: 0.8rem; color: #6b7280; }
+
+/* 아바타 스택 스타일 */
+.avatar-stack {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4b5563;
+  margin-left: -10px;
+}
+
+.avatar-circle:first-child {
+  margin-left: 0;
+}
+
+.avatar-circle.more {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.7rem;
+}
+
+/* 스켈레톤 애니메이션 */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.skeleton-card {
+  height: 250px;
+  background: #e5e7eb;
+  border-radius: 16px;
+  animation: pulse 1.5s infinite; /* 깜빡임 효과 */
+}

@@ -4,6 +4,7 @@
   background: rgba(0, 0, 0, 0.5);
   display: flex; justify-content: center; align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 .modal-content {
@@ -26,8 +27,11 @@ input, select, textarea {
   font-size: 0.95rem; box-sizing: border-box;
   outline: none;
 }
-input:focus, select:focus, textarea:focus { border-color: #58a6ff; }
-textarea { height: 100px; resize: none; }
+input:focus, select:focus, textarea:focus { 
+  border-color: #3b82f6; 
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); 
+  transition: all 0.2s ease-in-out;
+}
 
 .date-display { display: flex; align-items: center; gap: 8px; }
 
@@ -41,65 +45,71 @@ textarea { height: 100px; resize: none; }
 }
 .verify-btn:hover, .add-btn:hover { background: #e5e7eb; }
 
-/* --- 하단 섹션 수정 --- */
-.bottom-section {
-  display: flex;
-  gap: 24px;
-  margin-top: 10px;
-  min-height: 120px; /* 최소 높이 확보 */
+/* --- 하단 섹션 수정 (최종) --- */
+.bottom-section {       
+  gap: 24px;         
+  margin-top: 24px; 
+  align-items: flex-end; 
 }
 
-/* 왼쪽 패널: 협업자 */
+/* 왼쪽 패널 (협업자 리스트) */
 .left-panel {
-  flex: 1.5;
-  display: flex;
-  flex-direction: column;
+  flex: 1.6;             /* 비율 조정 (왼쪽을 좀 더 넓게) */
+  min-width: 0;
 }
 
-/* 오른쪽 패널: 버튼 그룹 */
+/* 오른쪽 패널 (버튼 그룹 감싸는 곳) */
 .right-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end; /* 버튼을 아래로 밀기 */
+  flex: 1;               /* 비율 조정 */
+  min-width: 0;
+  /* 높이 100%나 justify-content 다 필요 없음 */
 }
 
 /* 버튼 그룹 */
 .button-group {
+  margin-top: 10px;
   display: flex;
   gap: 10px;
   width: 100%;
 }
 
+.cancel-btn, .create-confirm-btn {
+  height: 50px; 
+  white-space: nowrap;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+}
+
+/* 취소 버튼 */
 .cancel-btn {
   flex: 1;
-  padding: 14px;
-  background: #f3f4f6; color: #4b5563;
-  border: 1px solid #e5e7eb; border-radius: 8px;
-  font-size: 1rem; font-weight: bold;
+  background: #f3f4f6; 
+  color: #4b5563;
+  border: 1px solid #e5e7eb; 
+  border-radius: 8px;
+  font-weight: bold;
   cursor: pointer;
-  height: 50px; /* 높이 고정 */
 }
-.cancel-btn:hover { background: #e5e7eb; }
 
+/* 생성 버튼 */
 .create-confirm-btn {
-  flex: 2;
-  padding: 14px;
-  background: #3b82f6; /* 파란색 */
+  flex: 2; 
+  background: #58a6ff;
   color: white;
-  border: none; border-radius: 8px;
-  font-size: 1rem; font-weight: bold;
-  cursor: pointer; transition: background 0.2s;
-  height: 50px; /* 높이 고정 */
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
 }
-.create-confirm-btn:hover { background: #2563eb; }
-.create-confirm-btn:disabled { background: #93c5fd; cursor: not-allowed; }
 
-/* 왼쪽 패널: 협업자 (공간 채움) */
-.left-panel {
-  flex: 1.5; /* 왼쪽이 더 넓게 차지하도록 */
-  display: flex;
-  flex-direction: column;
+.create-confirm-btn:hover {
+  background: #409eff;
+}
+
+.create-confirm-btn:disabled {
+  background: #b8d6ff;
+  cursor: not-allowed;
 }
 
 .collaborator-list { 
@@ -108,65 +118,62 @@ textarea { height: 100px; resize: none; }
   min-height: 40px; /* 빈 공간 확보 */
 }
 .user-tag {
-  background: #f0f6ff; border: 1px solid #cce3ff; color: #58a6ff;
-  padding: 4px 10px; border-radius: 20px;
-  font-size: 0.85rem; display: flex; align-items: center; gap: 6px;
-  font-weight: 600;
-}
-.user-tag button {
-  background: none; border: none; cursor: pointer; 
-  font-size: 1rem; color: #58a6ff; padding: 0; display: flex;
-}
-
-/* 오른쪽 패널: 공개 범위 + 버튼들 */
-.right-panel {
-  flex: 1;
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 4px 6px 4px 4px; /* 왼쪽 패딩 줄임 */
+  border-radius: 9999px; /* 완전 둥글게 */
   display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* 위아래 끝으로 배치 */
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* 공개 범위 */
-.privacy-group { margin-bottom: 20px; }
-.group-label { display: block; font-weight: 700; margin-bottom: 8px; color: #333; }
-.radio-options { display: flex; gap: 20px; }
-.radio-options label { 
-  display: flex; align-items: center; gap: 6px; 
-  font-weight: 500; cursor: pointer; margin: 0;
-}
-input[type="radio"] { width: auto; margin: 0; accent-color: #58a6ff; }
-
-/* 하단 버튼 그룹 (취소/생성) */
-.button-group {
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  background: #eff6ff; /* 연한 파랑 */
+  color: #3b82f6;      /* 진한 파랑 */
+  border-radius: 50%;
   display: flex;
-  gap: 10px;
-  margin-top: auto; /* 아래로 밀기 */
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
 }
 
-.cancel-btn {
-  flex: 1;
-  padding: 14px;
-  background: #f3f4f6; color: #4b5563;
-  border: 1px solid #e5e7eb; border-radius: 8px;
-  font-size: 1rem; font-weight: bold;
-  cursor: pointer;
-}
-.cancel-btn:hover { background: #e5e7eb; }
-
-.create-confirm-btn {
-  flex: 2;
-  padding: 14px;
-  background: #58a6ff; /* ✅ 메인 컬러 적용 */
-  color: white;
-  border: none; border-radius: 8px;
-  font-size: 1rem; font-weight: bold;
-  cursor: pointer; transition: background 0.2s;
+.remove-tag-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #9ca3af;
+  transition: 0.2s;
 }
 
-.create-confirm-btn:hover { background: #409eff; }
+.remove-tag-btn:hover {
+  background: #f3f4f6;
+  color: #ef4444; /* 삭제 시 빨간색 */
+}
 
-/* 비활성화 상태 (유효성 검사 실패 시) */
-.create-confirm-btn:disabled {
-  background: #b8d6ff; /* 연한 파란색 */
-  cursor: not-allowed;
+/* 애니메이션 키프레임 정의 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-content.fade-in-up {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { background: rgba(0, 0, 0, 0); }
+  to { background: rgba(0, 0, 0, 0.5); }
 }
