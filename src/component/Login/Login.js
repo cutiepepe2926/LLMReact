@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';   // ✅ 변경: Link → NavLink
+import { NavLink } from 'react-router-dom';   // 변경: Link → NavLink
 import './Login.css';
 
 
@@ -57,6 +57,7 @@ function Login() {
         {/* 기존 Login 화면(거의 그대로) */}
         <div className="login-page">
           <div className="login-container">
+            <img src="/img/Site_logo.svg" alt="로고" className="logo-img" />
             <h2 className="login-title">로그인</h2>
 
             <form onSubmit={handleLogin} className="login-form">

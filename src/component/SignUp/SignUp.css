@@ -92,6 +92,25 @@
   opacity: 0.9;
 }
 
+/* 하단 텍스트 (계정이 있으신가요?) */
+.login-footer {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+/* 회원가입 링크 (분홍색) */
+.login-link {
+    color: #CACACA; /* 핫핑크 색상 */
+    font-weight: bold;
+    text-decoration: none; /* 밑줄 제거 */
+    margin-left: 5px;
+}
+
+.login-link:hover {
+    color: #000000;
+    text-decoration: underline; /* 호버 시 밑줄 */
+}
+
 
 
 /**/
@@ -151,8 +170,39 @@
     color: #111827;
 }
 
-/* ✅ 현재 페이지 표시: Bold + 색만 강조(요구사항) */
+/* 현재 페이지 표시: Bold + 색만 강조(요구사항) */
 .auth-nav-link.active {
     font-weight: 700;
     color: #111827;
+}
+
+/* 배경 이미지 오버레이 */
+.signup-page {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* 배경 레이어 */
+.signup-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /*background-image: url("E:\LLMReact\public\img\auth_bg.png");*/
+    background-image: url("../../../public/img/auth_bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    /* "투명도 60" 느낌: 아래 값 조절 */
+    opacity: 0.4;          /* 배경이 40%만 보임(=60% 투명처럼 느껴짐) */
+    filter: blur(1.5px);   /* 흐릿함(원하면 제거/조절) */
+    transform: scale(1.03);/* 블러 가장자리 깨짐 방지 */
+    z-index: 0;
+}
+
+/* 컨텐츠가 배경 위로 오게 */
+.signup-container {
+    position: relative;
+    z-index: 1;
 }

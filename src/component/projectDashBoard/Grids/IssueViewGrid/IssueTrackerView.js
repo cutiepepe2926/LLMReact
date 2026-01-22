@@ -8,7 +8,7 @@ export default function IssueTrackerView() {
     const [view, setView] = useState("GRID"); // "GRID" | "LIST"
     const [selectedStatus, setSelectedStatus] = useState("ALL");
 
-    // ✅ 상세 모달용 상태
+    // 상세 모달용 상태
     const [selectedIssue, setSelectedIssue] = useState(null);
 
     const openList = (status) => {

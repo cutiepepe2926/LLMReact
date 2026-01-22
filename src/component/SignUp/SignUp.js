@@ -104,6 +104,15 @@ function SignUp() {
               <button type="submit" className="signup-btn">
                 가입하기
               </button>
+
+              <div className="login-footer">
+                <span>계정이 있으신가요? </span>
+                {/* 여기 Link도 NavLink로 바꿔도 되고, 그냥 둬도 됨 */}
+                <NavLink to="/login" className="login-link">
+                  로그인
+                </NavLink>
+              </div>
+
             </form>
           </div>
         </div>
