@@ -4,6 +4,7 @@ import { IssueDummy } from "../IssueDummy";
 import IssueCard from "../IssueCard/IssueCard";
 import IssueFilterBar from "./IssueFilterBar";
 import "./IssueListPage.css";
+import IssueCreateModal from "../IssueCreate/IssueCreateModal";
 
 const ALL = "ALL";
 
@@ -16,6 +17,8 @@ export default function IssueListPage({ initialStatus = ALL, onBack, onOpenDetai
         startDate: "",
         endDate: "",
     });
+
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     // 컬럼 클릭으로 들어올 때 status를 반영
     useEffect(() => {
@@ -63,6 +66,11 @@ export default function IssueListPage({ initialStatus = ALL, onBack, onOpenDetai
                     ))}
                 </div>
             </div>
+            <button className="issue-fab" onClick={() => setIsCreateOpen(true)}>
+                +
+            </button>
+            <IssueCreateModal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
         </div>
+
     );
 }
