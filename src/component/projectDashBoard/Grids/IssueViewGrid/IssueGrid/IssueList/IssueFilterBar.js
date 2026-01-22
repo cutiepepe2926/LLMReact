@@ -38,9 +38,9 @@ export default function IssueFilterBar({ filters, onChange }) {
     return (
         <>
             <div className="issue-filter-bar">
-                <button className="filter-pill" onClick={() => setOpenKey("status")}>
-                    상태 : {getLabel(statusOptions, filters.status)} ▼
-                </button>
+                {/*<button className="filter-pill" onClick={() => setOpenKey("status")}>*/}
+                {/*    상태 : {getLabel(statusOptions, filters.status)} ▼*/}
+                {/*</button>*/}
 
                 <button className="filter-pill" onClick={() => setOpenKey("assignee")}>
                     담당자 : {getLabel(assigneeOptions, filters.assignee)} ▼

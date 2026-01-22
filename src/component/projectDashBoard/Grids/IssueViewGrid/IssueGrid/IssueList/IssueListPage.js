@@ -48,9 +48,7 @@ export default function IssueListPage({ initialStatus = ALL, onBack, onOpenDetai
     return (
         <div className="issue-list-page">
             <div className="issue-list-panel">
-                {/* 여기서 "뒤로" */}
                 <div className="issue-list-top">
-                    <button className="issue-back-btn" onClick={onBack}>←</button>
                     <div className="issue-list-title">이슈 목록</div>
                 </div>
 
