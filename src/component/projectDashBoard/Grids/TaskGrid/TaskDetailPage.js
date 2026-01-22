@@ -74,7 +74,7 @@ const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
                     <select 
                         className="status-select" 
                         value={task.status}
-                        onChange={(e) => onStatusChange(task, e.target.value)}
+                        onChange={(e) => onStatusChange(task, e.target.value)} 
                         style={getStatusStyle(task.status)}
                     >
                         <option value="TODO">To Do</option>

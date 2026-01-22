@@ -5,14 +5,17 @@
     min-height: 600px;
     display: flex;
     flex-direction: column;
-    align-items: center; /* 중앙 정렬 */
+    align-items: center;
     padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    box-sizing: border-box;
 }
 
 /* 상단 컨트롤 바: 너비 제한 및 중앙 정렬 */
 .board-controls {
-    width: 95%; /* 너무 꽉 차지 않게 */
-    max-width: 1200px; /* 최대 너비 제한 */
+    width: 100%;
+    max-width: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -21,8 +24,8 @@
 
 /* 칸반 보드 레이아웃: 너비 제한 및 중앙 정렬 */
 .kanban-wrapper {
-    width: 95%; /* 너무 꽉 차지 않게 */
-    max-width: 1200px; /* 최대 너비 제한 */
+    width: 100%;
+    max-width: none;
     display: flex;
     gap: 24px;
     flex: 1;

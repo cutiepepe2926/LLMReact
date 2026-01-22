@@ -94,15 +94,17 @@
 /* 1. 타이틀 */
 .card-top-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: space-between; /* 양 끝으로 배치 (핵심) */
+  align-items: flex-start;        /* 위쪽 정렬 */
   margin-bottom: 8px;
+  gap: 10px;                      /* 제목과 별 사이 간격 */
 }
 
 .title-group {
+  flex: 1;             /* 남은 공간 다 차지 */
+  min-width: 0;        /* 텍스트 말줄임 등을 위해 필요 */
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .globe-icon { font-size: 1.2rem; }
@@ -113,6 +115,10 @@
   font-weight: 700;
   color: #111827;
   letter-spacing: -0.02em;
+  /* 제목이 너무 길면 ... 처리 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 뱃지 스타일 */
@@ -250,6 +256,49 @@
   background-color: #f3f4f6;
   color: #6b7280;
   font-size: 0.7rem;
+}
+
+/* [추가] 즐겨찾기 버튼 스타일 */
+.favorite-btn {
+  /* 배치 및 크기 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0; /* 찌그러짐 방지 */
+  
+  /* 디자인 */
+  background: transparent;
+  border: none;
+  border-radius: 50%; /* 동그랗게 */
+  cursor: pointer;
+  padding: 0;
+  
+  /* 위치 미세 조정 (제목이랑 높이 맞추기 위해) */
+  margin-top: -2px; 
+  margin-right: -4px;
+  
+  transition: transform 0.2s ease, background-color 0.2s;
+}
+
+/* 마우스 올렸을 때 효과 */
+.favorite-btn:hover {
+  background-color: #f3f4f6; /* 연한 회색 원 */
+  transform: scale(1.1);     /* 살짝 커짐 */
+}
+
+/* 클릭했을 때 (활성 상태) */
+.favorite-btn.active:hover {
+  background-color: #fffbeb; /* 연한 노란색 배경 */
+}
+
+/* SVG 아이콘 크기 */
+.favorite-btn svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  transition: fill 0.2s;
 }
 
 /* 스켈레톤 애니메이션 */
