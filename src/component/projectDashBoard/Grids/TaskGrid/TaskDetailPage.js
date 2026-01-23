@@ -3,48 +3,63 @@ import './TaskDetailPage.css';
 
 const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
 
+    // [API 일치] checklist 데이터 구조: { id, content, is_done }
     const [checklist, setChecklist] = useState(task.checklist || []);
-    const [isAddingCheck, setIsAddingCheck] = useState(false); // 체크리스트 입력창 토글
+    const [isAddingCheck, setIsAddingCheck] = useState(false);
     const [newCheckItem, setNewCheckItem] = useState('');
 
-    const [comments, setComments] = useState(task.comments || []);
-    const [newComment, setNewComment] = useState('');
+    // [API 일치] comments -> chats 로 변경, 필드명 { content, created_at, user }
+    const [chats, setChats] = useState(task.chats || []);
+    const [newChat, setNewChat] = useState('');
 
     if (!task) return null;
 
     // --- [핸들러] ---
     
-    // 체크리스트 추가
+    // 1. 체크리스트 추가
     const handleAddCheckItem = () => {
         if (newCheckItem.trim()) {
-            setChecklist([...checklist, { id: Date.now(), text: newCheckItem, checked: false }]);
+            const newItem = { 
+                id: Date.now(), 
+                content: newCheckItem, // API 필드명 content
+                is_done: false         // API 필드명 is_done
+            };
+            setChecklist([...checklist, newItem]);
             setNewCheckItem('');
-            setIsAddingCheck(false); // 입력 후 닫기
+            setIsAddingCheck(false);
         }
     };
 
-    // 체크박스 토글
+    // 2. 체크박스 토글 (완료/미완료)
     const toggleCheckItem = (id) => {
         setChecklist(checklist.map(item => 
-            item.id === id ? { ...item, checked: !item.checked } : item
+            item.id === id ? { ...item, is_done: !item.is_done } : item
         ));
     };
 
-    // 댓글 등록
-    const handleAddComment = () => {
-        if (newComment.trim()) {
-            const comment = {
-                id: Date.now(),
-                user: '홍길동', // 현재 로그인 유저
-                text: newComment,
-                time: '방금 전'
-            };
-            setComments([...comments, comment]); // 목록에 추가
-            setNewComment('');
+    // 3. [New] 체크리스트 삭제
+    const handleDeleteCheckItem = (id) => {
+        if(window.confirm("이 항목을 삭제하시겠습니까?")) {
+            // API 호출: DELETE /api/.../checklists/{id}
+            setChecklist(checklist.filter(item => item.id !== id));
         }
     };
 
-    // 상태 색상
+    // 4. 채팅 등록 (Comment -> Chat)
+    const handleAddChat = () => {
+        if (newChat.trim()) {
+            const chat = {
+                id: Date.now(),
+                user: '홍길동', 
+                content: newChat,      // API 필드명 content
+                created_at: '방금 전'  // API 필드명 created_at
+            };
+            setChats([...chats, chat]);
+            setNewChat('');
+        }
+    };
+
+    // 상태 배지 스타일
     const getStatusStyle = (status) => {
         switch(status) {
             case 'TODO': return { color: '#3b82f6', borderColor: '#3b82f6', background: '#eff6ff' };
@@ -74,7 +89,7 @@ const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
                     <select 
                         className="status-select" 
                         value={task.status}
-                        onChange={(e) => onStatusChange(task, e.target.value)} 
+                        onChange={(e) => onStatusChange(task.id, e.target.value)} // ID 전달로 변경
                         style={getStatusStyle(task.status)}
                     >
                         <option value="TODO">To Do</option>
@@ -84,7 +99,6 @@ const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
                 </div>
             </div>
 
-            {/* 본문 */}
             <div className="detail-body">
                 {/* [왼쪽] 기본 정보 */}
                 <div className="detail-panel left-panel">
@@ -105,7 +119,7 @@ const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
                         </div>
                         <div className="info-item">
                             <label>기간</label>
-                            <div className="date-text">{task.startDate ? `${task.startDate} ~ ${task.endDate}` : '기간 미설정'}</div>
+                            <div className="date-text">{task.dDay} ({task.startDate || '미설정'} ~ {task.endDate || '미설정'})</div>
                         </div>
                         <div className="info-item">
                             <label>우선순위</label>
@@ -124,19 +138,17 @@ const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
                     </div>
                 </div>
 
-                {/* [중앙] 작업 영역 */}
+                {/* [중앙] 체크리스트 & 채팅 */}
                 <div className="detail-panel center-panel">
                     
-                    {/* 1. 체크리스트 섹션 */}
+                    {/* 체크리스트 섹션 */}
                     <div className="section-block">
                         <div className="section-header">
                             <h4>체크리스트</h4>
-                            {/* + 버튼 누르면 입력창 열림 */}
                             <button className="text-btn" onClick={() => setIsAddingCheck(true)}>+ 추가</button>
                         </div>
                         
                         <div className="checklist-container">
-                            {/* 입력 모드일 때 나타나는 인풋 */}
                             {isAddingCheck && (
                                 <div className="checklist-input-row">
                                     <input 
@@ -154,14 +166,23 @@ const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
 
                             {checklist.length > 0 ? (
                                 checklist.map(item => (
-                                    <label key={item.id} className={`check-item ${item.checked ? 'completed' : ''}`}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={item.checked} 
-                                            onChange={() => toggleCheckItem(item.id)} 
-                                        /> 
-                                        <span>{item.text}</span>
-                                    </label>
+                                    <div key={item.id} className={`check-row ${item.is_done ? 'completed' : ''}`}>
+                                        <label className="check-label">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={item.is_done} 
+                                                onChange={() => toggleCheckItem(item.id)} 
+                                            /> 
+                                            <span>{item.content}</span>
+                                        </label>
+                                        <button 
+                                            className="btn-delete-check" 
+                                            onClick={() => handleDeleteCheckItem(item.id)}
+                                            title="삭제"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
                                 ))
                             ) : (
                                 !isAddingCheck && <div className="empty-state">등록된 체크리스트가 없습니다.</div>
@@ -169,44 +190,41 @@ const TaskDetailPage = ({ task, onBack, onEdit, onDelete, onStatusChange }) => {
                         </div>
                     </div>
 
-                    {/* 2. 댓글 섹션 */}
+                    {/* 업무 채팅 섹션 */}
                     <div className="section-block">
-                        <div className="section-header"><h4>댓글</h4></div>
+                        <div className="section-header"><h4>업무 채팅</h4></div>
                         
-                        {/* 댓글 리스트 */}
                         <div className="comment-list">
-                            {comments.length > 0 ? (
-                                comments.map(comment => (
-                                    <div key={comment.id} className="comment-item">
-                                        <div className="comment-avatar">{comment.user.charAt(0)}</div>
+                            {chats.length > 0 ? (
+                                chats.map(chat => (
+                                    <div key={chat.id} className="comment-item">
+                                        <div className="comment-avatar">{chat.user.charAt(0)}</div>
                                         <div className="comment-bubble">
                                             <div className="comment-meta">
-                                                <span className="user-name">{comment.user}</span>
-                                                <span className="time">{comment.time}</span>
+                                                <span className="user-name">{chat.user}</span>
+                                                <span className="time">{chat.created_at}</span>
                                             </div>
-                                            <div className="comment-text">{comment.text}</div>
+                                            <div className="comment-text">{chat.content}</div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="empty-state">아직 작성된 댓글이 없습니다.</div>
+                                <div className="empty-state">작성된 채팅이 없습니다.</div>
                             )}
                         </div>
 
-                        {/* 🔥 [추가] 댓글 입력창 */}
                         <div className="comment-input-area">
                             <textarea 
-                                placeholder="댓글을 입력하세요..." 
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
+                                value={newChat}
+                                onChange={(e) => setNewChat(e.target.value)}
                                 onKeyPress={(e) => {
                                     if(e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
-                                        handleAddComment();
+                                        handleAddChat();
                                     }
                                 }}
                             />
-                            <button className="btn-send" onClick={handleAddComment}>등록</button>
+                            <button className="btn-send" onClick={handleAddChat}>등록</button>
                         </div>
                     </div>
                 </div>

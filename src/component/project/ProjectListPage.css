@@ -20,20 +20,71 @@
   color: #111;
 }
 
+/* [추가] 헤더 레이아웃 수정: 제목과 탭을 감싸는 왼쪽 그룹 */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 30px; /* 제목과 탭 사이 간격 */
+}
+
+/* [추가] 탭 컨테이너 */
+.filter-tabs {
+  display: flex;
+  background: #e5e7eb;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+/* [추가] 탭 버튼 스타일 */
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+/* 활성화된 탭 */
+.tab-btn.active {
+  background: white;
+  color: #111;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tab-btn:hover:not(.active) {
+  color: #374151;
+}
+
+/* [추가] 데이터 없을 때 안내 문구 */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px;
+  color: #9ca3af;
+  font-size: 1.1rem;
+}
+
 /* 새 프로젝트 버튼 꾸미기 */
 .new-project-btn {
   /* 1. 배치 및 크기 */
   display: flex;
   align-items: center;
-  gap: 8px; /* 아이콘과 글자 사이 간격 */
+  gap: 8px; 
   padding: 12px 24px;
   height: 48px;
   
-  /* 2. 색상 및 배경 (그라데이션 적용) */
+  white-space: nowrap; /* 글자가 절대 줄바꿈되지 않게 함 */
+  flex-shrink: 0;      /* 화면이 좁아져도 버튼 크기가 줄어들지 않게 함 */
+
+  /* 2. 색상 및 배경 */
   background: linear-gradient(135deg, #3b82f6, #2563eb); 
   color: white;
   border: none;
-  border-radius: 12px; /* 동글동글하게 */
+  border-radius: 12px;
   
   /* 3. 폰트 */
   font-weight: 700;
@@ -41,9 +92,9 @@
   letter-spacing: -0.01em;
   cursor: pointer;
   
-  /* 4. 애니메이션 및 그림자 */
+  /* 4. 애니메이션 */
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); /* 파란색 그림자 */
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
 }
 
 /* 마우스 올렸을 때 효과 */

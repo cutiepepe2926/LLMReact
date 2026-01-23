@@ -7,11 +7,14 @@ const ProjectListPage = ({ onEnterDashboard }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
+  const [filterStatus, setFilterStatus] = useState('ACTIVE');
+
   // 목업 데이터 (isFavorite 추가)
   const [projects, setProjects] = useState([
     { 
       id: 1, 
       title: 'LinkLogMate', 
+      status: 'ACTIVE',
       startDate: '2026.01.01', 
       endDate: '2026.04.13', 
       completedTasks: 35, 
@@ -25,6 +28,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
     { 
       id: 2, 
       title: '쇼핑몰 프로젝트', 
+      status: 'DONE',
       startDate: '2026.01.01', 
       endDate: '2026.04.13', 
       completedTasks: 12, 
@@ -38,6 +42,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
     { 
       id: 3, 
       title: '사내 인트라넷', 
+      status: 'ACTIVE',
       startDate: '2026.01.01', 
       endDate: '2026.04.13', 
       completedTasks: 5, 
@@ -62,6 +67,8 @@ const ProjectListPage = ({ onEnterDashboard }) => {
     ));
   };
 
+  const filteredProjects = projects.filter(p => p.status === filterStatus);
+
   return (
     <div className="list-container">
       {isModalOpen && (
@@ -72,7 +79,23 @@ const ProjectListPage = ({ onEnterDashboard }) => {
       )}
 
       <header className="list-header">
-        <h2>프로젝트 대시보드</h2>
+        <div className="header-left">
+          <h2>프로젝트 대시보드</h2>
+          <div className="filter-tabs">
+            <button 
+              className={`tab-btn ${filterStatus === 'ACTIVE' ? 'active' : ''}`} 
+              onClick={() => setFilterStatus('ACTIVE')}
+            >
+              진행 중
+            </button>
+            <button 
+              className={`tab-btn ${filterStatus === 'DONE' ? 'active' : ''}`} 
+              onClick={() => setFilterStatus('DONE')}
+            >
+              완료됨
+            </button>
+          </div>
+        </div>
         <button className="new-project-btn" onClick={() => setIsModalOpen(true)}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -83,67 +106,71 @@ const ProjectListPage = ({ onEnterDashboard }) => {
       </header>
 
       <div className="project-grid">
-        {projects.map((p) => (
-          <div key={p.id} className="project-card" onClick={() => handleCardClick(p.id)}>
-            
-            <div className="card-body">
-              {/* [수정] flex 레이아웃으로 제목과 버튼을 양 끝에 배치 */}
-              <div className="card-top-row">
-                <div className="title-group">
-                  <h3>{p.title}</h3>
-                </div>
-                
-                {/* 즐겨찾기 버튼 */}
-                <button 
-                  className={`favorite-btn ${p.isFavorite ? 'active' : ''}`}
-                  onClick={(e) => toggleFavorite(p.id, e)}
-                >
-                  <svg 
-                    width="24" height="24" viewBox="0 0 24 24" 
-                    fill={p.isFavorite ? "#F59E0B" : "none"} /* 채워진 색: 노랑 / 비워진 색: 투명 */
-                    stroke={p.isFavorite ? "#F59E0B" : "#D1D5DB"} /* 테두리 색: 노랑 / 회색 */
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </button>
-              </div>
-
-              <div className="date-range">{p.startDate} ~ {p.endDate}</div>
-
-              <div className="task-status-text">
-                <span className="highlight">{p.completedTasks}</span>
-                <span className="divider">/</span>
-                <span className="total">{p.totalTasks} 업무 완료</span>
-              </div>
-
-              <div className="info-row">
-                <div className="member-info">
-                  <span className="label">참여자</span>
-                  <div className="avatar-stack">
-                    {[1, 2, 3].map((_, i) => (
-                      <div key={i} className="avatar-circle" style={{zIndex: 3-i}}>U{i+1}</div>
-                    ))}
-                    <div className="avatar-circle more">+3</div>
+        {filteredProjects.length > 0 ? (
+          filteredProjects.map((p) => (
+            <div key={p.id} className="project-card" onClick={() => handleCardClick(p.id)}>
+              
+              <div className="card-body">
+                <div className="card-top-row">
+                  <div className="title-group">
+                    <h3>{p.title}</h3>
                   </div>
+                  
+                  <button 
+                    className={`favorite-btn ${p.isFavorite ? 'active' : ''}`}
+                    onClick={(e) => toggleFavorite(p.id, e)}
+                  >
+                    <svg 
+                      width="24" height="24" viewBox="0 0 24 24" 
+                      fill={p.isFavorite ? "#F59E0B" : "none"} 
+                      stroke={p.isFavorite ? "#F59E0B" : "#D1D5DB"} 
+                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  </button>
                 </div>
-                
-                {p.issueCount > 0 ? (
-                    <div className="issue-badge">{p.issueCount} Issue</div>
-                ) : (
-                  <div className="issue-badge clean">No Issue</div>
-                )}
+
+                <div className="date-range">{p.startDate} ~ {p.endDate}</div>
+
+                <div className="task-status-text">
+                  <span className="highlight">{p.completedTasks}</span>
+                  <span className="divider">/</span>
+                  <span className="total">{p.totalTasks} 업무 완료</span>
+                </div>
+
+                <div className="info-row">
+                  <div className="member-info">
+                    <span className="label">참여자</span>
+                    <div className="avatar-stack">
+                      {[1, 2, 3].map((_, i) => (
+                        <div key={i} className="avatar-circle" style={{zIndex: 3-i}}>U{i+1}</div>
+                      ))}
+                      <div className="avatar-circle more">+3</div>
+                    </div>
+                  </div>
+                  
+                  {p.issueCount > 0 ? (
+                      <div className="issue-badge">{p.issueCount} Issue</div>
+                  ) : (
+                    <div className="issue-badge clean">No Issue</div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="card-footer">
-              <span className="branch-name">main:</span>
-              <span className="commit-msg">{p.lastCommit}</span>
-              <span className="commit-time">({p.lastCommitTime})</span>
-            </div>
+              <div className="card-footer">
+                <span className="branch-name">main:</span>
+                <span className="commit-msg">{p.lastCommit}</span>
+                <span className="commit-time">({p.lastCommitTime})</span>
+              </div>
 
+            </div>
+          ))
+        ) : (
+          <div className="empty-state">
+            <p>해당 상태의 프로젝트가 없습니다.</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

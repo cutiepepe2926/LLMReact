@@ -203,3 +203,65 @@
 .timeline-item .dot { position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: white; border: 2px solid #3b82f6; }
 .content { font-size: 0.9rem; color: #4b5563; line-height: 1.4; }
 .content .time { display: block; font-size: 0.75rem; color: #9ca3af; margin-top: 4px; }
+
+/* [추가] 체크리스트 행 레이아웃 (삭제 버튼 포함) */
+.check-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border: 1px solid #f3f4f6;
+    border-radius: 8px;
+    transition: 0.2s;
+    background: white;
+    margin-bottom: 8px;
+}
+
+.check-row:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+/* 체크박스 + 텍스트 묶음 */
+.check-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex: 1; 
+    overflow: hidden; /* 텍스트 넘침 방지 */
+}
+
+.check-label input[type="checkbox"] {
+    width: 18px; 
+    height: 18px; 
+    accent-color: #3b82f6;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.check-row.completed span {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+/* 삭제 버튼 (x) - 평소엔 숨김 */
+.btn-delete-check {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    opacity: 0; /* 투명하게 */
+    transition: opacity 0.2s;
+}
+
+.check-row:hover .btn-delete-check {
+    opacity: 1; /* 마우스 올리면 보임 */
+}
+
+.btn-delete-check:hover {
+    color: #ef4444; /* 빨간색 */
+}

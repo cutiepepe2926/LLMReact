@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import TaskCard from './TaskCard';
 import TaskCreateModal from './modal/TaskCreateModal';
 import TaskDetailPage from './TaskDetailPage';
@@ -12,43 +13,52 @@ const MOCK_TASKS = [
 ];
 
 function TaskBoard() {
-    // --- 상태 관리 ---
+    const { projectId } = useParams();
     const [tasks, setTasks] = useState(MOCK_TASKS);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filterType, setFilterType] = useState('ALL');
-    
-    // 선택된 업무 (상세 페이지용)
     const [selectedTask, setSelectedTask] = useState(null); 
-    // 수정할 업무 (모달용) - null이면 생성 모드, 값이 있으면 수정 모드
     const [editingTask, setEditingTask] = useState(null);
 
     const isAdmin = true; 
-    const currentUser = '홍길동'; // 현재 로그인한 사용자 (테스트용)
+    const currentUser = '홍길동';
 
-    // --- 핸들러 ---
+    // --- [DnD 핸들러] ---
+    // 드래그 시작 시 ID 저장
+    const onDragStart = (e, taskId) => {
+        e.dataTransfer.setData("taskId", taskId);
+    };
 
-    // 1. 모달 열기 (생성 모드)
+    // 드롭 허용 (필수)
+    const onDragOver = (e) => {
+        e.preventDefault();
+    };
+
+    // 드롭 시 상태 변경
+    const onDrop = (e, newStatus) => {
+        const taskId = parseInt(e.dataTransfer.getData("taskId"));
+        handleStatusChange(taskId, newStatus);
+    };
+
+    // --- [기존 핸들러] ---
     const openCreateModal = () => {
-        setEditingTask(null); // 수정 모드 해제
+        setEditingTask(null);
         setIsModalOpen(true);
     };
 
-    // 2. 모달 열기 (수정 모드) - 상세 페이지에서 호출
     const openEditModal = (task) => {
-        setEditingTask(task); // 수정할 데이터 세팅
+        setEditingTask(task);
         setIsModalOpen(true);
     };
 
-    // 3. 업무 저장 (생성 또는 수정)
     const handleSaveTask = (taskData) => {
         if (editingTask) {
             const updatedTask = { ...editingTask, ...taskData };
             setTasks(tasks.map(t => t.id === editingTask.id ? updatedTask : t));
-            setSelectedTask(updatedTask); //
+            setSelectedTask(updatedTask);
         } else {
-            // [생성 로직]
             const newTask = {
-                id: tasks.length + 1,
+                id: Date.now(), // ID 생성 방식 변경 (충돌 방지)
                 status: 'TODO',
                 dDay: 'D-New',
                 ...taskData
@@ -59,25 +69,21 @@ function TaskBoard() {
         setEditingTask(null);
     };
 
-    // 4. 업무 삭제
     const handleDeleteTask = (taskId) => {
         if (window.confirm("정말 이 업무를 삭제하시겠습니까?")) {
             setTasks(tasks.filter(t => t.id !== taskId));
-            setSelectedTask(null); // 상세 페이지 닫기
+            setSelectedTask(null);
         }
     };
 
-    // 카드 클릭 -> 상세 페이지 이동
     const handleTaskClick = (task) => {
         setSelectedTask(task);
     };
 
-    // 뒤로가기
     const handleBackToList = () => {
         setSelectedTask(null);
     };
 
-    // 필터링
     const getTasksByStatus = (status) => {
         const filtered = filterType === 'MY' 
             ? tasks.filter(t => t.assignees.includes(currentUser)) 
@@ -85,40 +91,45 @@ function TaskBoard() {
         return filtered.filter(t => t.status === status);
     };
 
-    // 상태 변경 핸들러
-    const handleStatusChange = (targetTask, newStatus) => {
-        // 1. 전체 목록(tasks) 업데이트
+    // 상태 변경 (DnD 및 상세페이지 공용)
+    const handleStatusChange = (taskId, newStatus) => {
+        // (UI 업데이트) 
         const updatedTasks = tasks.map(t => 
-            t.id === targetTask.id ? { ...t, status: newStatus } : t
+            t.id === taskId ? { ...t, status: newStatus } : t
         );
         setTasks(updatedTasks);
 
-        // 2. 현재 보고 있는 상세 페이지(selectedTask) 데이터도 동기화
-        if (selectedTask && selectedTask.id === targetTask.id) {
+        // (상세 페이지 동기화)
+        if (selectedTask && selectedTask.id === taskId) {
             setSelectedTask({ ...selectedTask, status: newStatus });
         }
+
+        /* ★ [API 연동 시 추가될 코드]
+           API: PATCH api/projects/{projectId}/tasks/{taskId}/status
+           body: { status: newStatus }
+           
+           axios.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status: newStatus });
+        */
+        console.log(`API 호출: Project ${projectId} / Task ${taskId} -> ${newStatus}`);
     };
 
-    // [상세 페이지]
     if (selectedTask) {
         return (
             <TaskDetailPage 
                 task={selectedTask} 
                 onBack={handleBackToList}
-                onEdit={() => openEditModal(selectedTask)} // 수정 버튼 연결
-                onDelete={() => handleDeleteTask(selectedTask.id)} // 삭제 버튼 연결
-                onStatusChange={handleStatusChange}
+                onEdit={() => openEditModal(selectedTask)}
+                onDelete={() => handleDeleteTask(selectedTask.id)} 
+                onStatusChange={handleStatusChange} 
             />
         );
     }
 
-    // [리스트 화면]
     return (
         <div className="task-board-container">
-            {/* 업무 생성/수정 모달 */}
             {isModalOpen && (
                 <TaskCreateModal 
-                    initialData={editingTask} // 초기 데이터 전달 (수정 시)
+                    initialData={editingTask}
                     onClose={() => setIsModalOpen(false)}
                     onSave={handleSaveTask}
                 />
@@ -141,14 +152,25 @@ function TaskBoard() {
 
             <div className="kanban-wrapper">
                 {['TODO', 'IN_PROGRESS', 'DONE'].map(status => (
-                    <div className="kanban-column" key={status}>
+                    <div 
+                        className="kanban-column" 
+                        key={status}
+                        onDragOver={onDragOver} // 드래그 허용
+                        onDrop={(e) => onDrop(e, status)} // 드롭 시 상태 변경
+                    >
                         <div className={`column-header ${status.toLowerCase().replace('_', '')}`}>
                             <div className="header-title"><span className="dot"></span> {status.replace('_', ' ')}</div>
                             <span className="count">{getTasksByStatus(status).length}</span>
                         </div>
                         <div className="column-body">
                             {getTasksByStatus(status).map(task => (
-                                <TaskCard key={task.id} task={task} onClick={handleTaskClick} />
+                                <TaskCard 
+                                    key={task.id} 
+                                    task={task} 
+                                    onClick={handleTaskClick} 
+                                    // 드래그 이벤트 전달
+                                    onDragStart={(e) => onDragStart(e, task.id)}
+                                />
                             ))}
                         </div>
                     </div>

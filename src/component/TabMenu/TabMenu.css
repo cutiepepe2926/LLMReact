@@ -1,90 +1,149 @@
+:root {
+    --tab-primary: #3b82f6; /* 메인 파란색 */
+    --tab-hover-bg: #eff6ff; /* 호버 시 연한 파랑 배경 */
+    --tab-text-default: #6b7280; /* 기본 회색 텍스트 */
+    --tab-text-active: #1d4ed8; /* 활성 텍스트 (진한 파랑) */
+    --tab-border-line: #e5e7eb; /* 바닥 회색 라인 */
+}
+
 .tab-menu-container {
     display: flex;
     align-items: center;
-    border-bottom: 2px solid #ebecf0;
-    margin-bottom: 24px;
+    /* 바닥 선을 container가 아닌 가상요소로 처리하여 z-index 제어 용이하게 함 */
     position: relative;
-    height: 48px;
+    height: 52px; /* 높이 약간 여유있게 */
     width: 100%;
+    margin-bottom: 24px;
+    padding: 0 4px; /* 양옆 여백 살짝 */
+    box-sizing: border-box;
+}
+
+/* 바닥 회색 라인 (가상 요소로 분리) */
+.tab-menu-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--tab-border-line);
+    z-index: 0;
 }
 
 .tab-item {
-
-    flex: 1 1 0;            /* n등분 */
-    min-width: 0;           /* 긴 텍스트가 폭을 밀어내지 않게 */
-    justify-content: center;/* 텍스트 가운데 정렬(원하면 left로 바꿔도 됨) */
-
-    background: none;
-    border: none;
-    padding: 0 16px;
+    /* 레이아웃 */
+    flex: 1; /* 공간 균등 분배 (필요에 따라 auto로 변경 가능) */
+    min-width: 0;
     height: 100%;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: #6b778c;
-    cursor: pointer;
-    position: relative;
     display: flex;
     align-items: center;
-    transition: color 0.2s;
-    white-space: nowrap; /* 줄바꿈 방지 */
-    overflow: hidden; /* 말줄임 처리용 */
-    text-overflow: ellipsis;/* 말줄임 */
+    justify-content: center;
+    
+    /* 스타일 */
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--tab-text-default);
+    cursor: pointer;
+    position: relative;
+    
+    /* 텍스트 줄바꿈 방지 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    /* 애니메이션 */
+    transition: all 0.2s ease;
+    border-radius: 8px 8px 0 0; /* 위쪽만 둥글게 */
 }
 
+/* 마우스 올렸을 때 */
 .tab-item:hover {
-    color: #0052cc;
-    background-color: #f4f5f7;
+    color: var(--tab-primary);
+    background-color: var(--tab-hover-bg);
 }
 
+/* 선택된 탭 */
 .tab-item.active {
-    color: #0052cc;
-    font-weight: 600;
+    color: var(--tab-text-active);
+    font-weight: 700;
 }
 
+/* ★ [핵심 수정] 탭 하단 인디케이터 (선) */
 .tab-indicator {
     position: absolute;
-    bottom: -2px;
+    bottom: 0; /* 바닥에 딱 붙이기 */
     left: 0;
     width: 100%;
-    height: 3px;
-    background-color: #0052cc;
-    border-radius: 3px 3px 0 0;
+    height: 4px; /* 두께 증가 (기존 3px -> 4px) */
+    background-color: var(--tab-primary);
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    z-index: 10; /* 회색 라인보다 위에 오도록 설정 */
+    
+    /* 나타날 때 부드럽게 */
+    animation: slideUp 0.2s ease forwards;
 }
 
-/* 더보기 버튼 스타일 */
+@keyframes slideUp {
+    from { transform: scaleY(0); opacity: 0; }
+    to { transform: scaleY(1); opacity: 1; }
+}
+
+/* --- 더보기 버튼 및 드롭다운 --- */
+
+.tab-more-wrapper {
+    position: relative;
+    height: 100%;
+    display: flex;
+}
+
 .more-btn {
     font-weight: 700;
-    color: #42526e;
+    color: #4b5563;
+    padding: 0 20px;
 }
 
-/* 드롭다운 메뉴 */
+/* 드롭다운 메뉴 디자인 업그레이드 */
 .tab-dropdown {
     position: absolute;
-    top: 50px;
+    top: 55px; /* 버튼보다 살짝 아래 */
     right: 0;
     background: white;
-    border: 1px solid #dfe1e6;
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(9, 30, 66, 0.25);
-    min-width: 150px;
+    border: 1px solid var(--tab-border-line);
+    border-radius: 12px; /* 둥글게 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 그림자 부드럽게 */
+    min-width: 180px;
     z-index: 100;
-    padding: 8px 0;
+    padding: 8px;
+    
+    /* 애니메이션 */
+    animation: fadeIn 0.2s ease;
+    transform-origin: top right;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .dropdown-item {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    color: #172b4d;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    color: var(--tab-text-default);
     cursor: pointer;
+    border-radius: 8px; /* 항목도 둥글게 */
+    transition: all 0.1s;
 }
 
 .dropdown-item:hover {
-    background-color: #f4f5f7;
-    color: #0052cc;
+    background-color: var(--tab-hover-bg);
+    color: var(--tab-primary);
 }
 
 .dropdown-item.active {
-    background-color: #e6effc;
-    color: #0052cc;
-    font-weight: 600;
+    background-color: #eff6ff; /* 아주 연한 파랑 */
+    color: var(--tab-text-active);
+    font-weight: 700;
 }

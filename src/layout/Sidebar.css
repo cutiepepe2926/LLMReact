@@ -1,314 +1,268 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
 
 :root {
-    --primary-color: #58A6FF;
-    --primary-soft: rgba(88, 166, 255, 0.12);
-    --text-primary: #1F2937;
-    --text-secondary: #6B7280;
-    --text-label: #9CA3AF;
-    --bg-sidebar: #FFFFFF;
-    --border-color: #E5E7EB;
+    --primary-blue: #3b82f6;
+    --primary-light: #eff6ff; /* 아주 연한 파랑 */
+    --text-main: #1f2937;
+    --text-sub: #6b7280;
+    --sidebar-width: 280px; /* 너비 확장 */
+    --border-line: #e5e7eb;
 }
 
 /* 전체 컨테이너 */
 .sidebar-container {
-    width: 260px;
+    width: var(--sidebar-width);
     height: 100vh;
-    background-color: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
+    background-color: #ffffff;
+    border-right: 1px solid var(--border-line);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     z-index: 1000;
     font-family: 'Pretendard', sans-serif;
     box-sizing: border-box;
+    position: sticky;
+    top: 0;
 }
 
-/* 로고 */
+/* 로고 영역 */
 .sidebar-brand {
-    height: 64px;
+    height: 68px;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 0 24px;
+    padding: 0 28px;
     cursor: pointer;
 }
 
 .brand-name {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #111;
+    color: var(--text-main);
     letter-spacing: -0.5px;
 }
 
-/* 프로젝트 타이틀 카드 */
+/* 프로젝트 컨텍스트 카드 (현재 프로젝트 표시) */
 .project-context-card {
-    margin: 12px 16px 8px 16px;
-    padding: 12px;
-    background-color: #FAFAFA;
-    border: 1px solid #F3F4F6;
-    border-radius: 8px;
+    margin: 0 16px 12px 16px;
+    padding: 14px;
+    background-color: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #f3f4f6;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
 .context-icon {
-    width: 32px; height: 32px;
-    background: linear-gradient(135deg, #58A6FF 0%, #2563EB 100%);
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     display: flex; justify-content: center; align-items: center;
-    font-weight: 700; font-size: 1rem;
-    flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(88, 166, 255, 0.25);
+    font-weight: 700; font-size: 1.1rem;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
 }
 
 .context-info {
-    display: flex; flex-direction: column;
-    overflow: hidden;
+    display: flex; flex-direction: column; overflow: hidden;
 }
 
-.context-label { font-size: 0.7rem; color: #9CA3AF; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
-.context-title { font-size: 0.9rem; font-weight: 700; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.context-label { font-size: 0.7rem; color: #9ca3af; font-weight: 700; letter-spacing: 0.5px; }
+.context-title { font-size: 0.95rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* 메뉴 리스트 */
 .sidebar-menu {
     flex: 1;
-    padding: 8px 12px;
+    padding: 8px 16px;
     overflow-y: auto;
 }
 
+/* 스크롤바 숨김 (깔끔하게) */
+.sidebar-menu::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+.sidebar-menu:hover::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+}
+
+/* 섹션 라벨 & 구분선 */
 .menu-section-label {
-    padding: 16px 12px 6px 12px;
+    padding: 20px 12px 8px 12px;
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--text-label);
+    color: #9ca3af;
     letter-spacing: 0.5px;
 }
 
 .menu-divider {
     height: 1px;
-    background-color: #F3F4F6;
-    margin: 8px 12px;
+    background-color: #f3f4f6;
+    margin: 12px 8px;
 }
 
-/* --- 1. 상태 및 리포트 카드 --- */
-.menu-status-card {
-    padding: 14px 12px;
-    margin: 4px 0 12px 0;
-    background: #FFFFFF;
-    border-radius: 8px;
-    border: 1px solid #E5E7EB;
-}
-
-.status-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 8px; /* 타이머와의 간격 */
-}
-
-.status-label { font-size: 0.8rem; font-weight: 600; color: #4B5563; }
-
-.status-badge.on-track {
-    font-size: 0.75rem; font-weight: 700; color: #10B981;
-    background: #ECFDF5; padding: 2px 8px; border-radius: 12px; border: 1px solid #A7F3D0;
-}
-
-/* [NEW] AI 리포트 타이머 배지 스타일 */
-.ai-timer-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: #6366f1; /* 보라/남색 계열로 강조 */
-    background-color: #eef2ff;
-    padding: 6px 10px;
-    border-radius: 6px;
-    margin-bottom: 12px; /* 버튼과의 간격 */
-    font-weight: 600;
-    border: 1px solid #c7d2fe;
-}
-
-.today-report-btn {
-    width: 100%;
-    display: flex; align-items: center; gap: 10px;
-    background-color: #F9FAFB;
-    border: 1px dashed #D1D5DB;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.2s;
-}
-
-.today-report-btn:hover {
-    background-color: #EFF6FF;
-    border-color: #BFDBFE;
-}
-
-.report-icon { color: #58A6FF; display: flex; }
-
-.report-text-col { display: flex; flex-direction: column; }
-.report-label { font-size: 0.8rem; font-weight: 700; color: #374151; }
-.report-status.not-written { font-size: 0.75rem; color: #EF4444; font-weight: 500; }
-
-/* --- 2. 내 업무 리스트 (Active Tasks) --- */
-.my-tasks-container {
-    margin-bottom: 12px;
-}
-
-.sidebar-task-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    margin-bottom: 4px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.sidebar-task-item:hover {
-    background-color: #F9FAFB;
-}
-
-.task-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.task-dot.blue { 
-    background-color: #3B82F6; 
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); 
-}
-.task-dot.yellow { 
-    background-color: #F59E0B; 
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); 
-}
-
-.task-title {
-    font-size: 0.9rem;
-    color: #4B5563;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.task-more-btn {
-    padding: 6px 12px 6px 30px;
-    font-size: 0.8rem;
-    color: #9CA3AF;
-    cursor: pointer;
-    font-weight: 500;
-}
-.task-more-btn:hover { color: var(--primary-color); }
-
-/* 일반 메뉴 아이템 */
+/* 메뉴 아이템 */
 .menu-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
-    margin-bottom: 2px;
-    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 4px;
+    border-radius: 10px;
     cursor: pointer;
-    color: var(--text-secondary);
+    color: var(--text-sub);
     font-size: 0.95rem;
     font-weight: 500;
     transition: all 0.2s ease;
 }
 
 .menu-item:hover {
-    background-color: #F9FAFB;
-    color: #111;
+    background-color: #f9fafb;
+    color: var(--text-main);
     transform: translateX(4px);
 }
 
 .menu-item.active {
-    background-color: var(--primary-soft);
-    color: var(--primary-color);
+    background-color: var(--primary-light);
+    color: var(--primary-blue);
     font-weight: 700;
 }
 
+/* 하단 뒤로가기 버튼 스타일 */
 .menu-item.back-btn {
-    margin-top: auto;
-    color: #9CA3AF;
-    border-top: 1px solid #F3F4F6;
+    margin-top: 10px;
+    border-top: 1px solid #f3f4f6;
     border-radius: 0;
     padding: 16px 12px;
+    color: #9ca3af;
 }
-.menu-item.back-btn:hover { transform: none; color: var(--primary-color); }
+.menu-item.back-btn:hover {
+    transform: none;
+    color: var(--primary-blue);
+    background: transparent;
+}
 
 .menu-icon-box {
     display: flex; align-items: center; justify-content: center;
-    width: 20px;
-    flex-shrink: 0;
+    width: 24px; flex-shrink: 0;
     opacity: 0.8;
 }
 .menu-item.active .menu-icon-box { opacity: 1; }
 
-/* 하단 프로필 */
-.sidebar-footer {
+/* --- 위젯: 상태 카드 --- */
+.menu-status-card {
     padding: 16px;
-    border-top: 1px solid var(--border-color);
-    background-color: #FFFFFF;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.status-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+}
+.status-label { font-size: 0.8rem; font-weight: 700; color: #4b5563; }
+.status-badge.on-track {
+    font-size: 0.75rem; font-weight: 800; color: #10b981;
+    background: #ecfdf5; padding: 4px 8px; border-radius: 20px;
+}
+
+/* AI 타이머 배지 */
+.ai-timer-badge {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.8rem;
+    color: #4f46e5;
+    background-color: #eef2ff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+/* 리포트 작성 버튼 */
+.today-report-btn {
+    width: 100%;
+    display: flex; align-items: center; gap: 12px;
+    background-color: #f9fafb;
+    border: 1px dashed #d1d5db;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+.today-report-btn:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary-blue);
+}
+.report-icon { color: var(--primary-blue); }
+.report-label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+.report-status { font-size: 0.75rem; color: #ef4444; font-weight: 500; }
+
+/* --- 위젯: 내 업무 리스트 --- */
+.my-tasks-container { padding: 0 8px; margin-bottom: 10px; }
+.sidebar-task-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px;
+    margin-bottom: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.sidebar-task-item:hover { background-color: #f9fafb; }
+.task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.task-dot.blue { background-color: #3b82f6; }
+.task-dot.yellow { background-color: #f59e0b; }
+.task-title { font-size: 0.9rem; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- 하단 프로필 --- */
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-line);
+    background-color: #ffffff;
 }
 
 .user-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 8px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
     cursor: pointer;
-    border: 1px solid transparent;
     transition: all 0.2s;
 }
-
 .user-card:hover {
-    background-color: #F9FAFB;
-    border-color: #F3F4F6;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    background-color: #f9fafb;
 }
 
 .user-avatar {
-    width: 36px; height: 36px;
-    min-width: 36px;
-    background-color: #EBF5FF;
-    color: #58A6FF;
+    width: 40px; height: 40px;
+    background-color: var(--primary-light);
+    color: var(--primary-blue);
     border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
-    font-weight: 700;
+    font-weight: 800; font-size: 0.9rem;
     position: relative;
-    border: 1px solid rgba(88, 166, 255, 0.2);
-    flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px #e5e7eb;
 }
-
 .status-dot {
     position: absolute; bottom: 0; right: 0;
     width: 10px; height: 10px;
-    background-color: #10B981;
+    background-color: #10b981;
     border: 2px solid white;
     border-radius: 50%;
 }
 
-.user-meta {
-    flex: 1;
-    display: flex; flex-direction: column; gap: 2px;
-    overflow: hidden;
-}
-
-.user-name { font-size: 0.9rem; font-weight: 700; color: #374151; }
-.user-git-status { 
-    display: flex; align-items: center; gap: 4px; 
-    font-size: 0.75rem; color: #6B7280; 
-}
+.user-meta { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.user-name { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+.user-git-status { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-sub); }
 .user-git-status svg { width: 12px; height: 12px; }
 
 .footer-setting-btn {
-    background: none; border: none;
-    color: #D1D5DB; cursor: pointer;
-    padding: 4px;
-    display: flex; align-items: center;
+    background: none; border: none; color: #d1d5db; cursor: pointer; padding: 4px;
 }
-.user-card:hover .footer-setting-btn { color: var(--text-secondary); }
+.user-card:hover .footer-setting-btn { color: var(--text-sub); }

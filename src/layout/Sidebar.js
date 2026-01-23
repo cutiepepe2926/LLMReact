@@ -1,9 +1,10 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom'; // useParams 추가
 import './Sidebar.css';
 
+// 아이콘 컴포넌트
 const Icons = {
-    LinkLogo: () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#58A6FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>,
+    LinkLogo: () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>,
     Home: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
     Folder: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>,
     Back: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
@@ -21,34 +22,108 @@ const MENUS = {
         { id: 'all_projects', label: '전체 프로젝트', path: '/projectList', icon: <Icons.Folder /> },
         { type: 'divider' },
         { type: 'label', label: 'FAVORITES' },
-        { id: 'fav1', label: '쇼핑몰 리뉴얼', path: '/projectDetail/1', icon: <Icons.Star /> },
-        { id: 'fav2', label: '사내 메신저 V2', path: '/projectDetail/2', icon: <Icons.Star /> },
+        { id: 'fav1', label: '쇼핑몰 리뉴얼', path: '/projects/1', icon: <Icons.Star /> },
+        { id: 'fav2', label: '사내 메신저 V2', path: '/projects/2', icon: <Icons.Star /> },
     ],
 
     project_context: [
-        // [수정] 남은 시간(remainTime) 추가
+        // 상단: 프로젝트 상태 & 리포트
         { type: 'status_card', status: 'On Track', reportStatus: 'Not Written', remainTime: '02:30:15' },
         
-        { type: 'label', label: 'MY ACTIVE TASKS' },
-        { type: 'my_tasks_list', tasks: [
-            { id: 1, title: '로그인 API 연동', status: 'In Progress' },
-            { id: 2, title: '메인 페이지 퍼블리싱', status: 'Todo' },
-            { id: 3, title: 'DB 스키마 설계', status: 'Todo' },
-        ]},
+        { type: 'label', label: 'MENU' },
+        { id: 'dashboard', label: '대시보드', path: '/dashboard', icon: <Icons.Home /> },
+        { id: 'tasks', label: '업무 보드', path: '/tasks', icon: <Icons.Folder /> },
+        { id: 'members', label: '멤버 관리', path: '/members', icon: <Icons.Users /> },
 
         { type: 'divider' },
         
-        { id: 'members', label: '멤버 보기', path: '/projectMembers', icon: <Icons.Users /> },
+        { type: 'label', label: 'MY TASKS' },
+        { type: 'my_tasks_list', tasks: [
+            { id: 1, title: '로그인 API 연동', status: 'In Progress' },
+            { id: 2, title: '메인 페이지 퍼블리싱', status: 'Todo' },
+        ]},
 
         { type: 'spacer' },
-        { id: 'back', label: '목록으로 나가기', path: '/projectList', icon: <Icons.Back />, type: 'back' },
+        { id: 'back', label: '프로젝트 나가기', path: '/projectList', icon: <Icons.Back />, type: 'back' },
     ]
 };
 
 const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const isProjectContext = location.pathname.startsWith('/projectDetail') || location.pathname.startsWith('/aiReport');
+    const { projectId } = useParams(); // URL 파라미터에서 projectId 가져오기
+
+    // 현재 경로가 프로젝트 내부인지 확인
+    const isProjectContext = 
+        location.pathname.startsWith('/projectDetail') || 
+        location.pathname.startsWith('/projects') || 
+        location.pathname.startsWith('/aiReport');
+
+
+    // 메뉴 렌더링 함수
+    const renderMenu = (menu, index) => {
+        if (menu.type === 'divider') return <div key={`div-${index}`} className="menu-divider" />;
+        if (menu.type === 'label') return <div key={`lbl-${index}`} className="menu-section-label">{menu.label}</div>;
+        if (menu.type === 'spacer') return <div key={`sp-${index}`} style={{ flex: 1 }} />;
+        
+        // 1. 상태 + 리포트 위젯
+        if (menu.type === 'status_card') {
+            return (
+                <div key={`st-${index}`} className="menu-status-card">
+                    <div className="status-header">
+                        <span className="status-label">Status</span>
+                        <span className="status-badge on-track">{menu.status}</span>
+                    </div>
+                    <div className="ai-timer-badge">
+                        <Icons.Clock />
+                        <span>리포트 생성까지 {menu.remainTime}</span>
+                    </div>
+                    <button className="today-report-btn" onClick={() => navigate(`/projects/${projectId || 1}/daily-reports`)}>
+                        <span className="report-icon"><Icons.Edit /></span>
+                        <div className="report-text-col">
+                            <span className="report-label">Daily Report</span>
+                            <span className="report-status not-written">작성하기</span>
+                        </div>
+                    </button>
+                </div>
+            );
+        }
+
+        // 2. 내 업무 리스트
+        if (menu.type === 'my_tasks_list') {
+            return (
+                <div key={`tasks-${index}`} className="my-tasks-container">
+                    {menu.tasks.map(task => (
+                        <div key={task.id} className="sidebar-task-item">
+                            <span className={`task-dot ${task.status === 'In Progress' ? 'yellow' : 'blue'}`}></span>
+                            <span className="task-title">{task.title}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        // 3. 일반 메뉴 아이템
+        // 현재 경로가 메뉴 경로를 포함하는지 확인 (Active 상태 유지)
+        // 예: /projects/1/dashboard 는 /dashboard 메뉴를 활성화
+        const currentPath = location.pathname;
+        const targetPath = isProjectContext && menu.path.startsWith('/') 
+            ? `/projects/${projectId}${menu.path}` 
+            : menu.path;
+            
+        const isActive = currentPath === targetPath || (menu.id !== 'home' && currentPath.includes(menu.path));
+
+        return (
+            <div 
+                key={menu.id || index} 
+                className={`menu-item ${isActive ? 'active' : ''} ${menu.type === 'back' ? 'back-btn' : ''}`}
+                onClick={() => navigate(targetPath)}
+            >
+                <span className="menu-icon-box">{menu.icon}</span>
+                <span className="menu-text">{menu.label}</span>
+            </div>
+        );
+    };
 
     return (
         <aside className="sidebar-container">
@@ -61,8 +136,8 @@ const Sidebar = () => {
                 <div className="project-context-card">
                     <div className="context-icon">P</div>
                     <div className="context-info">
-                        <span className="context-label">Current Project</span>
-                        <span className="context-title">쇼핑몰 리뉴얼 프로젝트</span>
+                        <span className="context-label">PROJECT</span>
+                        <span className="context-title">쇼핑몰 리뉴얼</span>
                     </div>
                 </div>
             )}
@@ -86,65 +161,6 @@ const Sidebar = () => {
             </div>
         </aside>
     );
-
-    function renderMenu(menu, index) {
-        if (menu.type === 'divider') return <div key={`div-${index}`} className="menu-divider" />;
-        if (menu.type === 'label') return <div key={`lbl-${index}`} className="menu-section-label">{menu.label}</div>;
-        if (menu.type === 'spacer') return <div key={`sp-${index}`} style={{ flex: 1 }} />;
-        
-        // 1. 상태 + 리포트 위젯 (타이머 추가됨)
-        if (menu.type === 'status_card') {
-            return (
-                <div key={`st-${index}`} className="menu-status-card">
-                    <div className="status-header">
-                        <span className="status-label">Project Status</span>
-                        <span className="status-badge on-track">{menu.status}</span>
-                    </div>
-
-                    {/* [NEW] AI 리포트 타이머 배지 */}
-                    <div className="ai-timer-badge">
-                        <Icons.Clock />
-                        <span>AI 리포트 생성까지 {menu.remainTime}</span>
-                    </div>
-
-                    <button className="today-report-btn" onClick={() => navigate('/aiReport/write')}>
-                        <span className="report-icon"><Icons.Edit /></span>
-                        <div className="report-text-col">
-                            <span className="report-label">Today's Report</span>
-                            <span className="report-status not-written">미작성 (작성하기)</span>
-                        </div>
-                    </button>
-                </div>
-            );
-        }
-
-        // 2. 내 업무 리스트
-        if (menu.type === 'my_tasks_list') {
-            return (
-                <div key={`tasks-${index}`} className="my-tasks-container">
-                    {menu.tasks.map(task => (
-                        <div key={task.id} className="sidebar-task-item">
-                            <span className={`task-dot ${task.status === 'In Progress' ? 'yellow' : 'blue'}`}></span>
-                            <span className="task-title">{task.title}</span>
-                        </div>
-                    ))}
-                    <div className="task-more-btn" onClick={() => navigate('/myTasks')}>+ 전체 보기</div>
-                </div>
-            );
-        }
-
-        const isActive = location.pathname === menu.path;
-        return (
-            <div 
-                key={menu.id || index} 
-                className={`menu-item ${isActive ? 'active' : ''} ${menu.type === 'back' ? 'back-btn' : ''}`}
-                onClick={() => menu.path && navigate(menu.path)}
-            >
-                <span className="menu-icon-box">{menu.icon}</span>
-                <span className="menu-text">{menu.label}</span>
-            </div>
-        );
-    }
 };
 
 export default Sidebar;
