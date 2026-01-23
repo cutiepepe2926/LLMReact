@@ -1,10 +1,18 @@
+/* src/component/projectDashBoard/Grids/MemberSettingsGrid/ProjectSettingsMiniGrid/ProjectSettingsMiniGrid.css */
+
 .psg-card {
     width: 100%;
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 14px;
-    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-card);
     padding: 18px 20px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+}
+
+.psg-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
 }
 
 .psg-row-top {
@@ -12,15 +20,21 @@
     align-items: center;
     gap: 14px;
     padding: 10px 0 16px;
+    border-bottom: 1px solid var(--border-color); /* 구분선 추가 */
+    margin-bottom: 10px;
 }
 
 .psg-label {
-    font-weight: 900;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 80px;
 }
 
 .psg-section-title {
-    font-weight: 900;
+    font-weight: 700;
     margin: 10px 0 10px;
+    color: var(--text-primary);
+    font-size: 1.05rem;
 }
 
 .psg-row {
@@ -31,25 +45,43 @@
 }
 
 .psg-btn {
-    border: none;
-    background: rgba(0,0,0,0.10);
-    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    border-radius: 8px;
     padding: 10px 14px;
     cursor: pointer;
-    font-weight: 900;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.psg-btn:hover {
+    background: #F3F4F6;
+    border-color: #D1D5DB;
 }
 
 .psg-btn.danger {
-    background: #ef4444;
+    background: var(--danger-color); /* #cf222e */
     color: #fff;
+    border: none;
+    box-shadow: 0 2px 4px rgba(207, 34, 46, 0.2);
+}
+
+.psg-btn.danger:hover {
+    background: #a41922;
+    box-shadow: 0 4px 8px rgba(207, 34, 46, 0.3);
 }
 
 .psg-btn:disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
+    background: #F3F4F6;
+    color: #D1D5DB;
+    box-shadow: none;
 }
 
 .psg-desc {
-    font-weight: 800;
-    color: rgba(0,0,0,0.7);
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }

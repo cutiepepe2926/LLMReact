@@ -1,28 +1,38 @@
-/* list/IssueFilterBar.css */
+/* src/component/projectDashBoard/Grids/IssueViewGrid/IssueGrid/IssueList/IssueFilterBar.css */
+
 .issue-filter-bar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 2fr)); /* n등분 */
+    grid-template-columns: repeat(auto-fit, minmax(140px, 2fr));
     gap: 10px;
     padding: 8px 10px;
-    border: 1px solid #ededed;
+    border: 1px solid var(--border-color);
     border-radius: 10px;
-    background: #fafafa;
+    background: #F9FAFB;
     position: relative;
 }
 
 .filter-pill {
-    width: 75%;              /* 칸 꽉 채우기 */
-    justify-content: center;  /* 텍스트 가운데 */
+    width: 75%;
+    justify-content: center;
     text-align: center;
 
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-color);
     background: #fff;
     padding: 8px 10px;
-    border-radius: 999px;
+    border-radius: 8px; /* 999px -> 8px */
     cursor: pointer;
     font-size: 14px;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.filter-pill:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
 }
 
 .filter-pill b {
     font-weight: 700;
+    color: var(--text-primary);
 }

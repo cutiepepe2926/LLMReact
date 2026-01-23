@@ -1,4 +1,15 @@
-/* src/component/memberSettingsGrid/MemberSettingsGrid.css */
+/* src/component/projectDashBoard/Grids/MemberSettingsGrid/MemberSettingsGrid.css */
+
+/* 공통 변수 정의 (필요 시 복사해서 사용) */
+:root {
+    --primary-color: #58A6FF;
+    --success-color: #2da44e;
+    --danger-color: #cf222e;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --bg-card: #ffffff;
+    --border-color: #e5e7eb;
+}
 
 .ms-wrap {
     width: 100%;
@@ -10,33 +21,44 @@
     box-sizing: border-box;
 }
 
-/* 내부 탭 영역(그림처럼 버튼형) */
+/* 내부 탭 영역 */
 .ms-subtabs {
     width: 100%;
     display: grid;
     font-size: 15px;
     min-height: 48px;
-    grid-template-columns: repeat(4, 1fr); /* 탭 4개라서 4등분 */
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
     padding: 14px 0px;
     align-items: center;
     cursor: pointer;
 }
 
-
 .ms-subtab-btn {
-    width: 100%;          /* ✅ 각 칸 꽉 채우기 */
-    border: 1px solid rgba(0,0,0,0.12);
-    background: #fff;
+    width: 100%;
+    border: 1px solid var(--border-color); /* 색상 변경 */
+    background: var(--bg-card);
     border-radius: 12px;
     padding: 10px 18px;
     cursor: pointer;
-    font-weight: 800;
+    font-weight: 700; /* 800 -> 700 조정 */
+    color: var(--text-secondary); /* 텍스트 색상 추가 */
+    transition: all 0.2s ease; /* 전환 효과 추가 */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
+.ms-subtab-btn:hover {
+    background: #F9FAFB;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+}
 
 .ms-subtab-btn.active {
-    box-shadow: 0 2px 0 rgba(0,0,0,0.08);
+    border-color: var(--primary-color);
+    background: #fff;
+    color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(88, 166, 255, 0.15); /* Primary Shadow */
 }
 
 .ms-panel {
@@ -44,21 +66,31 @@
     width: 100%;
 }
 
-/* ===== 멤버 관리 미니 그리드 ===== */
+/* ===== 멤버 관리 미니 그리드 (Fallback 스타일) ===== */
 .mm-card {
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 14px;
-    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px; /* 14px -> 12px 통일 */
+    background: var(--bg-card);
     overflow: hidden;
     width: 100%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+}
+
+/* 카드 호버 효과 추가 */
+.mm-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
 }
 
 .mm-header-row {
     display: grid;
     grid-template-columns: 90px 1.2fr 0.9fr 0.9fr 0.8fr;
     padding: 14px 16px;
-    font-weight: 900;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
+    font-weight: 700; /* 900 -> 700 */
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    background: #F9FAFB; /* 헤더 배경 약간 다르게 */
 }
 
 .mm-body {
@@ -70,52 +102,59 @@
     grid-template-columns: 90px 1.2fr 0.9fr 0.9fr 0.8fr;
     align-items: center;
     padding: 12px 16px;
+    color: var(--text-secondary);
 }
 
 .mm-row + .mm-row {
-    border-top: 1px solid rgba(0,0,0,0.06);
+    border-top: 1px solid var(--border-color);
 }
 
-/* 프로필 아이콘(더미) */
+/* 프로필 아이콘 */
 .mm-avatar {
     width: 34px;
     height: 34px;
-    border-radius: 999px;
-    background: rgba(0,0,0,0.12);
+    border-radius: 50%; /* 999px -> 50% */
+    background: #F3F4F6;
     margin-left: 18px;
+    border: 1px solid var(--border-color);
 }
-.mm-avatar.admin { background: #ff2bd6; }
-.mm-avatar.me { background: #5fe7e3; }
+.mm-avatar.admin { background: #A855F7; /* 보라색 계열로 변경 제안 */ border-color: #A855F7; }
+.mm-avatar.me { background: var(--primary-color); border-color: var(--primary-color); }
 
 .mm-name {
-    font-weight: 800;
+    font-weight: 600; /* 800 -> 600 */
+    color: var(--text-primary);
 }
 
 .mm-pill {
-    font-weight: 900;
+    font-weight: 700;
 }
 
 .mm-select {
-    font-weight: 900;
+    font-weight: 700;
     border: none;
     background: transparent;
     cursor: pointer;
+    color: var(--text-secondary);
 }
 
 .mm-link {
     border: none;
     background: transparent;
     cursor: pointer;
-    font-weight: 900;
+    font-weight: 700;
+    color: var(--primary-color);
 }
+.mm-link:hover { text-decoration: underline; }
 
 .mm-disabled {
-    color: rgba(0,0,0,0.35);
-    font-weight: 900;
+    color: #9CA3AF;
+    font-weight: 600;
 }
 
 .ms-empty {
     padding: 18px;
-    color: rgba(0,0,0,0.5);
-    font-weight: 700;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-align: center;
 }

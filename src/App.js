@@ -15,15 +15,15 @@ function App() {
 
   return(
     <Routes>
-      <Route path={'/login'} element={<Login/>}/>
-        <Route path={'/myPage'} element={<MyPage/>}/>
-        <Route path={'/modProfile'} element={<ModProfile/>}/>
+        <Route path={'/login'} element={<Login/>}/>
         <Route path={'/signup'} element={<Signup/>}/>
       <Route element={<MainLayout />}>
-         <Route path={'/projectList'} element={<ProjectList/>}/>
-         <Route path={'/projectDetail'} element={<ProjectDashBoard/>}/>
-         <Route path={'/aiReport'} element={<AiReport/>}/>
-          <Route path={'/final-report/create'} element={<FinalReportCreatePage/>}/>
+        <Route path={'/myPage'} element={<MyPage/>}/>
+        <Route path={'/modProfile'} element={<ModProfile/>}/>
+        <Route path={'/projectList'} element={<ProjectList/>}/>
+        <Route path={'/projectDetail'} element={<ProjectDashBoard/>}/>
+        <Route path={'/aiReport'} element={<AiReport/>}/>
+        <Route path={'/final-report/create'} element={<FinalReportCreatePage/>}/>
       </Route>
     </Routes>
   );

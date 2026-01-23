@@ -1,3 +1,5 @@
+/* src/component/projectDashBoard/Grids/MemberSettingsGrid/PermissionMiniGrid/PermissionMiniGrid.css */
+
 .pmg-wrap {
     width: 100%;
 }
@@ -5,17 +7,23 @@
 .pmg-title {
     margin: 12px 0 12px;
     font-size: 18px;
-    font-weight: 900;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 .pmg-card {
     width: 100%;
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 14px;
-    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-card);
     padding: 18px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+}
 
+.pmg-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
 }
 
 .pmg-grid {
@@ -28,14 +36,16 @@
 }
 
 .pmg-head {
-    font-weight: 900;
+    font-weight: 700;
     font-size: 18px;
     padding-bottom: 6px;
+    color: var(--text-primary);
 }
 
 .pmg-left {
     text-align: left;
-    font-weight: 800;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 .pmg-center {
@@ -43,35 +53,47 @@
 }
 
 .pmg-row-title {
-    font-weight: 800;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
+/* 체크박스 스타일 커스텀 */
 .pmg-check {
     width: 32px;
     height: 32px;
-    border-radius: 6px;
-    border: 1px solid rgba(0,0,0,0.18);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
     cursor: pointer;
-    font-weight: 900;
+    font-weight: 800;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: #fff;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.pmg-check:hover {
+    transform: scale(1.05);
 }
 
 .pmg-check.on {
-    background: rgba(34,197,94,0.15);
-    border-color: rgba(34,197,94,0.45);
+    background: rgba(45, 164, 78, 0.1);
+    border-color: var(--success-color);
+    color: var(--success-color);
 }
 
 .pmg-check.off {
-    background: rgba(239,68,68,0.12);
-    border-color: rgba(239,68,68,0.35);
+    background: rgba(207, 34, 46, 0.05);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
 }
 
 .pmg-check.locked {
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.5;
+    background: #F3F4F6;
+    border-color: #E5E7EB;
 }
 
 .pmg-actions {
@@ -82,44 +104,57 @@
 }
 
 .pmg-btn {
-    border: 1px solid rgba(0,0,0,0.12);
+    border: 1px solid var(--border-color);
     background: #fff;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 10px 14px;
     cursor: pointer;
-    font-weight: 900;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.pmg-btn:hover {
+    background: #F9FAFB;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
 .pmg-btn.primary {
-    border: none;
+    border: 1px solid var(--primary-color);
     color: #fff;
-    background: #3b82f6;
+    background: var(--primary-color);
 }
 
-
+.pmg-btn.primary:hover {
+    background: #4a90e2;
+    box-shadow: 0 2px 6px rgba(88, 166, 255, 0.3);
+}
 
 /* ===== Modal ===== */
 .pmg-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.25);
+    background: rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    backdrop-filter: blur(2px);
 }
 
 .pmg-modal {
     width: min(360px, 90vw);
-    background: #fff;
-    border-radius: 14px;
+    background: var(--bg-card);
+    border-radius: 12px;
     padding: 18px;
-    border: 1px solid rgba(0,0,0,0.12);
-    box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     text-align: center;
 }
 
 .pmg-modal-text {
     margin: 6px 0 16px;
-    font-weight: 900;
+    font-weight: 700;
+    color: var(--text-primary);
 }

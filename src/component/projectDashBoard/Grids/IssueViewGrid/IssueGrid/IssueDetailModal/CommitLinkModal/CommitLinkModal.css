@@ -1,34 +1,51 @@
+/* src/component/projectDashBoard/Grids/IssueViewGrid/IssueGrid/IssueDetailModal/CommitLinkModal/CommitLinkModal.css */
+
 .commit-modal-overlay{
     position: fixed; inset:0;
-    background: rgba(0,0,0,0.25);
+    background: rgba(0,0,0,0.3);
     display:flex; align-items:center; justify-content:center;
     z-index: 10000;
+    backdrop-filter: blur(2px);
 }
 .commit-modal{
     width: 520px;
     max-width: calc(100vw - 40px);
-    background:#fff;
-    border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
     padding: 14px;
 }
 .commit-modal-head{
     display:flex; justify-content:space-between; align-items:center;
     margin-bottom: 10px;
+    color: var(--text-primary);
+    font-weight: 700;
 }
 .commit-x{
     border:none; background:transparent; font-size:20px; cursor:pointer;
+    color: var(--text-secondary);
 }
+.commit-x:hover { color: var(--danger-color); }
+
 .commit-modal-body{
     padding: 10px 4px;
+    color: var(--text-primary);
 }
 .commit-modal-footer{
     display:flex; justify-content:flex-end;
 }
 .commit-close{
-    border: 1px solid #ddd;
-    background:#fff;
-    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    border-radius: 8px;
     padding: 8px 12px;
     cursor:pointer;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+.commit-close:hover {
+    background: #F9FAFB;
+    color: var(--text-primary);
 }

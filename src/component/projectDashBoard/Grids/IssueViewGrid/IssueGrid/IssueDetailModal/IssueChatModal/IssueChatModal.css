@@ -1,9 +1,11 @@
-/* IssueChatModal/IssueChatModal.css */
+/* src/component/projectDashBoard/Grids/IssueViewGrid/IssueGrid/IssueDetailModal/IssueChatModal/IssueChatModal.css */
+
 .issue-chat-overlay{
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.25);
+    background: rgba(0,0,0,0.3);
     display:flex; align-items:center; justify-content:center;
-    z-index: 11000; /* IssueDetail 위로 */
+    z-index: 11000;
+    backdrop-filter: blur(2px);
 }
 
 .issue-chat-modal{
@@ -11,40 +13,45 @@
     max-width: calc(100vw - 40px);
     height: 640px;
     max-height: calc(100vh - 40px);
-    background:#fff;
-    border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    background: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
     display:flex;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
 .issue-chat-head{
     display:flex; justify-content:space-between; align-items:center;
     padding: 12px 14px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
+    background: #fff;
 }
 
 .issue-chat-title{
-    font-weight: 800;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 .issue-chat-sub{
     margin-left: 8px;
-    font-weight: 700;
-    opacity: .7;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 .issue-chat-x{
     border:none; background:transparent;
     font-size: 22px; cursor:pointer;
+    color: var(--text-secondary);
 }
+.issue-chat-x:hover { color: var(--danger-color); }
 
 .issue-chat-body{
     flex: 1;
     padding: 12px;
     overflow: auto;
-    background: #fafafa;
+    background: #F9FAFB; /* 채팅 배경 구분 */
 }
 
 .chat-row{
@@ -58,20 +65,26 @@
 
 .chat-bubble{
     max-width: 78%;
-    border: 1px solid #e6e6e6;
+    border: 1px solid var(--border-color);
     background: #fff;
-    border-radius: 14px;
+    border-radius: 12px;
     padding: 10px 12px;
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
 .chat-row.me .chat-bubble{
-    border-color: #cfe9d3;
-    background: #f3fff5;
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: #fff;
 }
 
 .chat-row.system .chat-bubble{
     max-width: 90%;
     opacity: .8;
+    background: #F3F4F6;
+    border-color: transparent;
+    color: var(--text-secondary);
 }
 
 .chat-text{
@@ -83,24 +96,30 @@
 .chat-time{
     margin-top: 6px;
     font-size: 12px;
-    opacity: .6;
+    opacity: .8;
     text-align: right;
+    color: inherit; /* 부모 색상 상속 */
 }
 
 .issue-chat-input{
     display:flex;
     gap: 10px;
     padding: 10px 12px;
-    border-top: 1px solid #eee;
-    background:#fff;
+    border-top: 1px solid var(--border-color);
+    background: #fff;
 }
 
 .chat-input{
     flex: 1;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
     padding: 10px 12px;
     outline: none;
+    transition: all 0.2s;
+}
+.chat-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1);
 }
 
 .chat-send{
@@ -108,6 +127,11 @@
     border-radius: 10px;
     padding: 10px 14px;
     cursor:pointer;
-    background:#18d32a;
-    font-weight: 800;
+    background: var(--success-color);
+    color: #fff;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+.chat-send:hover {
+    filter: brightness(1.05);
 }

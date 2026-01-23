@@ -22,7 +22,7 @@ export default function CommitLinkModal({ open, onClose, issue }) {
                     <p>
                         이슈 <b>#{issue?.id}</b> 에 커밋을 연결하는 임시 모달입니다.
                     </p>
-                    <p>여기에 나중에 커밋 검색/선택 UI 붙이면 돼.</p>
+                    <p>여기에 나중에 커밋 검색/선택 UI 잊지말기</p>
                 </div>
 
                 <div className="commit-modal-footer">
