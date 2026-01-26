@@ -1,8 +1,10 @@
-import React, { useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import './SignUp.css';
 
 function SignUp() {
+  const navigate = useNavigate();
+
   const [id, setId] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +32,7 @@ function SignUp() {
   // 비밀번호가 입력되어 있고(&&), 유효성 검사를 통과하지 못했을 때(!valid) true
   const isPasswordInvalid = password.length > 0 && !validatePassword(password);
 
-  const handleSignUp = (e) => {
+  const handleSignUp =  async (e) => {
     e.preventDefault();
 
     if (isEmailInvalid) {
@@ -55,6 +57,32 @@ function SignUp() {
 
     // 검사 통과 시 에러 초기화
     setConfirmError(false);
+
+    try{
+      const response = await fetch("http://localhost:8080/api/auth/signUp", {
+        method: "POST",
+        headers: {
+          "Content-type" : "application/json"
+        },
+        body: JSON.stringify({
+                  userId: id,         // React state 'id' -> API 필드 'userId'
+                  email: email,       // React state 'email' -> API 필드 'email'
+                  password: password  // React state 'password' -> API 필드 'password'
+        }),
+      });
+
+      if(response.ok){
+        alert("회원가입이 완료되었습니다");
+        navigate('/login');
+      }else{
+        alert("회원가입에 실패했습니다..");
+        console.error("회원가입 실패 Status:", response.status);
+      }
+    }catch(error){
+      console.error("네트워크 오류 발생: ", error);
+      alert("서버 연결에 실패했습니다.");
+    }
+    
 
     console.log('회원가입 시도:', { id, email, password, passwordConfirm });
   };
