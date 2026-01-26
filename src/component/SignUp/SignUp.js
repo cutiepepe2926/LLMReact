@@ -12,6 +12,15 @@ function SignUp() {
 
   const passwordConfirmRef = useRef(null);
 
+  const validateEmail = (email) => {
+    // 일반적인 이메일 형식 (example@domain.com) 검사 정규식
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  };
+
+  // 이메일이 입력되어 있고(&&), 유효성 검사를 통과하지 못했을 때 true
+  const isEmailInvalid = email.length > 0 && !validateEmail(email);
+
   // 비밀번호 유효성 검사 함수 (정규식)
   const validatePassword = (pwd) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!\"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~₩])[A-Za-z\d!\"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~₩]{8,16}$/;
@@ -23,6 +32,12 @@ function SignUp() {
 
   const handleSignUp = (e) => {
     e.preventDefault();
+
+    if (isEmailInvalid) {
+        alert('올바른 이메일 형식을 입력해주세요.');
+        return;
+    }
+
     if (isPasswordInvalid) {
         alert('비밀번호는 영문 대/소문자, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.');
         return;
@@ -110,9 +125,15 @@ function SignUp() {
                   placeholder="이메일"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="signup-input"
+                  className={`signup-input ${isEmailInvalid ? 'input-error' : ''}`}
                   required
               />
+
+              {isEmailInvalid && (
+                  <p className="input-feedback error">
+                      이메일 형식이 올바르지 않습니다
+                  </p>
+              )}
 
               <input
                   type="password"
@@ -142,7 +163,7 @@ function SignUp() {
               />
 
               {confirmError && (
-                  <p className="confirm-error-text">
+                  <p className="input-feedback error">
                       비밀번호를 확인해주세요
                   </p>
               )}
