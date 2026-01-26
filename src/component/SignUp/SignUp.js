@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import './SignUp.css';
 
@@ -8,8 +8,39 @@ function SignUp() {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
 
+  const [confirmError, setConfirmError] = useState(false);
+
+  const passwordConfirmRef = useRef(null);
+
+  // 비밀번호 유효성 검사 함수 (정규식)
+  const validatePassword = (pwd) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!\"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~₩])[A-Za-z\d!\"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~₩]{8,16}$/;
+    return regex.test(pwd);
+  };
+
+  // 비밀번호가 입력되어 있고(&&), 유효성 검사를 통과하지 못했을 때(!valid) true
+  const isPasswordInvalid = password.length > 0 && !validatePassword(password);
+
   const handleSignUp = (e) => {
     e.preventDefault();
+    if (isPasswordInvalid) {
+        alert('비밀번호는 영문 대/소문자, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.');
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        setConfirmError(true); // 에러 상태 활성화 (빨간 테두리 + 문구 표시)
+        
+        // 포커스 이동
+        if (passwordConfirmRef.current) {
+            passwordConfirmRef.current.focus();
+        }
+        return; // 가입 중단
+    }
+
+    // 검사 통과 시 에러 초기화
+    setConfirmError(false);
+
     console.log('회원가입 시도:', { id, email, password, passwordConfirm });
   };
 
@@ -88,18 +119,33 @@ function SignUp() {
                   placeholder="비밀번호"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="signup-input"
+                  className={`signup-input ${isPasswordInvalid ? 'input-error' : ''}`}
                   required
               />
+              <p className={`password-guide ${isPasswordInvalid ? 'guide-error' : ''}`}>
+                • 8~16자의 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다.<br/>
+                • 사용 가능 특수문자: ! @ # $ % ^ & * ( ) 등
+              </p>
 
               <input
                   type="password"
                   placeholder="비밀번호 확인"
                   value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="signup-input"
+                  onChange={(e) => {
+                      setPasswordConfirm(e.target.value);
+                      if(confirmError) setConfirmError(false); // 입력시 에러 해제
+                    }
+                  }
+                  className={`signup-input ${confirmError ? 'input-error' : ''}`}
+                  ref={passwordConfirmRef}
                   required
               />
+
+              {confirmError && (
+                  <p className="confirm-error-text">
+                      비밀번호를 확인해주세요
+                  </p>
+              )}
 
               <button type="submit" className="signup-btn">
                 가입하기

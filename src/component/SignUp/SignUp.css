@@ -73,6 +73,41 @@
   color: #aab2bd;
 }
 
+.password-guide {
+  text-align: left;
+  font-size: 12px;
+  color: #495057;
+  
+  /* 박스 스타일 추가 */
+  background-color: #f8f9fa; /* 아주 연한 회색 배경 */
+  border-radius: 6px;
+  padding: 12px;
+  
+  margin: 0px;
+  line-height: 1.5;
+  
+  /* 테두리를 살짝 주어도 좋습니다 (선택) */
+  /* border: 1px solid #e9ecef; */
+}
+.signup-input.input-error {
+  border: 1px solid #ff4d4f !important; /* !important로 기존 스타일 덮어쓰기 */
+  background-color: #fff1f0; /* 아주 연한 빨간 배경 (선택 사항) */
+}
+.signup-input.input-error:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+  border-color: #ff4d4f;
+}
+
+.confirm-error-text {
+  color: #ff4d4f;       /* 빨간색 글씨 */
+  font-size: 12px;      /* 작은 크기 */
+  margin-top: -10px;    /* 입력창과의 간격을 좁힘 */
+  margin-bottom: 10px;  /* 버튼과의 간격 확보 */
+  text-align: left;     /* 왼쪽 정렬 */
+  padding-left: 4px;    /* 입력창 텍스트 시작점과 시각적 정렬 */
+}
+
 /* 가입하기 버튼 스타일 */
 .signup-btn {
   padding: 14px;
