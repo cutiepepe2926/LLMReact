@@ -1,10 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MyPage.css';
+import { api } from "../../utils/api";
 
 function MyPage() {
     const [activeTab, setActiveTab] = useState('profile');
+    const [userFullInfo, setUserFullInfo] = useState({
+        name: '로딩 중....',
+        userId: '로딩 중....',
+        email: '로딩 중....',
+        regDate: '로딩 중....',
+        githubId: null
+    });
+
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            try{
+                const token = localStorage.getItem("accessToken");
+
+                if(!token){
+                    setUserFullInfo({name: 'unknown', email: 'unknown'});
+                    return;
+                }
+                const jsonToken = {token: token};
+
+                const data = await api.get(`/api/user/fullInfo`, jsonToken);
+                
+                console.log(data);
+                
+                if(data){
+                    setUserFullInfo({
+                        name: data.name,
+                        userId: data.userId,
+                        email: data.email,
+                        regDate: data.regDate,
+                        githubId: data.githubId
+                    })
+                }
+                console.log(userFullInfo);
+                
+            }catch(error){
+                console.error("사용자 정보를 불러오는데 실패했습니다.", error);    
+            }
+        };
+
+        fetchUserInfo();
+    }, []);
+
+    const handleGithubConnect = () => {
+        // 실제 백엔드 주소에 맞게 수정해주세요.
+        // window.location.href = "http://localhost:8080/oauth2/authorization/github";
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString || dateString === '로딩 중....') return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR'); // 한국 날짜 형식으로 자동 변환
+    };
 
     const renderContent = () => {
         switch (activeTab) {
@@ -17,31 +71,47 @@ function MyPage() {
                                 <img src="/img/Profile.svg" alt="Profile" />
                             </div>
                             <div className="profile-info-text">
-                                <span className="user-name">사용자 이름</span>
-                                <span className="user-email">user@example.com</span>
+                                <span className="user-name">{userFullInfo.name}</span>
+                                <span className="user-email">{userFullInfo.email}</span>
                             </div>
                             <button className="btn-edit" onClick={() => navigate('/modProfile')}>프로필 편집</button>
                         </div>
                         
                         <div className="form-group">
                             <label>닉네임</label>
-                            <input type="text" defaultValue="홍길동" readOnly />
+                            <input type="text" value={userFullInfo.name} readOnly />
                         </div>
                         <div className="form-group">
                             <label>아이디</label>
-                            <input type="text" defaultValue="hongilDong1234" readOnly />
+                            <input type="text" value={userFullInfo.userId} readOnly />
                         </div>
                         <div className="form-group">
                             <label>이메일</label>
-                            <input type="email" defaultValue="user@example.com" readOnly />
+                            <input type="email" value={userFullInfo.email} readOnly />
                         </div>
                         <div className="form-group">
                             <label>가입일</label>
-                            <input type="text" placeholder="2026-01-01" readOnly />
+                            <input type="text" value={formatDate(userFullInfo.regDate)} readOnly />
                         </div>
                         <div className="github-oauth">
                             <label>GitHub 연동</label>
-                            <img src="/img/githubOauth.png" className="github-button" alt="GitHub 연동 버튼"/>
+                            <div style={{marginTop: '10px'}}>
+                                {userFullInfo.githubId ? (
+                                    // 연동 되어 있을 때
+                                    <span className="connected-text" style={{ color: 'green', fontWeight: 'bold' }}>
+                                        Github 연동 완료
+                                    </span>
+                                ) : (
+                                    // 연동 안 되어 있을 때 (이미지 클릭 시 이동)
+                                    <img 
+                                        src="/img/githubOauth.png" 
+                                        className="github-button" 
+                                        alt="GitHub 연동 버튼"
+                                        onClick={handleGithubConnect}
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 );

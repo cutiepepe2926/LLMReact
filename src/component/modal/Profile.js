@@ -15,7 +15,7 @@ const Profile = ({onClose}) => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try{
-        // 로컬 스토리지에서 userId 가져오기
+        // 로컬 스토리지에서 토큰 가져오기
         const token = localStorage.getItem("accessToken");
 
         if(!token){
@@ -25,7 +25,6 @@ const Profile = ({onClose}) => {
 
         // 백엔드 API 호출해서 사용자 정보 응답받기
         const jsonToken = {token: token};
-        console.log(jsonToken);
         
         const data = await api.get(`/api/user/info`, jsonToken);
 
