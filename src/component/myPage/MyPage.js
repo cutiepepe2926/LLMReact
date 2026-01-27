@@ -39,8 +39,6 @@ function MyPage() {
                         githubId: data.githubId
                     })
                 }
-                console.log(userFullInfo);
-                
             }catch(error){
                 console.error("사용자 정보를 불러오는데 실패했습니다.", error);    
             }
@@ -49,9 +47,30 @@ function MyPage() {
         fetchUserInfo();
     }, []);
 
+    // 쿠키 설정 함수 추가
+    const setCookie = (name, value, days) => {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        // path=/ 로 설정해야 모든 페이지(백엔드 포함)에서 읽을 수 있음
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+
+    // 깃허브 연동 핸들러
     const handleGithubConnect = () => {
-        // 실제 백엔드 주소에 맞게 수정해주세요.
-        // window.location.href = "http://localhost:8080/oauth2/authorization/github";
+        if(!userFullInfo.userId || userFullInfo.userId === '로딩 중....') {
+            alert("사용자 정보를 불러오는 중입니다. 잠시만 기다려주세요.");
+            return;
+        }
+
+        // ★ 핵심: 이동하기 전에 내 ID를 'link_user_id'라는 쿠키에 저장 (유효시간 5분)
+        setCookie("link_user_id", userFullInfo.userId, 0.0035); // 약 5분
+
+        // 백엔드 OAuth URL로 이동
+        window.location.href = "http://localhost:8080/oauth2/authorization/github";
     };
 
     const formatDate = (dateString) => {
