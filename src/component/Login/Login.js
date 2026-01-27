@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';   // 변경: Link → NavLink
 import './Login.css';
 
@@ -7,9 +7,36 @@ function Login() {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin =  async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', id, password);
+
+    try{
+      const response = await fetch("http://localhost:8080/api/auth/logIn",{
+        method: "POST",
+        headers:{
+          "Content-Type" : "application/json"
+        },
+        body: JSON.stringify({
+          userId: id,
+          password: password
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data);      
+      
+
+      if (data.success) {
+        localStorage.setItem("accessToken", data.token);
+        localStorage.setItem("userId", data.userId);
+        alert(data.message);
+      } else {
+        alert(data.message);
+      }
+
+    }catch{
+
+    }
   };
 
   const Icons = {

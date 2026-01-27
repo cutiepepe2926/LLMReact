@@ -62,7 +62,7 @@ function SignUp() {
       const response = await fetch("http://localhost:8080/api/auth/signUp", {
         method: "POST",
         headers: {
-          "Content-type" : "application/json"
+          "Content-Type" : "application/json"
         },
         body: JSON.stringify({
                   userId: id,         // React state 'id' -> API 필드 'userId'
