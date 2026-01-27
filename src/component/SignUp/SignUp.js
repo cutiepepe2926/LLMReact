@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import './SignUp.css';
+import { api } from "../../utils/api";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -59,32 +60,20 @@ function SignUp() {
     setConfirmError(false);
 
     try{
-      const response = await fetch("http://localhost:8080/api/auth/signUp", {
-        method: "POST",
-        headers: {
-          "Content-Type" : "application/json"
-        },
-        body: JSON.stringify({
-                  userId: id,         // React state 'id' -> API 필드 'userId'
-                  email: email,       // React state 'email' -> API 필드 'email'
-                  password: password  // React state 'password' -> API 필드 'password'
-        }),
-      });
+      const inputData = {userId: id, email: email, password: password};
+      const data = await api.post("/api/auth/signUp", inputData);
 
-      if(response.ok){
+      if(data.success){
         alert("회원가입이 완료되었습니다");
         navigate('/login');
       }else{
-        alert("회원가입에 실패했습니다..");
-        console.error("회원가입 실패 Status:", response.status);
+        alert(data.message);
+        console.log("실패 코드:", data.code); // DUP_EMAIL 등 확인 가능
       }
     }catch(error){
       console.error("네트워크 오류 발생: ", error);
       alert("서버 연결에 실패했습니다.");
     }
-    
-
-    console.log('회원가입 시도:', { id, email, password, passwordConfirm });
   };
 
   const Icons = {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';   // 변경: Link → NavLink
 import './Login.css';
+import { api } from "../../utils/api";
 
 
 function Login() {
@@ -11,19 +12,10 @@ function Login() {
     e.preventDefault();
 
     try{
-      const response = await fetch("http://localhost:8080/api/auth/logIn",{
-        method: "POST",
-        headers:{
-          "Content-Type" : "application/json"
-        },
-        body: JSON.stringify({
-          userId: id,
-          password: password
-        }),
-      });
+      const userData = { userId: id, password: password};
+      const data = await api.post("/api/auth/logIn", userData); 
 
-      const data = await response.json();
-      console.log(data);      
+      console.log(data);
       
 
       if (data.success) {
