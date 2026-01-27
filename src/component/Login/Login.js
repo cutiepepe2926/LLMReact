@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';   // 변경: Link → NavLink
+import { NavLink, useNavigate } from 'react-router-dom';   // 변경: Link → NavLink
 import './Login.css';
 import { api } from "../../utils/api";
 
 
 function Login() {
+  const navigate = useNavigate();
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
@@ -22,6 +23,7 @@ function Login() {
         localStorage.setItem("accessToken", data.token);
         localStorage.setItem("userId", data.userId);
         alert(data.message);
+        navigate('/projectList');
       } else {
         alert(data.message);
       }
