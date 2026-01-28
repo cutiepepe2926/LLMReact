@@ -18,15 +18,7 @@ function MyPage() {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try{
-                const token = localStorage.getItem("accessToken");
-
-                if(!token){
-                    setUserFullInfo({name: 'unknown', email: 'unknown'});
-                    return;
-                }
-                const jsonToken = {token: token};
-
-                const data = await api.get(`/api/user/fullInfo`, jsonToken);
+                const data = await api.get(`/api/user/fullInfo`);
                 
                 console.log(data);
                 

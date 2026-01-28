@@ -14,19 +14,8 @@ const Profile = ({onClose}) => {
 
   useEffect(() => {
     const fetchUserInfo = async () => {
-      try{
-        // 로컬 스토리지에서 토큰 가져오기
-        const token = localStorage.getItem("accessToken");
-
-        if(!token){
-          setUserInfo({name: 'unknown', email: 'unknown'});
-          return;
-        }
-
-        // 백엔드 API 호출해서 사용자 정보 응답받기
-        const jsonToken = {token: token};
-        
-        const data = await api.get(`/api/user/info`, jsonToken);
+      try{  
+        const data = await api.get(`/api/user/info`);
 
         if(data){
           setUserInfo({
