@@ -8,9 +8,12 @@
 }
 
 .modal-content {
-  background: white; width: 720px; /* 좌우 균형을 위해 살짝 넓힘 */
+  background: white; width: 720px;
   border-radius: 12px; padding: 40px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-title { margin-top: 0; margin-bottom: 30px; font-size: 1.8rem; font-weight: 800; color: #111; }
@@ -35,138 +38,172 @@ input:focus, select:focus, textarea:focus {
 
 .date-display { display: flex; align-items: center; gap: 8px; }
 
-/* 버튼이 포함된 인풋 (깃허브, 초대) */
-.input-with-button { display: flex; gap: 10px; width: 100%; }
+/* input-with-button 관련 (JS에 사용된 클래스) */
+.input-with-button {
+  display: flex; gap: 10px;
+}
+.input-with-button input { flex: 1; }
+
 .verify-btn, .add-btn {
   white-space: nowrap; padding: 0 16px;
   border: 1px solid #ddd; background: #f3f4f6;
   border-radius: 8px; cursor: pointer; font-weight: 600;
   transition: 0.2s;
+  height: 42px; /* input 높이와 맞춤 (padding+border 고려) */
 }
 .verify-btn:hover, .add-btn:hover { background: #e5e7eb; }
 
-/* --- 하단 섹션 수정 (최종) --- */
-.bottom-section {       
-  gap: 24px;         
-  margin-top: 24px; 
-  align-items: flex-end; 
+/* --- 드롭다운 관련 --- */
+.invite-input-group {
+  position: relative;
+  width: 100%;
+  margin-bottom: 12px; /* 리스트와의 간격 */
 }
 
-/* 왼쪽 패널 (협업자 리스트) */
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000; /* 모달 내부에서 가장 위에 뜨도록 */
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+}
+
+.search-result-item {
+  display: flex; align-items: center; padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background-color: #f8f9fa; }
+
+.user-avatar-small {
+  width: 32px; height: 32px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 1px solid #eee;
+}
+.user-info-text { display: flex; flex-direction: column; }
+.user-info-text .user-name { font-size: 14px; font-weight: 600; color: #333; }
+.user-info-text .user-id { font-size: 12px; color: #888; margin-top: 2px; }
+
+/* 칩 스타일 */
+.collaborator-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 40px; /* 아이템이 없을 때도 공간 확보 */
+  margin-bottom: 30px; /* 버튼 그룹과의 간격 (넓게) */
+  padding: 4px 0;
+}
+.empty-msg {
+  color: #999;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+.user-tag {
+  background: #f0f7ff;
+  border: 1px solid #cce4ff;
+  padding: 6px 12px 6px 8px; /* 패딩 조정 */
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #1e88e5;
+}
+.user-avatar-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #fff; /* 투명 이미지 대비 */
+}
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: #1e88e5;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.remove-tag-btn:hover {
+  color: #0d47a1;
+  background-color: rgba(0,0,0,0.05); /* 호버 시 약간 배경 깔림 */
+  border-radius: 50%;
+}
+
+/* --- 하단 섹션 수정 (중요: display: flex 추가) --- */
+.bottom-section {
+  margin-top: 24px;
+  display: block; /* Flex 제거 -> Block 요소로 변경하여 위에서 아래로 쌓임 */
+}
+
+/* 라벨 스타일 */
+.bottom-section label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* 왼쪽 패널 */
 .left-panel {
-  flex: 1.6;             /* 비율 조정 (왼쪽을 좀 더 넓게) */
+  flex: 1.6;
   min-width: 0;
 }
 
-/* 오른쪽 패널 (버튼 그룹 감싸는 곳) */
+/* 오른쪽 패널 */
 .right-panel {
-  flex: 1;               /* 비율 조정 */
+  flex: 1;
   min-width: 0;
-  /* 높이 100%나 justify-content 다 필요 없음 */
 }
 
 /* 버튼 그룹 */
 .button-group {
-  margin-top: 10px;
   display: flex;
-  gap: 10px;
-  width: 100%;
+  justify-content: flex-end; /* 오른쪽 정렬 (원하면 space-between 등 변경 가능) */
+  gap: 12px;
+  border-top: 1px solid #eee; /* 구분선 추가 (선택사항) */
+  padding-top: 20px;
 }
 
 .cancel-btn, .create-confirm-btn {
-  height: 50px; 
-  white-space: nowrap;
-  display: flex; 
-  align-items: center; 
-  justify-content: center;
-}
-
-/* 취소 버튼 */
-.cancel-btn {
-  flex: 1;
-  background: #f3f4f6; 
-  color: #4b5563;
-  border: 1px solid #e5e7eb; 
+  height: 48px;
   border-radius: 8px;
   font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
+  padding: 0 24px;
 }
 
-/* 생성 버튼 */
+.cancel-btn {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+  flex: 1; /* 버튼 비율 조정 (원하면 제거) */
+}
+
 .create-confirm-btn {
-  flex: 2; 
-  background: #58a6ff;
+  background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+  flex: 2; /* 생성 버튼을 더 넓게 */
 }
 
-.create-confirm-btn:hover {
-  background: #409eff;
-}
+.create-confirm-btn:hover { background: #2563eb; }
+.create-confirm-btn:disabled { background: #93c5fd; cursor: not-allowed; }
 
-.create-confirm-btn:disabled {
-  background: #b8d6ff;
-  cursor: not-allowed;
-}
-
-.collaborator-list { 
-  margin-top: 12px; 
-  display: flex; flex-wrap: wrap; gap: 8px; 
-  min-height: 40px; /* 빈 공간 확보 */
-}
-.user-tag {
-  background: white;
-  border: 1px solid #d1d5db;
-  padding: 4px 6px 4px 4px; /* 왼쪽 패딩 줄임 */
-  border-radius: 9999px; /* 완전 둥글게 */
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.user-avatar {
-  width: 24px;
-  height: 24px;
-  background: #eff6ff; /* 연한 파랑 */
-  color: #3b82f6;      /* 진한 파랑 */
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
-.remove-tag-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  color: #9ca3af;
-  transition: 0.2s;
-}
-
-.remove-tag-btn:hover {
-  background: #f3f4f6;
-  color: #ef4444; /* 삭제 시 빨간색 */
-}
-
-/* 애니메이션 키프레임 정의 */
+/* 애니메이션 */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-content.fade-in-up {

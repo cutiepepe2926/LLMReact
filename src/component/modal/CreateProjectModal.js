@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './CreateProjectModal.css';
+import { api } from '../../utils/api';
 
 const CreateProjectModal = ({ onClose, onCreate }) => {
-  // 기본 입력 데이터 (isPrivate 제거됨)
+  // 1. 기본 입력 데이터
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -12,41 +13,72 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
     repoUrl: '',
   });
 
-  // 협업자 관리용 상태
+  // 2. 협업자 및 검색 관련 상태
   const [inviteInput, setInviteInput] = useState('');
   const [collaborators, setCollaborators] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // 입력 핸들러
+  // 외부 클릭 감지를 위한 Ref
+  const searchWrapperRef = useRef(null);
+
+  // 3. 외부 클릭 시 드롭다운 닫기 (요구사항 1)
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) {
+        setSearchResults([]); // 검색 결과 초기화 (드롭다운 닫기)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchWrapperRef]);
+
+  // 4. 검색 로직 (0.5초 디바운스)
+  useEffect(() => {
+    const delayDebounce = setTimeout(async () => {
+      if (inviteInput.trim().length > 0) {
+        setIsSearching(true);
+        try {
+          const res = await api.get("/api/user/search", { keyword: inviteInput });
+          const filteredResults = (res.data || res).filter(
+            (user) => !collaborators.some((collab) => collab.userId === user.userId)
+          );
+          setSearchResults(filteredResults);
+        } catch (error) {
+          console.error("User search failed:", error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [inviteInput, collaborators]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // 협업자 추가
-  const handleAddCollaborator = () => {
-    if (!inviteInput.trim()) return;
-    if (collaborators.includes(inviteInput.trim())) {
-      alert("이미 추가된 사용자입니다.");
-      return;
-    }
-    setCollaborators([...collaborators, inviteInput.trim()]);
+  const handleAddCollaborator = (user) => {
+    setCollaborators([...collaborators, user]);
     setInviteInput('');
+    setSearchResults([]);
   };
 
-  // 협업자 삭제
-  const handleRemoveCollaborator = (target) => {
-    setCollaborators(collaborators.filter(user => user !== target));
+  // 요구사항 3: X 버튼 동작 수정 (userId 기준 필터링)
+  const handleRemoveCollaborator = (targetUserId) => {
+    setCollaborators(collaborators.filter(user => user.userId !== targetUserId));
   };
 
-  // 엔터키 처리
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleAddCollaborator();
-  };
+  const isFormValid = formData.name.trim() !== '' && formData.repoUrl.trim() !== '';
 
-  // 유효성 검사
-  const isFormValid = 
-    formData.name.trim() !== '' &&
-    formData.repoUrl.trim() !== '';
+  useEffect(() => {
+    console.log("변경된 협업자 목록:", collaborators);
+}, [collaborators]);
 
   return (
     <div className="modal-overlay">
@@ -55,16 +87,11 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
         <h2 className="modal-title">프로젝트 생성</h2>
 
         <div className="modal-body">
-          {/* 1행: 이름 & 기간 */}
+          {/* ... 기존 상단 입력 폼 (이름, 날짜, 설명, 깃허브 등) 유지 ... */}
           <div className="form-row">
             <div className="form-group flex-2">
               <label>프로젝트 명</label>
-              <input 
-                type="text" 
-                name="name" 
-                placeholder="프로젝트 입니다" 
-                onChange={handleChange} 
-              />
+              <input type="text" name="name" placeholder="프로젝트 입니다" onChange={handleChange} />
             </div>
             <div className="form-group flex-1">
               <label>기간</label>
@@ -76,15 +103,10 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
             </div>
           </div>
 
-          {/* 2행: 설명 & 리포트 시간 */}
           <div className="form-row">
             <div className="form-group flex-2">
               <label>프로젝트 설명</label>
-              <textarea 
-                name="description" 
-                placeholder="프로젝트 설명입니다." 
-                onChange={handleChange} 
-              />
+              <textarea name="description" placeholder="설명을 입력하세요" onChange={handleChange} />
             </div>
             <div className="form-group flex-1">
               <label>리포트 생성 시간</label>
@@ -97,64 +119,92 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
             </div>
           </div>
 
-          {/* 3행: 깃허브 주소 */}
           <div className="form-group">
             <label>깃허브 주소</label>
             <div className="input-with-button">
-              <input 
-                type="text" 
-                name="repoUrl" 
-                placeholder="깃허브 URL을 입력해주세요" 
-                onChange={handleChange} 
-              />
-              <button className="verify-btn">깃허브 연결하기</button>
+              <input type="text" name="repoUrl" placeholder="URL을 입력해주세요" onChange={handleChange} />
+              <button className="verify-btn" type="button">깃허브 연결하기</button>
             </div>
           </div>
 
-          {/* 4행: 하단 영역 (협업자 + 버튼) */}
+          {/* --- 요구사항 4: 하단 레이아웃 변경 (수직 배치) --- */}
           <div className="bottom-section">
             
-            {/* 왼쪽: 협업자 초대 */}
-            <div className="left-panel">
-              <label>협업자 초대</label>
-              <div className="input-with-button">
-                <input 
-                  type="text" 
-                  placeholder="ID 입력" 
-                  value={inviteInput}
-                  onChange={(e) => setInviteInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-                <button className="add-btn" onClick={handleAddCollaborator}>추가</button>
-              </div>
+            <label>협업자 초대</label>
+            
+            {/* 검색창 + 드롭다운 영역 (ref 추가) */}
+            <div className="invite-input-group" ref={searchWrapperRef}> 
+              <input 
+                type="text" 
+                value={inviteInput} 
+                onChange={(e) => setInviteInput(e.target.value)} 
+                placeholder="ID 또는 이름으로 검색"
+                className="invite-input"
+              />
               
-              <div className="collaborator-list">
-                {collaborators.map((user, idx) => (
-                  <span key={idx} className="user-tag">
-                    <div className="user-avatar">{user.charAt(0).toUpperCase()}</div> {/* 첫 글자 이니셜 */}
-                    <span className="user-name">{user}</span>
-                    <button className="remove-tag-btn" onClick={() => handleRemoveCollaborator(user)}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                  </span>
-                ))}
-              </div>
+              {/* 드롭다운 */}
+              {searchResults.length > 0 && (
+                <ul className="search-dropdown">
+                  {searchResults.map((user) => (
+                    <li 
+                      key={user.userId} 
+                      onClick={() => handleAddCollaborator(user)}
+                      className="search-result-item"
+                    >
+                      {/* 요구사항 2: 기본 이미지 처리 */}
+                      <img 
+                        src={user.filePath || "/img/Profile.svg"} 
+                        alt={user.name} 
+                        className="user-avatar-small"
+                      />
+                      <div className="user-info-text">
+                        <span className="user-name">{user.name}</span>
+                        <span className="user-id">@{user.userId}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            
+            {/* 선택된 협업자 리스트 (검색창 아래 배치) */}
+            <div className="collaborator-list">
+              {collaborators.length === 0 && <span className="empty-msg">초대할 협업자가 없습니다.</span>}
+              {collaborators.map((user, idx) => (
+                <span key={idx} className="user-tag">
+                  {/* 요구사항 2: 리스트에서도 기본 이미지 처리 */}
+                  <img 
+                    src={user.filePath || "/img/Profile.svg"} 
+                    alt="profile" 
+                    className="user-avatar-img" 
+                  />
+                  <span className="user-name">{user.name}</span>
+                  
+                  {/* 요구사항 3: type="button" 추가하여 폼 제출 방지 및 클릭 이벤트 수정 */}
+                  <button 
+                    type="button" 
+                    className="remove-tag-btn" 
+                    onClick={() => handleRemoveCollaborator(user.userId)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </span>
+              ))}
             </div>
 
-            {/* 오른쪽: 버튼 그룹 (공개 범위 삭제됨 -> 하단 정렬) */}
-            <div className="right-panel">
-              <div className="button-group">
-                <button className="cancel-btn" onClick={onClose}>취소</button>
-                <button 
-                  className="create-confirm-btn" 
-                  onClick={() => onCreate({...formData, collaborators})}
-                  disabled={!isFormValid}
-                >
-                  생성하기
-                </button>
-              </div>
+            {/* 버튼 그룹 (맨 아래 배치) */}
+            <div className="button-group">
+              <button className="cancel-btn" onClick={onClose}>취소</button>
+              <button 
+                className="create-confirm-btn" 
+                onClick={() => onCreate({...formData, collaborators})}
+                disabled={!isFormValid}
+              >
+                생성하기
+              </button>
             </div>
-          </div>
+
+          </div> {/* End of bottom-section */}
 
         </div>
       </div>
