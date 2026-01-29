@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import Profile from '../component/modal/Profile';
 import "./TopNav.css";
+import { api } from "../utils/api";
 
 
 
@@ -21,7 +22,8 @@ const Icons = {
 export default function TopNav() {
     const location = useLocation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-
+    const [profileImg, setProfileImg] = useState(null);
+    
     const profileRef = useRef(null);
 
     //  로그인 또는 회원가입 페이지인지 확인하는 변수
@@ -30,6 +32,21 @@ export default function TopNav() {
     const toggleProfile = () => {
         setIsProfileOpen(!isProfileOpen);
     };
+
+    // 사용자 이미지 가져오기
+    useEffect(() => {
+        if (!isAuthPage) { // 로그인 페이지가 아닐 때만 호출
+            const fetchProfile = async () => {
+                try {
+                    const data = await api.get("/api/user/info");
+                    setProfileImg(data.filePath); // DB에 저장된 S3 URL 또는 null
+                } catch (error) {
+                    console.error("탑네비 사용자 정보 로드 실패", error);
+                }
+            };
+            fetchProfile();
+        }
+    }, [isAuthPage, location.pathname]); // 페이지 이동 시마다 갱신 (이미지 변경 반영 위해)
 
     // 외부 클릭 감지 로직 추가
     useEffect(() => {
@@ -74,7 +91,20 @@ export default function TopNav() {
                     </button>
 
                     <div className="header-profile" ref={profileRef}>
-                        <div className="mini-avatar" onClick={toggleProfile}>홍</div>
+                        <img 
+                            src={profileImg || "/img/Profile.svg"} 
+                            alt="Profile"
+                            className="mini-avatar" 
+                            onClick={toggleProfile}
+                            style={{
+                                width: '32px', 
+                                height: '32px', 
+                                borderRadius: '50%', 
+                                objectFit: 'cover',
+                                cursor: 'pointer',
+                                border: '1px solid #e5e7eb'
+                            }}
+                        />
                         {isProfileOpen && (
                             <Profile onClose={() => setIsProfileOpen(false)} />
                         )}

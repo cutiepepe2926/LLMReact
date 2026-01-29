@@ -10,7 +10,8 @@ function MyPage() {
         userId: '로딩 중....',
         email: '로딩 중....',
         regDate: '로딩 중....',
-        githubId: null
+        githubId: null,
+        filePath: null
     });
 
     const navigate = useNavigate();
@@ -28,7 +29,8 @@ function MyPage() {
                         userId: data.userId,
                         email: data.email,
                         regDate: data.regDate,
-                        githubId: data.githubId
+                        githubId: data.githubId,
+                        filePath: data.filePath
                     })
                 }
             }catch(error){
@@ -79,7 +81,10 @@ function MyPage() {
                         <h3>프로필 정보</h3>
                         <div className="profile-header">
                             <div className="profile-img-large">
-                                <img src="/img/Profile.svg" alt="Profile" />
+                                <img 
+                                    src={userFullInfo.filePath || "/img/Profile.svg"} 
+                                    alt="Profile"
+                                />
                             </div>
                             <div className="profile-info-text">
                                 <span className="user-name">{userFullInfo.name}</span>

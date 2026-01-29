@@ -9,7 +9,8 @@ const Profile = ({onClose}) => {
 
   const [userInfo, setUserInfo] = useState({
     name: '로딩 중...',
-    email: ''
+    email: '',
+    filePath: null
   })
 
   useEffect(() => {
@@ -20,7 +21,8 @@ const Profile = ({onClose}) => {
         if(data){
           setUserInfo({
             name: data.name,
-            email: data.email
+            email: data.email,
+            filePath: data.filePath
           });
         }
       }catch (error) {
@@ -53,7 +55,12 @@ const Profile = ({onClose}) => {
   return (
     <div className="profile-modal">
       <div className="profile-info">
-        <img src="/img/Profile.svg" alt="User" className="profile-modal-img" />
+        <img 
+            src={userInfo.filePath || "/img/Profile.svg"} 
+            alt="User" 
+            className="profile-modal-img" 
+            style={{objectFit: 'cover', borderRadius: '50%'}} // 스타일 보정
+        />
         <div className="profile-text">
           <span className="profile-name">{userInfo.name}</span>
           <span className="profile-email">{userInfo.email}</span>
