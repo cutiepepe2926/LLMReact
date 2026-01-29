@@ -82,7 +82,6 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
       // 백엔드는 userId만 필요함
       members: collaborators.map(member => member.userId) 
     };
-    
     onCreate(requestData);
   };
 
