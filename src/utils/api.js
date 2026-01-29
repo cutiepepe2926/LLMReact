@@ -21,7 +21,7 @@ const request = async (endpoint, options = {}) => {
     // "Content-Type" : "application/json",
     ...options.headers, // 사용자가 추가한 헤더가 있다면 덮어씌움
   };
-  
+
   if(!(options.body instanceof FormData)){
     headers["Content-Type"] = "application/json";
   }
@@ -39,8 +39,8 @@ const request = async (endpoint, options = {}) => {
     ...options,
   };
 
-  // Body가 있고 객체라면 JSON 문자열로 변환
-  if(config.body && typeof config.body === "object"){
+  // Body가 객체이면서 "FormData가 아닐 때만" JSON 문자열로 변환
+  if(config.body && typeof config.body === "object" && !(config.body instanceof FormData)){
     config.body = JSON.stringify(config.body);
   }
 
