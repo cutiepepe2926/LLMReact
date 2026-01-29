@@ -74,12 +74,19 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
     setCollaborators(collaborators.filter(user => user.userId !== targetUserId));
   };
 
+  const handleCreate = () => {
+    // 백엔드로 보낼 데이터 구성
+    const requestData = {
+      ...formData,
+      // collaborators(객체 배열) -> memberIds(문자열 배열)로 변환
+      // 백엔드는 userId만 필요함
+      memberIds: collaborators.map(member => member.userId) 
+    };
+    
+    onCreate(requestData);
+  };
+
   const isFormValid = formData.name.trim() !== '' && formData.repoUrl.trim() !== '';
-
-  useEffect(() => {
-    console.log("변경된 협업자 목록:", collaborators);
-}, [collaborators]);
-
   return (
     <div className="modal-overlay">
       <div className="modal-content fade-in-up">
@@ -197,7 +204,7 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
               <button className="cancel-btn" onClick={onClose}>취소</button>
               <button 
                 className="create-confirm-btn" 
-                onClick={() => onCreate({...formData, collaborators})}
+                onClick={handleCreate}
                 disabled={!isFormValid}
               >
                 생성하기
