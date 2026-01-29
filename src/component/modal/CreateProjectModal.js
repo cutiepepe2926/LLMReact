@@ -145,10 +145,10 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
             <div className="right-panel">
               <div className="button-group">
                 <button className="cancel-btn" onClick={onClose}>취소</button>
-                <button 
-                  className="create-confirm-btn" 
-                  onClick={() => onCreate({...formData, collaborators})}
-                  disabled={!isFormValid}
+                <button
+                    className="create-confirm-btn"
+                    onClick={() => onCreate({ ...formData, collaborators })} // 객체 형태로 부모에게 전달
+                    disabled={!isFormValid}
                 >
                   생성하기
                 </button>
