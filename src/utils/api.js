@@ -18,9 +18,13 @@ const request = async (endpoint, options = {}) => {
 
   // 3. 헤더 설정
   const headers = {
-    "Content-Type" : "application/json",
+    // "Content-Type" : "application/json",
     ...options.headers, // 사용자가 추가한 헤더가 있다면 덮어씌움
   };
+  
+  if(!(options.body instanceof FormData)){
+    headers["Content-Type"] = "application/json";
+  }
 
   // 4.JWT 토큰 자동 주입
   const token = localStorage.getItem("accessToken");
