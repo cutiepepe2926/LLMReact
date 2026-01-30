@@ -156,7 +156,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
                           <h3>{p.name}</h3>
                         </div>
 
-                        {/* 휴지통에서는 즐겨찾기 숨김 처리 예시 */}
+                        {/* 휴지통에서는 즐겨찾기 숨김 처리 예시 추후에 즐겨찾기 API와 연동 필요*/}
                         {filterStatus !== 'trash' && (
                             <button
                                 className={`favorite-btn ${p.isFavorite ? 'active' : ''}`}
