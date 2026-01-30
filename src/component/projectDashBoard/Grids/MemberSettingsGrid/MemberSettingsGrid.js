@@ -8,7 +8,7 @@ import ProjectSettingsMiniGrid from "./ProjectSettingsMiniGrid/ProjectSettingsMi
 import { api } from "../../../../utils/api";
 import "./MemberSettingsGrid.css";
 
-export default function MemberSettingsGrid({project}) {
+export default function MemberSettingsGrid({project, onProjectUpdate}) {
 
     const [activeSub, setActiveSub] = useState("members");
     const [members, setMembers] = useState([]);
@@ -103,14 +103,15 @@ export default function MemberSettingsGrid({project}) {
                         members={members}
                         myRole={myRole}
                         projectId={project.projectId}
-                        onRefresh={fetchMembers}
+                        onRefresh={fetchMembers} // 멤버 목록 갱신
                     />
                 )}
 
                 {activeSub === "project" && (
                     <ProjectSettingsMiniGrid
                         project={project}          // [필수] 현재 프로젝트 데이터
-                        onRefresh={fetchMembers}   // [선택] 헤더나 리스트 갱신이 필요하다면 상위 리프레시 함수 전달
+                        myRole={myRole}     // 역할
+                        onRefresh={onProjectUpdate}   // 프로젝트 정보 갱신 함수 전달
                     />
                 )}
 

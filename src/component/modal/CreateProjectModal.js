@@ -17,6 +17,7 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
   const [inviteInput, setInviteInput] = useState('');
   const [collaborators, setCollaborators] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
+  // eslint-disable-next-line
   const [isSearching, setIsSearching] = useState(false);
 
   // 외부 클릭 감지를 위한 Ref
@@ -80,7 +81,7 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
       ...formData,
       // collaborators(객체 배열) -> memberIds(문자열 배열)로 변환
       // 백엔드는 userId만 필요함
-      memberIds: collaborators.map(member => member.userId) 
+      members: collaborators.map(member => member.userId)
     };
     
     onCreate(requestData);

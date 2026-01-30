@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { api } from '../../utils/api';
 
 import ProjectHeader from "../projectHeader/ProjectHeader";
 import TabMenu from "../TabMenu/TabMenu";
@@ -13,8 +14,10 @@ import './ProjectDashBoard.css';
 function ProjectDashBoard() {
 
     const location = useLocation();
-    const projectData = location.state?.projectData;
     const navigate = useNavigate();
+    // 1. location.state로 초기값을 잡되, 변경 가능하도록 useState로 감싸기.
+    const [projectData, setProjectData] = useState(location.state?.projectData || null);
+
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -33,6 +36,20 @@ function ProjectDashBoard() {
         finalReport: FinalReportGrid,
         memberSettings: MemberSettingsGrid,
     };
+
+    // 프로젝트 상세 정보를 다시 불러오는 함수 (Refetch)
+    const refreshProjectData = useCallback(async () => {
+        if (!projectData?.projectId) return;
+
+        try {
+            console.log("프로젝트 정보 갱신 중...");
+            const res = await api.get(`/api/projects/${projectData.projectId}`);
+            // 받아온 최신 데이터로 상태 업데이트 -> 헤더 및 하위 컴포넌트 자동 리렌더링
+            setProjectData(res.data || res);
+        } catch (error) {
+            console.error("프로젝트 정보 갱신 실패:", error);
+        }
+    }, [projectData?.projectId]);
 
     const GridContent = TAB_COMPONENTS[activeTab] ?? DashboardGrid;
 
@@ -53,9 +70,14 @@ function ProjectDashBoard() {
             <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
 
             {/* 4. 대시보드 메인 그리드 */}
+            {/* 4. 하위 컴포넌트에 refreshProjectData 함수(onProjectUpdate) 전달 */}
             {activeTab === "issue" || activeTab === "memberSettings" ? (
                 <div className="issue-grid-only">
-                    {activeTab === "issue" ? <IssueTrackerView project={projectData}/> : <MemberSettingsGrid project={projectData}/>}
+                    {activeTab === "issue" ?
+                        <IssueTrackerView project={projectData}/> :
+                        <MemberSettingsGrid project={projectData}
+                                            onProjectUpdate={refreshProjectData} // 갱신 함수 전달
+                        />}
                 </div>
             ) : (
                 <main className="dashboard-grid">

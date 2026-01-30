@@ -45,7 +45,9 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
             }
         };
 
+
         fetchProjectDetails();
+        // eslint-disable-next-line
     }, [project]);
 
     const handleChange = (e) => {
