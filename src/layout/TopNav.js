@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import Profile from '../component/modal/Profile';
+import AlarmModal from '../component/modal/AlarmModal';
 import "./TopNav.css";
 import { api } from "../utils/api";
 
@@ -22,11 +23,13 @@ const Icons = {
 export default function TopNav() {
     const location = useLocation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isAlarmOpen, setIsAlarmOpen] = useState(false)
     const [profileImg, setProfileImg] = useState(null);
 
     const [unreadCount, setUnreadCount] = useState(0);
     
     const profileRef = useRef(null);
+    const alarmRef = useRef(null);
 
     //  로그인 또는 회원가입 페이지인지 확인하는 변수
     const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
@@ -35,6 +38,19 @@ export default function TopNav() {
         setIsProfileOpen(!isProfileOpen);
     };
 
+    const toggleAlarm = () => {
+        setIsAlarmOpen(!isAlarmOpen);
+    }
+
+    const fetchUnreadCount = useCallback(async () => {
+        try {
+            const count = await api.get("/api/alarms/unread");
+            setUnreadCount(count);
+        } catch (error) {
+            console.error("알림 개수 로드 실패", error);
+        }
+    }, []);
+
     // 사용자 이미지 가져오기
     useEffect(() => {
         if (!isAuthPage) { // 로그인 페이지가 아닐 때만 호출
@@ -42,16 +58,14 @@ export default function TopNav() {
                 try {
                     const data = await api.get("/api/user/info");
                     setProfileImg(data.filePath); // DB에 저장된 S3 URL 또는 null
-
-                    const count = await api.get("/api/alarms/unread");
-                    setUnreadCount(count);
                 } catch (error) {
                     console.error("탑네비 사용자 정보 로드 실패", error);
                 }
             };
             fetchProfile();
+            fetchUnreadCount();
         }
-    }, [isAuthPage, location.pathname]); // 페이지 이동 시마다 갱신 (이미지 변경 반영 위해)
+    }, [isAuthPage, location.pathname, fetchUnreadCount]); // 페이지 이동 시마다 갱신 (이미지 변경 반영 위해)
 
     // 외부 클릭 감지 로직 추가
     useEffect(() => {
@@ -59,6 +73,9 @@ export default function TopNav() {
             // profileRef가 현재 존재하고, 클릭한 대상(event.target)이 profileRef 내부가 아니라면
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setIsProfileOpen(false); // 모달 닫기
+            }
+            if(alarmRef.current && !alarmRef.current.contains(event.target)){
+                setIsAlarmOpen(false);
             }
         };
 
@@ -86,15 +103,24 @@ export default function TopNav() {
                 <div className="header-right">
                     <div className="divider-vertical"></div>
 
-                    <button className="icon-btn" title="알림">
-                        <Icons.Bell />
-                        {/* unreadCount가 0보다 클 때만 뱃지 표시 */}
-                        {unreadCount > 0 && (
-                            <span className="noti-badge">
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
+                    {/* [변경] 알림 버튼 Wrapper */}
+                    <div className="header-alarm-wrapper" ref={alarmRef} style={{position: 'relative'}}>
+                        <button className="icon-btn" title="알림" onClick={toggleAlarm}>
+                            <Icons.Bell />
+                            {unreadCount > 0 && (
+                                <span className="noti-badge"> {/* CSS 공유를 위해 유지 가능 */}
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
+                        </button>
+                        {/* [변경] 컴포넌트 교체 */}
+                        {isAlarmOpen && (
+                            <AlarmModal 
+                                onClose={() => setIsAlarmOpen(false)} 
+                                onUpdate={fetchUnreadCount} 
+                            />
                         )}
-                    </button>
+                    </div>
 
                     <button className="icon-btn" title="도움말">
                         <Icons.Help />
