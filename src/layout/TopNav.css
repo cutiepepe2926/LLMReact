@@ -102,11 +102,29 @@
 .icon-btn:hover { background-color: #F3F4F6; color: var(--primary-color); }
 
 .noti-badge {
-    position: absolute; top: 8px; right: 8px;
-    width: 8px; height: 8px;
-    background-color: #EF4444;
-    border: 2px solid #FFF;
-    border-radius: 50%;
+    position: absolute;
+    top: 2px;       /* 위치 미세 조정 */
+    right: 2px;     /* 위치 미세 조정 */
+    
+    min-width: 16px; /* 숫자가 커지면 늘어나도록 */
+    height: 16px;
+    padding: 0 4px;  /* 숫자 좌우 여백 */
+    
+    background-color: #EF4444; /* 빨간색 배경 */
+    color: white;              /* 흰색 글자 */
+    
+    border: 2px solid #FFF;    /* 테두리로 버튼과 구분 */
+    border-radius: 10px;       /* 둥근 캡슐 모양 */
+    
+    font-size: 0.65rem;        /* 글자 크기 */
+    font-weight: 700;          /* 굵게 */
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    box-sizing: border-box;    /* 패딩 포함 크기 계산 */
+    z-index: 20;
 }
 
 .mini-avatar {

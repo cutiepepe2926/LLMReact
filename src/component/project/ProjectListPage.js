@@ -57,7 +57,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
         gitUrl: formData.repoUrl,
         reportTime: `${formData.reportTime}:00`,
         endDate: `${formData.endDate}T23:59:59`,
-        members: formData.collaborators
+        members: formData.members
       };
 
       await api.post('/api/projects', requestData);

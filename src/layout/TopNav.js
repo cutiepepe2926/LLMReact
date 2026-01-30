@@ -1,8 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
+import { createPortal } from "react-dom";
 import Profile from '../component/modal/Profile';
+import AlarmModal from '../component/modal/AlarmModal';
 import "./TopNav.css";
 import { api } from "../utils/api";
+import ToastNotification from "../component/toast/ToastNotification";
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 
 
@@ -22,9 +26,14 @@ const Icons = {
 export default function TopNav() {
     const location = useLocation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isAlarmOpen, setIsAlarmOpen] = useState(false)
     const [profileImg, setProfileImg] = useState(null);
+
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [toasts, setToasts] = useState([]);
     
     const profileRef = useRef(null);
+    const alarmRef = useRef(null);
 
     //  로그인 또는 회원가입 페이지인지 확인하는 변수
     const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
@@ -32,6 +41,31 @@ export default function TopNav() {
     const toggleProfile = () => {
         setIsProfileOpen(!isProfileOpen);
     };
+
+    const toggleAlarm = () => {
+        setIsAlarmOpen(!isAlarmOpen);
+    }
+
+    const removeToast = useCallback((id) => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, []);
+
+    const addToast = useCallback((alarmData) => {
+        const newToast = {
+            id: Date.now(), // 고유 ID 생성 (타임스탬프)
+            ...alarmData
+        };
+        setToasts((prev) => [...prev, newToast]); 
+    }, []);
+
+    const fetchUnreadCount = useCallback(async () => {
+        try {
+            const count = await api.get("/api/alarms/unread");
+            setUnreadCount(count);
+        } catch (error) {
+            console.error("알림 개수 로드 실패", error);
+        }
+    }, []);
 
     // 사용자 이미지 가져오기
     useEffect(() => {
@@ -45,8 +79,9 @@ export default function TopNav() {
                 }
             };
             fetchProfile();
+            fetchUnreadCount();
         }
-    }, [isAuthPage, location.pathname]); // 페이지 이동 시마다 갱신 (이미지 변경 반영 위해)
+    }, [isAuthPage, location.pathname, fetchUnreadCount]); // 페이지 이동 시마다 갱신 (이미지 변경 반영 위해)
 
     // 외부 클릭 감지 로직 추가
     useEffect(() => {
@@ -54,6 +89,9 @@ export default function TopNav() {
             // profileRef가 현재 존재하고, 클릭한 대상(event.target)이 profileRef 내부가 아니라면
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setIsProfileOpen(false); // 모달 닫기
+            }
+            if(alarmRef.current && !alarmRef.current.contains(event.target)){
+                setIsAlarmOpen(false);
             }
         };
 
@@ -65,6 +103,41 @@ export default function TopNav() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    // SSE 연결
+    useEffect(() => {
+        if (isAuthPage) return;
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        const eventSource = new EventSourcePolyfill('http://localhost:8080/api/alarms/subscribe', {
+            headers: { Authorization: `Bearer ${token}` },
+            heartbeatTimeout: 86400000,
+        });
+
+        eventSource.onopen = () => console.log("SSE Connected!");
+
+        eventSource.addEventListener('alarm', (e) => {
+            const newAlarm = JSON.parse(e.data);
+            console.log("새 알림 도착:", newAlarm);
+
+            setUnreadCount(prev => prev + 1);
+            
+            // [수정] 토스트 배열에 추가
+            addToast(newAlarm);
+        });
+
+        eventSource.onerror = (e) => {
+            console.error("SSE Error:", e);
+            eventSource.close();
+        };
+
+        return () => {
+            eventSource.close();
+            console.log("SSE Disconnected");
+        };
+    }, [isAuthPage, addToast]); // addToast 의존성 추가
 
     return (
         <header className="top-header">
@@ -81,10 +154,24 @@ export default function TopNav() {
                 <div className="header-right">
                     <div className="divider-vertical"></div>
 
-                    <button className="icon-btn" title="알림">
-                        <Icons.Bell />
-                        <span className="noti-badge"></span>
-                    </button>
+                    {/* [변경] 알림 버튼 Wrapper */}
+                    <div className="header-alarm-wrapper" ref={alarmRef} style={{position: 'relative'}}>
+                        <button className="icon-btn" title="알림" onClick={toggleAlarm}>
+                            <Icons.Bell />
+                            {unreadCount > 0 && (
+                                <span className="noti-badge"> {/* CSS 공유를 위해 유지 가능 */}
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
+                        </button>
+                        {/* [변경] 컴포넌트 교체 */}
+                        {isAlarmOpen && (
+                            <AlarmModal 
+                                onClose={() => setIsAlarmOpen(false)} 
+                                onUpdate={fetchUnreadCount} 
+                            />
+                        )}
+                    </div>
 
                     <button className="icon-btn" title="도움말">
                         <Icons.Help />
@@ -111,51 +198,43 @@ export default function TopNav() {
                     </div>
                 </div>
             )}
-            {/*<div className="header-right">*/}
 
-            {/*    <div className="divider-vertical"></div>*/}
-
-            {/*    /!* 알림 *!/*/}
-            {/*    <button className="icon-btn" title="알림">*/}
-            {/*        <Icons.Bell />*/}
-            {/*        <span className="noti-badge"></span>*/}
-            {/*    </button>*/}
-            {/*    */}
-            {/*    <button className="icon-btn" title="도움말">*/}
-            {/*        <Icons.Help />*/}
-            {/*    </button>*/}
-
-            {/*    /!* 프로필 *!/*/}
-            {/*    <div className="header-profile">*/}
-            {/*        <div className="mini-avatar"*/}
-            {/*        onClick={toggleProfile}*/}
-            {/*        >홍</div>*/}
-            {/*    </div>*/}
-            {/*</div>*/}
+            <div style={{
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                zIndex: 9999,
+                display: 'flex',
+                flexDirection: 'column-reverse', // 최신 알림이 아래쪽(또는 위쪽)에 오도록 조정 가능 (현재는 위로 쌓임)
+                gap: '10px',
+                pointerEvents: 'none' // 빈 영역 클릭 시 뒤쪽 요소 클릭 가능하게
+            }}>
+                {createPortal(
+                    <div style={{
+                        position: 'fixed',
+                        bottom: '20px',
+                        right: '20px',
+                        zIndex: 9999,
+                        display: 'flex',
+                        flexDirection: 'column-reverse', // 최신 알림이 밑에서부터 위로 쌓임 (요청하신 사항)
+                        gap: '10px',
+                        pointerEvents: 'none' // 알림 사이의 빈 공간은 클릭 통과되도록 설정
+                    }}>
+                        {toasts.map((toast) => (
+                            // 개별 알림은 클릭 이벤트를 받아야 하므로 pointerEvents: auto 설정
+                            <div key={toast.id} style={{ pointerEvents: 'auto' }}>
+                                <ToastNotification 
+                                    id={toast.id}
+                                    alarm={toast} 
+                                    onClose={removeToast} 
+                                />
+                            </div>
+                        ))}
+                    </div>,
+                    document.body // document.body에 직접 렌더링
+                )}
+            </div>
         </header>
 
-//     {!isAuthPage && (
-//         <div className="header-right">
-//             <div className="icon-group">
-//                 <div className="icon-circle" style={{position: 'relative'}} ref={profileRef}>
-//                     <img
-//                         src="/img/Profile.svg"
-//                         alt="profile icon"
-//                         className="profile"
-//                         onClick={toggleProfile}
-//                         style={{ width: 25 }}
-//                     />
-//
-//                     {isProfileOpen && (<Profile onClose={()=>setIsProfileOpen(false)}/>)}
-//                 </div>
-//             </div>
-//         </div>
-//     )}
-// </header>
-//
-//     <main>
-//         <Outlet />
-//     </main>
-// </>
     );
 }
