@@ -55,11 +55,11 @@ function ProjectDashBoard() {
             {/* 4. 대시보드 메인 그리드 */}
             {activeTab === "issue" || activeTab === "memberSettings" ? (
                 <div className="issue-grid-only">
-                    {activeTab === "issue" ? <IssueTrackerView /> : <MemberSettingsGrid />}
+                    {activeTab === "issue" ? <IssueTrackerView project={projectData}/> : <MemberSettingsGrid project={projectData}/>}
                 </div>
             ) : (
                 <main className="dashboard-grid">
-                    <GridContent />
+                    <GridContent project={projectData}/>
                 </main>
             )}
 
