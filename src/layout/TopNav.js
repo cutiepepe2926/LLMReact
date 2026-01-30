@@ -23,6 +23,8 @@ export default function TopNav() {
     const location = useLocation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [profileImg, setProfileImg] = useState(null);
+
+    const [unreadCount, setUnreadCount] = useState(0);
     
     const profileRef = useRef(null);
 
@@ -40,6 +42,9 @@ export default function TopNav() {
                 try {
                     const data = await api.get("/api/user/info");
                     setProfileImg(data.filePath); // DB에 저장된 S3 URL 또는 null
+
+                    const count = await api.get("/api/alarms/unread");
+                    setUnreadCount(count);
                 } catch (error) {
                     console.error("탑네비 사용자 정보 로드 실패", error);
                 }
@@ -83,7 +88,12 @@ export default function TopNav() {
 
                     <button className="icon-btn" title="알림">
                         <Icons.Bell />
-                        <span className="noti-badge"></span>
+                        {/* unreadCount가 0보다 클 때만 뱃지 표시 */}
+                        {unreadCount > 0 && (
+                            <span className="noti-badge">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
                     </button>
 
                     <button className="icon-btn" title="도움말">
