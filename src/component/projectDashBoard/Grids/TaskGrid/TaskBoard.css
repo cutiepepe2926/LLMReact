@@ -189,3 +189,13 @@
     font-family: 'Courier New', monospace; /* 코드 느낌 폰트 */
     font-weight: 600; color: #374151;
 }
+
+.priority-tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+.priority-tag.high { background: #ffebe6; color: #de350b; }   /* 빨강 */
+.priority-tag.medium { background: #fff0b3; color: #826a00; } /* 노랑 */
+.priority-tag.low { background: #e3fcef; color: #006644; }    /* 초록 */

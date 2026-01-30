@@ -3,11 +3,17 @@ import './TaskBoard.css';
 
 const TaskCard = ({ task, onClick, onDragStart }) => {
     
-    const getPriorityColor = (p) => {
-        if (p === '상') return 'badge-red';
-        if (p === '중') return 'badge-yellow';
-        return 'badge-gray';
+    const getPriorityInfo = (p) => {
+        const priorityNum = parseInt(p);
+        switch(priorityNum) {
+            case 3: return { text: "상", class: "high" };
+            case 2: return { text: "중", class: "medium" };
+            case 1: return { text: "하", class: "low" };
+            default: return { text: "미설정", class: "none" };
+        }
     };
+
+    const priority = getPriorityInfo(task.priority);
 
     const renderAssignees = () => {
         if (!task.assignees || task.assignees.length === 0) return "미지정";
@@ -16,12 +22,7 @@ const TaskCard = ({ task, onClick, onDragStart }) => {
     };
 
     return (
-        <div 
-            className="task-card" 
-            onClick={() => onClick(task)}
-            draggable="true" // ★ 드래그 가능하게 설정
-            onDragStart={onDragStart} // ★ 드래그 시작 이벤트 연결
-        >
+        <div className="task-card" onClick={() => onClick(task)} draggable onDragStart={onDragStart}>
             <div className="task-header">
                 <span className="task-title">{task.title}</span>
                 {task.dDay && <span className="d-day-badge">{task.dDay}</span>}
@@ -32,9 +33,9 @@ const TaskCard = ({ task, onClick, onDragStart }) => {
                     <span className="assignee-label">담당자:</span>
                     <span className="assignee-name">{renderAssignees()}</span>
                 </div>
-                <span className={`priority-badge ${getPriorityColor(task.priority)}`}>
-                    {task.priority}
-                </span>
+                <div className={`priority-tag ${priority.class}`}>
+                    {priority.text}
+                </div>
             </div>
 
             <div className="task-footer">

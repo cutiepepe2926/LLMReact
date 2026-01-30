@@ -114,10 +114,13 @@ function TaskBoard({ projectId: propProjectId }) {
             <TaskDetailPage 
                 projectId={projectId}
                 task={selectedTask} 
-                onBack={() => { setSelectedTask(null); fetchTasks(); }} // 뒤로가기 시 새로고침
-                onEdit={() => { setEditingTask(selectedTask); setIsModalOpen(true); }}
+                onBack={() => { setSelectedTask(null); fetchTasks(); }}
+                onEdit={() => { 
+                    setEditingTask(selectedTask); 
+                    setSelectedTask(null); 
+                    setIsModalOpen(true); 
+                }}
                 onDelete={() => handleDeleteTask(selectedTask.taskId)}
-                // 상세 페이지 내부에서의 상태 변경 처리
                 onStatusChange={async (taskId, status) => {
                     await api.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status });
                     fetchTasks();
