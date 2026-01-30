@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import './AlarmModal.css'; // CSS 파일명도 변경
 
 const AlarmModal = ({ onClose, onUpdate }) => {
     const [alarms, setAlarms] = useState([]);
+    const navigate = useNavigate();
 
     // 알림 목록 가져오기
     useEffect(() => {
@@ -48,6 +50,18 @@ const AlarmModal = ({ onClose, onUpdate }) => {
             } catch (error) {
                 console.error("알림 읽음 처리 실패:", error);
             }
+        }
+
+        if (alarm.projectId) {
+            navigate('/projectDetail', {
+                state: {
+                    projectData: {
+                        projectId: alarm.projectId
+                    }
+                }
+            });
+            // 페이지 이동 후 모달을 닫고 싶다면 아래 주석 해제
+            if (onClose) onClose(); 
         }
     };
 
