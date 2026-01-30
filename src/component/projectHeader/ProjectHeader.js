@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useLocation } from "react-router-dom";
 import "./ProjectHeader.css";
 
 export default function ProjectHeader({ project }) {
@@ -46,6 +46,26 @@ export default function ProjectHeader({ project }) {
             </section>
         );
     }
+
+    // 사이드바에서 넘겨준 state 받기
+    const ProjectHeader = () => {
+        const location = useLocation();
+        
+        // 사이드바에서 넘겨준 state 받기
+        // 만약 새로고침해서 state가 없으면, 로딩 중 표시하거나 null 처리
+        const project = location.state?.projectData; 
+
+        if (!project) return <div>로딩 중...</div>; 
+        // (사실 여기서 useEffect로 상세 API 호출을 하긴 해야 합니다. 새로고침 대비용)
+
+        return (
+            <header>
+            <h1>{project.name}</h1>
+            <span>{project.startDate} ~ {project.endDate}</span>
+            <span className="badge">{project.status}</span>
+            </header>
+        );
+    };
 
     return (
         <section className="project-header">

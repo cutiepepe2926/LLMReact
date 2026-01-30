@@ -266,3 +266,71 @@
     background: none; border: none; color: #d1d5db; cursor: pointer; padding: 4px;
 }
 .user-card:hover .footer-setting-btn { color: var(--text-sub); }
+
+/* 전체 프로젝트 토글 화살표 */
+.toggle-arrow {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+    opacity: 0.5;
+}
+.toggle-arrow.open {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+/* 하위 메뉴 컨테이너 (애니메이션) */
+.sub-menu-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease;
+    opacity: 0;
+    margin-left: 12px;
+    border-left: 1px solid #f3f4f6; /* 왼쪽에 얇은 가이드 라인 */
+}
+
+.sub-menu-container.open {
+    max-height: 500px; /* 리스트 길이에 따라 넉넉하게 설정 */
+    opacity: 1;
+    margin-bottom: 8px;
+}
+
+/* 하위 메뉴 아이템 */
+.sub-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    margin: 2px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-sub);
+    font-size: 0.88rem;
+    transition: all 0.2s;
+}
+
+.sub-menu-item:hover {
+    background-color: #f9fafb;
+    color: var(--primary-blue);
+    padding-left: 20px; /* 살짝 밀리는 효과 */
+}
+
+.sub-menu-dot {
+    font-size: 1.2rem;
+    line-height: 0;
+    color: #d1d5db;
+}
+
+.sub-menu-empty {
+    padding: 12px 24px;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* 토글 시 메인 메뉴 아이템 살짝 강조 */
+.menu-item.active-light {
+    color: var(--text-main);
+    background-color: #f8fafc;
+}

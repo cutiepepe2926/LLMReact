@@ -29,7 +29,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
 
       const mappedData = data.map(p => ({
         ...p,
-        isFavorite: false,
+        isFavorite: p.favorite || false,
         lastCommit: 'fix: login logic',
         lastCommitTime: '30분 전'
       }));
@@ -61,6 +61,10 @@ const ProjectListPage = ({ onEnterDashboard }) => {
       };
 
       await api.post('/api/projects', requestData);
+
+      // 사이드바 전체 프로젝트 실시간 갱신
+      window.dispatchEvent(new Event('sidebar-update'));
+       
       alert("프로젝트가 생성되었습니다.");
       setIsModalOpen(false);
       fetchProjects();
@@ -79,11 +83,20 @@ const ProjectListPage = ({ onEnterDashboard }) => {
   }
 
   // 즐겨찾기 토글 함수 (서버 기준 필드인 projectId로 수정)
-  const toggleFavorite = (id, e) => {
+  const toggleFavorite = async (id, e) => {
     e.stopPropagation();
+    
     setProjects(prev => prev.map(p =>
-        p.projectId === id ? { ...p, isFavorite: !p.isFavorite } : p
+      p.projectId === id ? {...p, isFavorite: !p.isFavorite } : p
     ));
+
+    try {
+        await api.post(`/api/projects/${id}/favorite`);
+        window.dispatchEvent(new Event('sidebar-update'));
+        fetchProjects(); 
+    } catch (err) {
+        console.error("즐겨찾기 실패", err);
+    }
   };
 
   // 서버에서 이미 필터링된 목록을 가져오므로 projects를 바로 사용

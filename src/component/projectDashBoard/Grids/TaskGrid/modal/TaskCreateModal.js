@@ -1,52 +1,81 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { api } from '../../../../../utils/api';
 import './TaskCreateModal.css';
 
 const TaskCreateModal = ({ onClose, onSave, initialData }) => {
-    // 폼 데이터 초기값 설정
     const [formData, setFormData] = useState({
         title: '',
         startDate: '',
         endDate: '',
         description: '',
-        priority: '중',
+        content: '',
+        priority: 2, // 기본값: 중 (2)
         branch: '',
-        assignees: [], // 배열로 관리
+        assigneeIds: [], // 초기값 빈 배열
     });
 
-    const [assigneeInput, setAssigneeInput] = useState(''); // 담당자 입력용 임시 state
+    const [selectedAssignees, setSelectedAssignees] = useState([]);
+    const [searchInput, setSearchInput] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
 
-    // 수정 모드일 경우 초기 데이터 세팅
+    // 수정 모드 초기 데이터 세팅
     useEffect(() => {
         if (initialData) {
             setFormData({
-                ...initialData,
-                // 날짜 포맷 등이 맞지 않을 경우 변환 로직 필요할 수 있음
+                title: initialData.title || '',
+                startDate: initialData.startDate || '',
+                endDate: initialData.dueDate || '', // 백엔드 DTO 매핑 (dueDate)
+                content: initialData.content || '',
+                priority: initialData.priority || 2,
+                branch: initialData.branch || '',
+                assigneeIds: initialData.assigneeIds || []
             });
+            // TODO: 수정 모드일 때 assigneeIds에 해당하는 유저 정보(이름 등)를 불러와서 selectedAssignees에 채워넣는 로직이 필요함.
+            // 현재는 ID만 가지고 있어서 UI 표시에 한계가 있을 수 있음.
         }
     }, [initialData]);
+
+    // 유저 검색
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (searchInput.trim()) {
+                try {
+                    const res = await api.get("/api/user/search", { keyword: searchInput });
+                    setSearchResults(res || []);
+                } catch (e) {
+                    console.error("User search error:", e);
+                }
+            } else {
+                setSearchResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
+
+    const handleAddAssignee = (user) => {
+        // 중복 추가 방지
+        if (!formData.assigneeIds.includes(user.userId)) {
+            setFormData(prev => ({
+                ...prev,
+                assigneeIds: [...prev.assigneeIds, user.userId]
+            }));
+            setSelectedAssignees(prev => [...prev, user]);
+        }
+        setSearchInput('');
+        setSearchResults([]);
+    };
+
+    const removeAssignee = (userId) => {
+        setFormData(prev => ({
+            ...prev,
+            assigneeIds: prev.assigneeIds.filter(id => id !== userId)
+        }));
+        setSelectedAssignees(prev => prev.filter(u => u.userId !== userId));
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-    };
-
-    // 담당자 추가 엔터키 처리
-    const handleAddAssignee = () => {
-        if (assigneeInput.trim() && !formData.assignees.includes(assigneeInput.trim())) {
-            setFormData({
-                ...formData,
-                assignees: [...formData.assignees, assigneeInput.trim()]
-            });
-            setAssigneeInput('');
-        }
-    };
-
-    // 담당자 삭제
-    const removeAssignee = (name) => {
-        setFormData({
-            ...formData,
-            assignees: formData.assignees.filter(a => a !== name)
-        });
     };
 
     const handleSubmit = () => {
@@ -54,7 +83,18 @@ const TaskCreateModal = ({ onClose, onSave, initialData }) => {
             alert("업무명을 입력해주세요.");
             return;
         }
-        onSave(formData);
+        
+        // 백엔드 전송 DTO 구성
+        const requestDTO = {
+            title: formData.title,
+            content: formData.content || formData.description,
+            priority: parseInt(formData.priority),
+            branch: formData.branch,
+            dueDate: formData.endDate,
+            assigneeIds: formData.assigneeIds,
+            status: initialData ? initialData.status : 'TODO'
+        };
+        onSave(requestDTO);
     };
 
     return (
@@ -66,74 +106,80 @@ const TaskCreateModal = ({ onClose, onSave, initialData }) => {
                 </div>
 
                 <div className="modal-body">
-                    {/* 업무명 */}
                     <div className="form-group">
                         <label>업무명</label>
                         <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="업무명을 입력하세요" />
                     </div>
 
-                    {/* 기간 */}
                     <div className="form-group">
-                        <label>기간</label>
-                        <div className="date-range-input">
-                            <input type="date" name="startDate" value={formData.startDate || ''} onChange={handleChange} />
-                            <span>~</span>
-                            <input type="date" name="endDate" value={formData.endDate || ''} onChange={handleChange} />
-                        </div>
+                        <label>마감일</label>
+                        <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} style={{width: '100%'}} />
                     </div>
 
-                    {/* 담당자 (다중 추가 UI) */}
                     <div className="form-group">
                         <label>담당자</label>
-                        <div className="assignee-input-box">
-                            <input 
-                                type="text" 
-                                value={assigneeInput}
-                                onChange={(e) => setAssigneeInput(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleAddAssignee()}
-                                placeholder="이름 입력 후 엔터 또는 추가 버튼"
-                            />
-                            <button type="button" className="add-btn" onClick={handleAddAssignee}>추가</button>
+                        <div className="assignee-input-box" style={{ display: 'flex', gap: '8px' }}>
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <input 
+                                    type="text" 
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    placeholder="이름으로 검색"
+                                    style={{ width: '100%' }}
+                                />
+                                {searchResults.length > 0 && (
+                                    <ul className="search-dropdown">
+                                        {searchResults.map(user => (
+                                            <li key={user.userId} onClick={() => handleAddAssignee(user)}>
+                                                <img src={user.filePath || "/img/Profile.svg"} alt="" className="user-avatar-small"/>
+                                                {user.name} ({user.userId})
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                            <button type="button" className="add-btn">검색</button>
                         </div>
+                        
                         <div className="assignee-tags">
-                            {formData.assignees.map((user, idx) => (
-                                <span key={idx} className="tag">
-                                    {user} <button onClick={() => removeAssignee(user)}>×</button>
+                            {/* 선택된 담당자 (객체 정보 있음) */}
+                            {selectedAssignees.map(user => (
+                                <span key={user.userId} className="tag">
+                                    {user.name} 
+                                    <button type="button" onClick={() => removeAssignee(user.userId)}>×</button>
                                 </span>
                             ))}
+                            
+                            {/* 수정 모드 등에서 ID만 있는 경우 안전하게 표시 */}
+                            {(formData.assigneeIds || [])
+                                .filter(id => !selectedAssignees.some(u => u.userId === id))
+                                .map(id => (
+                                    <span key={id} className="tag">
+                                        {id} 
+                                        <button type="button" onClick={() => removeAssignee(id)}>×</button>
+                                    </span>
+                                ))
+                            }
                         </div>
                     </div>
 
-                    {/* 설명 */}
                     <div className="form-group">
                         <label>업무 설명</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange} rows="4" />
+                        <textarea name="content" value={formData.content} onChange={handleChange} rows="4" />
                     </div>
 
-                    {/* 우선순위 & 브랜치 */}
                     <div className="form-row">
                         <div className="form-group flex-1">
                             <label>우선순위</label>
                             <div className="radio-group">
-                                {['상', '중', '하'].map(p => (
-                                    <label key={p}>
-                                        <input 
-                                            type="radio" 
-                                            name="priority" 
-                                            value={p} 
-                                            checked={formData.priority === p} 
-                                            onChange={handleChange} 
-                                        /> {p}
-                                    </label>
-                                ))}
+                                <label><input type="radio" name="priority" value="3" checked={parseInt(formData.priority) === 3} onChange={handleChange} /> 상</label>
+                                <label><input type="radio" name="priority" value="2" checked={parseInt(formData.priority) === 2} onChange={handleChange} /> 중</label>
+                                <label><input type="radio" name="priority" value="1" checked={parseInt(formData.priority) === 1} onChange={handleChange} /> 하</label>
                             </div>
                         </div>
                         <div className="form-group flex-1">
                             <label>담당 브랜치</label>
-                            <div className="branch-input-group">
-                                <span className="git-icon">🌱</span>
-                                <input type="text" name="branch" value={formData.branch} onChange={handleChange} placeholder="feature/xxx" />
-                            </div>
+                            <input type="text" name="branch" value={formData.branch} onChange={handleChange} placeholder="feature/xxx" />
                         </div>
                     </div>
                 </div>

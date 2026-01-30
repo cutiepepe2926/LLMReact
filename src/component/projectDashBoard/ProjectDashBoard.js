@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 
 import ProjectHeader from "../projectHeader/ProjectHeader";
 import TabMenu from "../TabMenu/TabMenu";
@@ -13,8 +13,10 @@ import './ProjectDashBoard.css';
 function ProjectDashBoard() {
 
     const location = useLocation();
-    const projectData = location.state?.projectData;
+    const params = useParams();
     const navigate = useNavigate();
+    const projectData = location.state?.projectData;
+    const projectId = projectData?.projectId || params.projectId || 1;
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -59,7 +61,7 @@ function ProjectDashBoard() {
                 </div>
             ) : (
                 <main className="dashboard-grid">
-                    <GridContent />
+                    <GridContent projectId={projectId} />
                 </main>
             )}
 

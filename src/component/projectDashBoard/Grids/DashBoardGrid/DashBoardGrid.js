@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { api } from "../../../../utils/api";
 import "./DashBoardGrid.css";
 
 const Icons = {
@@ -9,6 +11,46 @@ const Icons = {
 };
 
 export default function DashboardGrid() {
+    const { projectId } = useParams();
+    const [stats, setStats] = useState({
+        totalTasks: 0,
+        completedTasks: 0,
+        openIssues: 0,
+        memberCount: 0
+    });
+
+    useEffect(() => {
+        const fetchProjectStats = async () => {
+            if (!projectId) return;
+            try {
+                // ACTIVE와 DONE 프로젝트 모두 조회 후 현재 프로젝트 찾기
+                const activeProjects = await api.get('/api/projects', { type: 'active' });
+                const doneProjects = await api.get('/api/projects', { type: 'done' });
+                
+                const allProjects = [...(activeProjects || []), ...(doneProjects || [])];
+                const currentProject = allProjects.find(p => p.projectId === parseInt(projectId));
+
+                if (currentProject) {
+                    setStats({
+                        totalTasks: currentProject.totalTaskCount || 0,
+                        completedTasks: currentProject.completedTaskCount || 0,
+                        openIssues: currentProject.openIssueCount || 0,
+                        memberCount: currentProject.memberCount || 0
+                    });
+                }
+            } catch (error) {
+                console.error("대시보드 데이터 로딩 실패:", error);
+            }
+        };
+
+        fetchProjectStats();
+    }, [projectId]);
+
+    // 진행률 계산 (0으로 나누기 방지)
+    const progressPercentage = stats.totalTasks === 0 ? 0 : Math.round((stats.completedTasks / stats.totalTasks) * 100);
+    // 진행 중인 업무 = 전체 - 완료 (단순 계산)
+    const inProgressTasks = stats.totalTasks - stats.completedTasks;
+
     return (
         <>
             {/* [1] 왼쪽 섹션 */}
@@ -19,8 +61,14 @@ export default function DashboardGrid() {
                         <span className="card-title">진행중인 업무</span>
                     </div>
                     <div className="progress-stats-large">
-                        <span className="highlight">10</span>
-                        <span className="total">/ 50 Tasks</span>
+                        <span className="highlight">{inProgressTasks}</span>
+                        <span className="total">/ {stats.totalTasks} Tasks</span>
+                    </div>
+                    <div className="progress-bar-bg">
+                        <div className="progress-bar-fill" style={{ width: `${progressPercentage}%` }}></div>
+                    </div>
+                    <div style={{textAlign: 'right', fontSize: '0.8rem', color: '#6B7280', marginTop: '5px'}}>
+                        {progressPercentage}% 완료 ({stats.completedTasks}개 완료)
                     </div>
                 </div>
 

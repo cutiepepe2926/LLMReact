@@ -1,126 +1,127 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import TaskCard from './TaskCard';
 import TaskCreateModal from './modal/TaskCreateModal';
 import TaskDetailPage from './TaskDetailPage';
+import { api } from '../../../../utils/api';
 import './TaskBoard.css';
 
-const MOCK_TASKS = [
-    { id: 1, status: 'TODO', title: '깃 연동 테스트', assignees: ['홍길동'], priority: '상', dDay: 'D-3', branch: 'feature/git-init' },
-    { id: 2, status: 'IN_PROGRESS', title: '리포트 화면 구현', assignees: ['김철수', '홍길동'], priority: '중', dDay: '오늘 마감', branch: 'feature/report-ui' },
-    { id: 3, status: 'DONE', title: '헤더 디자인 수정', assignees: ['홍길동'], priority: '하', dDay: '', branch: 'fix/header-css' },
-    { id: 4, status: 'TODO', title: 'DB 스키마 설계', assignees: ['이영희'], priority: '상', dDay: 'D-5', branch: 'schema/init' },
-];
+function TaskBoard({ projectId: propProjectId }) {
+    const params = useParams();
+    const projectId = propProjectId || params.projectId;
 
-function TaskBoard() {
-    const { projectId } = useParams();
-    const [tasks, setTasks] = useState(MOCK_TASKS);
+    const [tasks, setTasks] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filterType, setFilterType] = useState('ALL');
     const [selectedTask, setSelectedTask] = useState(null); 
     const [editingTask, setEditingTask] = useState(null);
 
-    const isAdmin = true; 
-    const currentUser = '홍길동';
+    const currentUser = localStorage.getItem("userId"); // 로그인한 유저 ID
 
-    // --- [DnD 핸들러] ---
-    // 드래그 시작 시 ID 저장
+    // 1. 업무 목록 불러오기
+    const fetchTasks = async () => {
+        if (!projectId) {
+            console.error("projectId가 없습니다!");
+            return;
+        }
+
+        try {
+            console.log(`Fetching tasks for project: ${projectId}`); // [디버깅용 로그]
+            const data = await api.get(`/api/projects/${projectId}/tasks`);
+            
+            if (Array.isArray(data)) {
+                setTasks(data);
+            } else {
+                setTasks([]); 
+            }
+        } catch (error) {
+            console.error("업무 목록 로딩 실패:", error);
+            setTasks([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchTasks();
+    }, [projectId]);
+
+    // 2. 업무 생성/수정 저장
+    const handleSaveTask = async (taskData) => {
+        try {
+            if (editingTask) {
+                // 수정 PUT
+                await api.put(`/api/projects/${projectId}/tasks/${editingTask.taskId}`, taskData);
+            } else {
+                // 생성 POST
+                await api.post(`/api/projects/${projectId}/tasks`, taskData);
+            }
+            setIsModalOpen(false);
+            setEditingTask(null);
+            fetchTasks(); // 목록 갱신
+        } catch (error) {
+            console.error("업무 저장 실패:", error);
+            alert("업무 저장에 실패했습니다.");
+        }
+    };
+
+    // 3. 드래그 앤 드롭 상태 변경
     const onDragStart = (e, taskId) => {
         e.dataTransfer.setData("taskId", taskId);
     };
-
-    // 드롭 허용 (필수)
-    const onDragOver = (e) => {
-        e.preventDefault();
-    };
-
-    // 드롭 시 상태 변경
-    const onDrop = (e, newStatus) => {
+    const onDragOver = (e) => e.preventDefault();
+    
+    const onDrop = async (e, newStatus) => {
         const taskId = parseInt(e.dataTransfer.getData("taskId"));
-        handleStatusChange(taskId, newStatus);
-    };
+        
+        // 낙관적 업데이트 (UI 먼저 반영)
+        setTasks(prev => prev.map(t => t.taskId === taskId ? { ...t, status: newStatus } : t));
 
-    // --- [기존 핸들러] ---
-    const openCreateModal = () => {
-        setEditingTask(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (task) => {
-        setEditingTask(task);
-        setIsModalOpen(true);
-    };
-
-    const handleSaveTask = (taskData) => {
-        if (editingTask) {
-            const updatedTask = { ...editingTask, ...taskData };
-            setTasks(tasks.map(t => t.id === editingTask.id ? updatedTask : t));
-            setSelectedTask(updatedTask);
-        } else {
-            const newTask = {
-                id: Date.now(), // ID 생성 방식 변경 (충돌 방지)
-                status: 'TODO',
-                dDay: 'D-New',
-                ...taskData
-            };
-            setTasks([...tasks, newTask]);
-        }
-        setIsModalOpen(false);
-        setEditingTask(null);
-    };
-
-    const handleDeleteTask = (taskId) => {
-        if (window.confirm("정말 이 업무를 삭제하시겠습니까?")) {
-            setTasks(tasks.filter(t => t.id !== taskId));
-            setSelectedTask(null);
+        try {
+            await api.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status: newStatus });
+        } catch (error) {
+            console.error("상태 변경 실패:", error);
+            fetchTasks(); // 실패 시 롤백
         }
     };
 
-    const handleTaskClick = (task) => {
-        setSelectedTask(task);
-    };
-
-    const handleBackToList = () => {
-        setSelectedTask(null);
-    };
-
+    // 4. 필터링 로직
     const getTasksByStatus = (status) => {
+        if (!Array.isArray(tasks)) return [];
+
         const filtered = filterType === 'MY' 
-            ? tasks.filter(t => t.assignees.includes(currentUser)) 
+            ? tasks.filter(t => t.userId === currentUser || (t.assigneeIds && t.assigneeIds.includes(currentUser)))
             : tasks;
-        return filtered.filter(t => t.status === status);
+            
+        // filtered가 배열인지 확인 후 filter 실행
+        return Array.isArray(filtered) ? filtered.filter(t => t.status === status) : [];
     };
 
-    // 상태 변경 (DnD 및 상세페이지 공용)
-    const handleStatusChange = (taskId, newStatus) => {
-        // (UI 업데이트) 
-        const updatedTasks = tasks.map(t => 
-            t.id === taskId ? { ...t, status: newStatus } : t
-        );
-        setTasks(updatedTasks);
-
-        // (상세 페이지 동기화)
-        if (selectedTask && selectedTask.id === taskId) {
-            setSelectedTask({ ...selectedTask, status: newStatus });
+    // 5. 삭제 핸들러
+    const handleDeleteTask = async (taskId) => {
+        if(window.confirm("정말 삭제하시겠습니까?")) {
+            try {
+                await api.delete(`/api/projects/${projectId}/tasks/${taskId}`);
+                setSelectedTask(null);
+                fetchTasks();
+            } catch (error) {
+                alert("삭제 실패");
+            }
         }
-
-        /* ★ [API 연동 시 추가될 코드]
-           API: PATCH api/projects/{projectId}/tasks/{taskId}/status
-           body: { status: newStatus }
-           
-           axios.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status: newStatus });
-        */
-        console.log(`API 호출: Project ${projectId} / Task ${taskId} -> ${newStatus}`);
     };
 
+    // 상세 페이지 렌더링
     if (selectedTask) {
         return (
             <TaskDetailPage 
+                projectId={projectId}
                 task={selectedTask} 
-                onBack={handleBackToList}
-                onEdit={() => openEditModal(selectedTask)}
-                onDelete={() => handleDeleteTask(selectedTask.id)} 
-                onStatusChange={handleStatusChange} 
+                onBack={() => { setSelectedTask(null); fetchTasks(); }} // 뒤로가기 시 새로고침
+                onEdit={() => { setEditingTask(selectedTask); setIsModalOpen(true); }}
+                onDelete={() => handleDeleteTask(selectedTask.taskId)}
+                // 상세 페이지 내부에서의 상태 변경 처리
+                onStatusChange={async (taskId, status) => {
+                    await api.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status });
+                    fetchTasks();
+                }}
             />
         );
     }
@@ -138,9 +139,7 @@ function TaskBoard() {
             <div className="board-controls">
                 <h3 className="section-title">업무 현황</h3>
                 <div className="control-buttons">
-                    {isAdmin && (
-                        <button className="btn-primary" onClick={openCreateModal}>+ 업무 추가</button>
-                    )}
+                    <button className="btn-primary" onClick={() => { setEditingTask(null); setIsModalOpen(true); }}>+ 업무 추가</button>
                     <button 
                         className={`btn-filter ${filterType === 'MY' ? 'active' : ''}`}
                         onClick={() => setFilterType(filterType === 'ALL' ? 'MY' : 'ALL')}
@@ -155,21 +154,22 @@ function TaskBoard() {
                     <div 
                         className="kanban-column" 
                         key={status}
-                        onDragOver={onDragOver} // 드래그 허용
-                        onDrop={(e) => onDrop(e, status)} // 드롭 시 상태 변경
+                        onDragOver={onDragOver}
+                        onDrop={(e) => onDrop(e, status)}
                     >
                         <div className={`column-header ${status.toLowerCase().replace('_', '')}`}>
-                            <div className="header-title"><span className="dot"></span> {status.replace('_', ' ')}</div>
+                            <div className="header-title">
+                                <span className="dot"></span> {status.replace('_', ' ')}
+                            </div>
                             <span className="count">{getTasksByStatus(status).length}</span>
                         </div>
                         <div className="column-body">
                             {getTasksByStatus(status).map(task => (
                                 <TaskCard 
-                                    key={task.id} 
+                                    key={task.taskId} 
                                     task={task} 
-                                    onClick={handleTaskClick} 
-                                    // 드래그 이벤트 전달
-                                    onDragStart={(e) => onDragStart(e, task.id)}
+                                    onClick={() => setSelectedTask(task)} 
+                                    onDragStart={(e) => onDragStart(e, task.taskId)}
                                 />
                             ))}
                         </div>
