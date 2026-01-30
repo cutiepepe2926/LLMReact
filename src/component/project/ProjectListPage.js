@@ -69,8 +69,13 @@ const ProjectListPage = ({ onEnterDashboard }) => {
     }
   };
 
-  const handleCardClick = (id) => {
-    navigate(`/projectDetail`);
+  // 프로젝트 객체를 담아서 보낸다
+  const handleCardClick = (project) => {
+
+    console.log("전송할 프로젝트 데이터:", project); // 디버깅용 로그
+
+    // 두 번째 인자로 state 객체에 프로젝트 데이터 전체를 담아서 보냅니다.
+    navigate(`/projectDetail`, { state: { projectData: project } });
   }
 
   // 즐겨찾기 토글 함수 (서버 기준 필드인 projectId로 수정)
@@ -124,7 +129,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
         <div className="project-grid">
           {displayProjects.length > 0 ? (
               displayProjects.map((p) => (
-                  <div key={p.projectId} className="project-card" onClick={() => handleCardClick(p.projectId)}>
+                  <div key={p.projectId} className="project-card" onClick={() => handleCardClick(p)}>
 
                     <div className="card-body">
                       <div className="card-top-row">
