@@ -17,6 +17,7 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
   const [inviteInput, setInviteInput] = useState('');
   const [collaborators, setCollaborators] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
+  // eslint-disable-next-line
   const [isSearching, setIsSearching] = useState(false);
 
   // 외부 클릭 감지를 위한 Ref
@@ -80,8 +81,9 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
       ...formData,
       // collaborators(객체 배열) -> memberIds(문자열 배열)로 변환
       // 백엔드는 userId만 필요함
-      members: collaborators.map(member => member.userId) 
+      members: collaborators.map(member => member.userId)
     };
+    
     onCreate(requestData);
   };
 
@@ -198,19 +200,21 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
               ))}
             </div>
 
-            {/* 버튼 그룹 (맨 아래 배치) */}
-            <div className="button-group">
-              <button className="cancel-btn" onClick={onClose}>취소</button>
-              <button 
-                className="create-confirm-btn" 
-                onClick={handleCreate}
-                disabled={!isFormValid}
-              >
-                생성하기
-              </button>
+            {/* 오른쪽: 버튼 그룹 (공개 범위 삭제됨 -> 하단 정렬) */}
+            {/*<div className="button-group">*/}
+            <div className="right-panel">
+              <div className="button-group">
+                <button className="cancel-btn" onClick={onClose}>취소</button>
+                <button 
+                  className="create-confirm-btn" 
+                  onClick={handleCreate}
+                  disabled={!isFormValid}
+                >
+                  생성하기
+                </button>
+              </div>
             </div>
-
-          </div> {/* End of bottom-section */}
+          </div>
 
         </div>
       </div>

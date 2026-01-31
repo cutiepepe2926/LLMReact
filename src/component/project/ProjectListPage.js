@@ -7,7 +7,8 @@ import './ProjectListPage.css';
 const ProjectListPage = ({ onEnterDashboard }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projects, setProjects] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('ACTIVE');
+  // 상태 값을 소문자로 백엔드와 맞게 통일 (active | done | trash)
+  const [filterStatus, setFilterStatus] = useState('active');
   const navigate = useNavigate();
 
   // 날짜 가공 함수 (2026-01-29T12:38:17 -> 2026.01.29)
@@ -25,7 +26,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
   const fetchProjects = useCallback(async () => {
     try {
       // 탭 상태(ACTIVE/DONE)를 소문자로 변환해 서버에 type 파라미터로 전달
-      const data = await api.get('/api/projects', { type: filterStatus.toLowerCase() });
+      const data = await api.get('/api/projects', { type: filterStatus });
 
       const mappedData = data.map(p => ({
         ...p,
@@ -57,14 +58,14 @@ const ProjectListPage = ({ onEnterDashboard }) => {
         gitUrl: formData.repoUrl,
         reportTime: `${formData.reportTime}:00`,
         endDate: `${formData.endDate}T23:59:59`,
-        members: formData.members
+        members: formData.members,
       };
 
       await api.post('/api/projects', requestData);
 
       // 사이드바 전체 프로젝트 실시간 갱신
       window.dispatchEvent(new Event('sidebar-update'));
-       
+
       alert("프로젝트가 생성되었습니다.");
       setIsModalOpen(false);
       fetchProjects();
@@ -75,9 +76,6 @@ const ProjectListPage = ({ onEnterDashboard }) => {
 
   // 프로젝트 객체를 담아서 보낸다
   const handleCardClick = (project) => {
-
-    console.log("전송할 프로젝트 데이터:", project); // 디버깅용 로그
-
     // 두 번째 인자로 state 객체에 프로젝트 데이터 전체를 담아서 보냅니다.
     navigate(`/projectDetail`, { state: { projectData: project } });
   }
@@ -85,7 +83,6 @@ const ProjectListPage = ({ onEnterDashboard }) => {
   // 즐겨찾기 토글 함수 (서버 기준 필드인 projectId로 수정)
   const toggleFavorite = async (id, e) => {
     e.stopPropagation();
-    
     setProjects(prev => prev.map(p =>
       p.projectId === id ? {...p, isFavorite: !p.isFavorite } : p
     ));
@@ -93,9 +90,19 @@ const ProjectListPage = ({ onEnterDashboard }) => {
     try {
         await api.post(`/api/projects/${id}/favorite`);
         window.dispatchEvent(new Event('sidebar-update'));
-        fetchProjects(); 
+        fetchProjects();
     } catch (err) {
         console.error("즐겨찾기 실패", err);
+    }
+  };
+
+  // 빈 화면 메시지 결정 함수
+  const getEmptyMessage = () => {
+    switch(filterStatus) {
+      case 'active': return '현재 진행 중인 프로젝트가 없습니다.';
+      case 'done': return '완료된 프로젝트가 없습니다.';
+      case 'trash': return '휴지통이 비어있습니다.';
+      default: return '프로젝트가 없습니다.';
     }
   };
 
@@ -117,16 +124,22 @@ const ProjectListPage = ({ onEnterDashboard }) => {
             <div className="filter-tabs">
               {/* 탭 클릭 시 filterStatus가 바뀌고, 이에 따라 useEffect가 새로 목록을 받아옵니다 */}
               <button
-                  className={`tab-btn ${filterStatus === 'ACTIVE' ? 'active' : ''}`}
-                  onClick={() => setFilterStatus('ACTIVE')}
+                  className={`tab-btn ${filterStatus === 'active' ? 'active' : ''}`}
+                  onClick={() => setFilterStatus('active')}
               >
                 진행 중
               </button>
               <button
-                  className={`tab-btn ${filterStatus === 'DONE' ? 'active' : ''}`}
-                  onClick={() => setFilterStatus('DONE')}
+                  className={`tab-btn ${filterStatus === 'done' ? 'active' : ''}`}
+                  onClick={() => setFilterStatus('done')}
               >
                 완료됨
+              </button>
+              <button
+                  className={`tab-btn ${filterStatus === 'trash' ? 'active' : ''}`}
+                  onClick={() => setFilterStatus('trash')}
+              >
+                휴지통
               </button>
             </div>
           </div>
@@ -142,7 +155,12 @@ const ProjectListPage = ({ onEnterDashboard }) => {
         <div className="project-grid">
           {displayProjects.length > 0 ? (
               displayProjects.map((p) => (
-                  <div key={p.projectId} className="project-card" onClick={() => handleCardClick(p)}>
+                  <div
+                      key={p.projectId}
+                      className={`project-card ${filterStatus === 'trash' ? 'trash-card' : ''}`}
+                      onClick={() => handleCardClick(p)}
+                  >
+                  {/*<div key={p.projectId} className="project-card" onClick={() => handleCardClick(p)}>*/}
 
                     <div className="card-body">
                       <div className="card-top-row">
@@ -150,19 +168,18 @@ const ProjectListPage = ({ onEnterDashboard }) => {
                           <h3>{p.name}</h3>
                         </div>
 
-                        <button
-                            className={`favorite-btn ${p.isFavorite ? 'active' : ''}`}
-                            onClick={(e) => toggleFavorite(p.projectId, e)}
-                        >
-                          <svg
-                              width="24" height="24" viewBox="0 0 24 24"
-                              fill={p.isFavorite ? "#F59E0B" : "none"}
-                              stroke={p.isFavorite ? "#F59E0B" : "#D1D5DB"}
-                              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                          >
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                          </svg>
-                        </button>
+                        {/* 휴지통에서는 즐겨찾기 숨김 처리 예시 추후에 즐겨찾기 API와 연동 필요*/}
+                        {filterStatus !== 'trash' && (
+                            <button
+                                className={`favorite-btn ${p.isFavorite ? 'active' : ''}`}
+                                onClick={(e) => toggleFavorite(p.projectId, e)}
+                            >
+                              {/* ... svg 아이콘 ... */}
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill={p.isFavorite ? "#F59E0B" : "none"} stroke={p.isFavorite ? "#F59E0B" : "#D1D5DB"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                              </svg>
+                            </button>
+                        )}
                       </div>
 
                       <div className="date-range">{formatDate(p.startDate)} ~ {formatDate(p.endDate)}</div>
@@ -199,9 +216,9 @@ const ProjectListPage = ({ onEnterDashboard }) => {
               ))
           ) : (
               <div className="empty-state">
-                {/* 요청하신 대로 페이지에 텍스트로 표현 */}
+                {/* 데이터가 없는 경우 대체 */}
                 <p style={{ textAlign: 'center', width: '100%', padding: '40px', color: '#9CA3AF' }}>
-                  {filterStatus === 'ACTIVE' ? '현재 참여 중인 프로젝트가 없습니다.' : '완료된 프로젝트가 없습니다.'}
+                  {getEmptyMessage()}
                 </p>
               </div>
           )}

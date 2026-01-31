@@ -4,11 +4,14 @@ import IssueListPage from "./IssueGrid/IssueList/IssueListPage";
 import IssueDetailModal from "./IssueGrid/IssueDetailModal/IssueDetailModal";
 import TabMenu from "../../../TabMenu/TabMenu"; // TabMenu 컴포넌트 경로에 맞춰 임포트
 
-export default function IssueTrackerView() {
+export default function IssueTrackerView({project}) {
     // 1. 기존 view ("GRID" | "LIST") 상태 제거
     // 2. 탭 메뉴를 위한 상태 관리 (기본값: ALL 또는 UNASSIGNED)
     const [selectedStatus, setSelectedStatus] = useState("ALL");
     const [selectedIssue, setSelectedIssue] = useState(null);
+
+    console.log("이슈트랙뷰야!");
+    console.log(project);
 
     // 탭 구성을 위한 데이터
     const issueTabs = [

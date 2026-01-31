@@ -42,6 +42,7 @@ function TaskBoard({ projectId: propProjectId }) {
 
     useEffect(() => {
         fetchTasks();
+        // eslint-disable-next-line
     }, [projectId]);
 
     // 2. 업무 생성/수정 저장

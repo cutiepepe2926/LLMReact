@@ -48,6 +48,7 @@ export default function ProjectHeader({ project }) {
     }
 
     // 사이드바에서 넘겨준 state 받기
+    // eslint-disable-next-line
     const ProjectHeader = () => {
         const location = useLocation();
         
