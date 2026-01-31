@@ -9,6 +9,7 @@ import TaskBoard from "./Grids/TaskGrid/TaskBoard";
 import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid";
 import MemberSettingsGrid from "./Grids/MemberSettingsGrid/MemberSettingsGrid";
 import IssueTrackerView from "./Grids/IssueViewGrid/IssueTrackerView";
+import InviteSelectModal from "../modal/InviteSelectModal";
 import './ProjectDashBoard.css';
 
 function ProjectDashBoard() {
@@ -70,6 +71,22 @@ function ProjectDashBoard() {
         }
     }, [projectId, projectData, navigate]);
 
+    // 초대 수락 핸들러
+    const handleAcceptInvite = () => {
+        if(window.confirm("프로젝트 초대를 수락하시겠습니까?")) {
+            console.log("초대 수락 API 호출 예정");
+            // TODO: API 호출 로직 추가
+        }
+    };
+
+    // 초대 거절 핸들러
+    const handleDeclineInvite = () => {
+        if(window.confirm("정말 거절하시겠습니까? 프로젝트 목록으로 이동합니다.")) {
+            console.log("초대 거절 API 호출 예정");
+            // TODO: API 호출 로직 추가
+        }
+    };
+
 
     const TAB_COMPONENTS = {
         dashboard: DashboardGrid,
@@ -120,13 +137,11 @@ function ProjectDashBoard() {
 
             {/* 2. 블러 시 보여줄 오버레이 메시지 (위치 유지) */}
             {isInvited && (
-                <div className="blur-overlay-message">
-                    <p>📢 프로젝트 초대를 수락해주세요!</p>
-                    <p style={{fontSize: '0.9rem', marginTop:'10px', color:'#666'}}>
-                        초대를 수락해야 내용을 확인하고 작업할 수 있습니다.
-                    </p>
-                    {/* 여기에 수락/거절 API 버튼을 바로 붙여주면 UX가 더 좋아집니다 */}
-                </div>
+                <InviteSelectModal
+                    projectName={projectData?.name}
+                    onAccept={handleAcceptInvite}
+                    onDecline={handleDeclineInvite}
+                />
             )}
 
         </div>
