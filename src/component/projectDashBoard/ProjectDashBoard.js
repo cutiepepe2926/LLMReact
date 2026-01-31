@@ -72,10 +72,25 @@ function ProjectDashBoard() {
     }, [projectId, projectData, navigate]);
 
     // 초대 수락 핸들러
-    const handleAcceptInvite = () => {
-        if(window.confirm("프로젝트 초대를 수락하시겠습니까?")) {
-            console.log("초대 수락 API 호출 예정");
-            // TODO: API 호출 로직 추가
+    const handleAcceptInvite = async () => {
+        if (!window.confirm("프로젝트 초대를 수락하시겠습니까?")) return;
+
+        try {
+            await api.post(`/api/projects/${projectId}/accept`);
+
+            alert("환영합니다! 프로젝트 참여가 완료되었습니다.");
+            
+            // 데이터 새로고침 (블러 제거 및 내용 갱신을 위해)
+            // 방법 1: 새로고침 (가장 확실)
+            // window.location.reload(); 
+            
+            // 방법 2: state만 갱신 (더 부드러운 UX를 원한다면)
+            const response = await api.get(`/api/projects/${projectId}`);
+            setProjectData(response);
+
+        } catch (error) {
+            console.error("초대 수락 실패:", error);
+            alert(error.message || "초대 수락 중 오류가 발생했습니다.");
         }
     };
 
