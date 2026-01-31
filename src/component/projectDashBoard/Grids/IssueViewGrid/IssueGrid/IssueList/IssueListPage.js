@@ -16,6 +16,9 @@ export default function IssueListPage({ projectId, initialStatus = ALL, onBack, 
     const [issueList, setIssueList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
+    // 멤버 목록
+    const [activeMembers, setActiveMembers] = useState([]);
+
     const [filters, setFilters] = useState({
         status: initialStatus,
         assignee: ALL,
@@ -26,6 +29,18 @@ export default function IssueListPage({ projectId, initialStatus = ALL, onBack, 
     });
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+    const fetchProjectMembers = async () => {
+        if (!projectId) return;
+        try {
+            const response = await api.get(`/api/projects/${projectId}/members`);
+            // ACTIVE 상태인 멤버만 필터링 (필요 시 조건 조정)
+            const actives = (response || []).filter(m => m.status === 'ACTIVE' || m.status === 'me');
+            setActiveMembers(actives);
+        } catch (error) {
+            console.error("멤버 목록 조회 실패:", error);
+        }
+    };
 
     // 컬럼 클릭으로 들어올 때 status를 반영
     useEffect(() => {
@@ -97,6 +112,7 @@ export default function IssueListPage({ projectId, initialStatus = ALL, onBack, 
     // 5. projectId나 필터가 변경될 때마다 데이터 다시 불러오기
     useEffect(() => {
         fetchIssues();
+        fetchProjectMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId, filters]); // filters 객체 전체를 의존성으로 두면 내부 값 변경 시 호출됨
 
@@ -112,7 +128,7 @@ export default function IssueListPage({ projectId, initialStatus = ALL, onBack, 
                 </div>
 
                 {/* 필터 바: 여기서 setFilters하면 useEffect가 돌아 API 재호출됨 */}
-                <IssueFilterBar filters={filters} onChange={setFilters} />
+                <IssueFilterBar filters={filters} onChange={setFilters} members={activeMembers} />
 
                 <div className="issue-list-grid">
                     {/* 로딩 및 빈 상태 처리 로직 */}
