@@ -7,8 +7,9 @@ import TabMenu from "../../../TabMenu/TabMenu"; // TabMenu 컴포넌트 경로�
 export default function IssueTrackerView({project}) {
     // 1. 기존 view ("GRID" | "LIST") 상태 제거
     // 2. 탭 메뉴를 위한 상태 관리 (기본값: ALL 또는 UNASSIGNED)
-    const [selectedStatus, setSelectedStatus] = useState("ALL");
+    const [selectedStatus, setSelectedStatus] = useState("UNASSIGNED");
     const [selectedIssue, setSelectedIssue] = useState(null);
+    const projectId = project?.projectId || project?.id;
 
     console.log("이슈트랙뷰야!");
     console.log(project);
@@ -36,7 +37,9 @@ export default function IssueTrackerView({project}) {
             </div>
 
             {/* 4. 항상 IssueListPage를 렌더링하며 현재 선택된 탭을 필터로 전달 */}
+            {/* 리스트 페이지: selectedStatus가 UNASSIGNED이므로 필터링되어 보임 */}
             <IssueListPage
+                projectId={projectId}
                 initialStatus={selectedStatus}
                 onOpenDetail={openDetail}
                 // onBack은 그리드가 없어졌으므로 더 이상 필요하지 않음

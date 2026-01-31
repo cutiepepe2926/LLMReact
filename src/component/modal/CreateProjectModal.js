@@ -2,7 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import './CreateProjectModal.css';
 import { api } from '../../utils/api';
 
-const CreateProjectModal = ({ onClose, onCreate }) => {
+// 오늘 날짜 문자열(YYYY-MM-DD) 반환 함수
+function todayStr() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+const CreateProjectModal = ({ open, onClose, onCreate }) => {
   // 1. 기본 입력 데이터
   const [formData, setFormData] = useState({
     name: '',
@@ -12,6 +21,10 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
     reportTime: '09:00',
     repoUrl: '',
   });
+
+  // eslint-disable-next-line
+  const [startDate, setStartDate] = useState(todayStr());
+  const [endDate, setEndDate] = useState("");
 
   // 2. 협업자 및 검색 관련 상태
   const [inviteInput, setInviteInput] = useState('');
@@ -79,6 +92,8 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
     // 백엔드로 보낼 데이터 구성
     const requestData = {
       ...formData,
+      startDate: startDate,
+      endDate: endDate,
       // collaborators(객체 배열) -> memberIds(문자열 배열)로 변환
       // 백엔드는 userId만 필요함
       members: collaborators.map(member => member.userId)
@@ -101,12 +116,24 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
               <label>프로젝트 명</label>
               <input type="text" name="name" placeholder="프로젝트 입니다" onChange={handleChange} />
             </div>
-            <div className="form-group flex-1">
-              <label>기간</label>
-              <div className="date-display">
-                <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} />
-                <span>~</span>
-                <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} />
+            <div className="field">
+              <label className="field-label">기간 설정</label>
+              <div className="date-range">
+                {/* [변경 2] 시작일 입력칸 비활성화 (disabled) */}
+                <input
+                    type="date"
+                    className="field-input"
+                    value={startDate}
+                    disabled  // 사용자가 수정 불가능하게 막음
+                />
+                <span className="date-dash">~</span>
+                <input
+                    type="date"
+                    className="field-input"
+                    value={endDate}
+                    min={startDate} // 종료일은 시작일(오늘) 이후로만 선택 가능하게 제한
+                    onChange={(e) => setEndDate(e.target.value)}
+                />
               </div>
             </div>
           </div>

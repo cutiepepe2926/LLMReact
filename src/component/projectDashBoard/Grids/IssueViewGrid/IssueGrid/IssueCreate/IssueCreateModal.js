@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
-import "./IssueCreateModal.css";
 import SelectModal from "./SelectModal";
+import { api } from '../../../../../../utils/api';
+import "./IssueCreateModal.css";
 
 function todayStr() {
     const d = new Date();
@@ -10,29 +11,14 @@ function todayStr() {
     return `${yyyy}-${mm}-${dd}`;
 }
 
-export default function IssueCreateModal({ open, onClose }) {
+export default function IssueCreateModal({ open, onClose, projectId }) {
+
     const [title, setTitle] = useState("");
-    const [startDate] = useState(todayStr()); // ✅ 시작일 고정(수정 불가)
     const [endDate, setEndDate] = useState(todayStr());
     const [description, setDescription] = useState("");
-
-    const [status, setStatus] = useState("UNASSIGNED");
     const [priority, setPriority] = useState("P0");
-
     const [assigneeInput, setAssigneeInput] = useState("");
-
-    const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [priorityModalOpen, setPriorityModalOpen] = useState(false);
-
-    const statusOptions = useMemo(
-        () => [
-            { value: "UNASSIGNED", label: "미배정 이슈" },
-            { value: "IN_PROGRESS", label: "처리중인 이슈" },
-            { value: "DONE", label: "완료된 이슈" },
-        ],
-        []
-    );
-
     const priorityOptions = useMemo(
         () =>
             ["P0", "P1", "P2", "P3", "P4", "P5"].map((p) => ({
@@ -41,30 +27,62 @@ export default function IssueCreateModal({ open, onClose }) {
             })),
         []
     );
-
-    const statusLabel =
-        statusOptions.find((o) => o.value === status)?.label ?? status;
     const priorityLabel =
         priorityOptions.find((o) => o.value === priority)?.label ?? priority;
-
     if (!open) return null;
 
     const handleOverlay = (e) => {
         if (e.target === e.currentTarget) onClose();
     };
 
-    const handleSubmit = () => {
-        // TODO: API 연동 전이라 콘솔만
-        console.log("이슈 생성", {
-            title,
-            startDate,
-            endDate,
-            description,
-            status,
-            priority,
-            assigneeInput,
-        });
-        onClose();
+    const handleSubmit = async () => {
+        // 1. 유효성 검사 (제목은 필수)
+        if (!title.trim()) {
+            alert("이슈 명을 입력해주세요.");
+            return;
+        }
+
+        // 프로젝트 ID 방어 코드
+        if (!projectId) {
+            alert("프로젝트 정보를 불러오지 못했습니다.");
+            return;
+        }
+
+        // 2. 데이터 변환 (Frontend -> Backend DTO)
+        // (1) 우선순위 변환: "P0" -> 0 (문자열 제거 후 정수로 변환)
+        const priorityInt = parseInt(priority.replace("P", ""), 10);
+
+        // (2) 담당자 변환: 단일 문자열 -> 리스트 (Backend는 List<String>을 원함)
+        // 담당자가 입력되지 않았다면 빈 배열 [] 전송
+        const assigneeIdsPayload = assigneeInput.trim() ? [assigneeInput.trim()] : [];
+
+        // 3. 최종 Payload 구성
+        const payload = {
+            title: title,               // 제목
+            description: description,   // 설명
+            priority: priorityInt,      // 우선순위 (int)
+            dueDate: endDate,           // [중요] 변수명 매칭 (endDate -> dueDate)
+            assigneeIds: assigneeIdsPayload // 담당자 리스트
+        };
+
+        try {
+            // props로 받은 projectId 사용
+            const response = await api.post(`/api/projects/${projectId}/issues`, payload);
+
+            console.log("이슈 생성 성공:", response);
+            alert("이슈가 성공적으로 생성되었습니다.");
+
+            // 입력 필드 초기화
+            setTitle("");
+            setDescription("");
+            setAssigneeInput("");
+            setPriority("P0");
+
+            onClose(); // 모달 닫기
+        } catch (error) {
+            console.error("이슈 생성 실패:", error);
+            alert(error.message || "이슈 생성 중 오류가 발생했습니다.");
+        }
     };
 
     return (
@@ -86,16 +104,14 @@ export default function IssueCreateModal({ open, onClose }) {
                         </div>
 
                         <div className="field">
-                            <label className="field-label">마감 기간</label>
-
+                            <label className="field-label">마감일</label>
+                            {/* 날짜 범위 선택 대신 단일 날짜 선택으로 변경 */}
                             <div className="date-range">
-                                <input className="field-input" value={startDate} disabled />
-                                <span className="date-dash">~</span>
                                 <input
                                     className="field-input"
                                     type="date"
                                     value={endDate}
-                                    min={startDate} // ✅ 오늘 이전 선택 불가
+                                    min={todayStr()}
                                     onChange={(e) => setEndDate(e.target.value)}
                                 />
                             </div>
@@ -115,8 +131,8 @@ export default function IssueCreateModal({ open, onClose }) {
                         </div>
                     </div>
 
-                    {/* 3행: 커밋 / 상태 / 우선도 */}
-                    <div className="issue-create-row three-col">
+                    {/* 3행: 커밋 / 우선도 */}
+                    <div className="issue-create-row two-col">
                         <div className="field">
                             <label className="field-label">커밋 연결하기</label>
                             <div className="inline">
@@ -130,18 +146,6 @@ export default function IssueCreateModal({ open, onClose }) {
                                 </button>
                             </div>
                         </div>
-
-                        <div className="field">
-                            <label className="field-label">상태 설정</label>
-                            <button
-                                type="button"
-                                className="btn select"
-                                onClick={() => setStatusModalOpen(true)}
-                            >
-                                {statusLabel} ▼
-                            </button>
-                        </div>
-
                         <div className="field">
                             <label className="field-label">우선도 설정</label>
                             <button
@@ -165,11 +169,11 @@ export default function IssueCreateModal({ open, onClose }) {
                                     onChange={(e) => setAssigneeInput(e.target.value)}
                                     placeholder="담당자 입력(임시)"
                                 />
+                                {/* 추가 버튼 등 UI는 추후 '멤버 선택 모달'로 고도화 필요 */}
                                 <button type="button" className="btn gray">
                                     추가
                                 </button>
                             </div>
-                            {/* abc123, user1 칩은 지금은 무시 */}
                         </div>
                     </div>
 
@@ -184,20 +188,6 @@ export default function IssueCreateModal({ open, onClose }) {
                     </div>
                 </div>
             </div>
-
-            {/* 상태 선택 모달 */}
-            {statusModalOpen && (
-                <SelectModal
-                    title="상태 설정"
-                    options={statusOptions}
-                    value={status}
-                    onChange={(v) => {
-                        setStatus(v);
-                        setStatusModalOpen(false);
-                    }}
-                    onClose={() => setStatusModalOpen(false)}
-                />
-            )}
 
             {/* 우선도 선택 모달 */}
             {priorityModalOpen && (
