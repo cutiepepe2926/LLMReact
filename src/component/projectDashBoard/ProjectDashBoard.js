@@ -85,6 +85,9 @@ function ProjectDashBoard() {
         return <div className="dashboard-loading">프로젝트 정보를 불러오는 중입니다...</div>;
     }
 
+    // projectData가 있고, 내 상태가 'INVITED'이면 블러 적용
+    const isInvited = projectData?.currentUserStatus === 'INVITED';
+
     return (
         <div className="dashboard-container">
 
@@ -97,20 +100,35 @@ function ProjectDashBoard() {
             {/* 탭 메뉴 */}
             <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
 
-            {/* 메인 콘텐츠 그리드 */}
-            {activeTab === "issue" || activeTab === "memberSettings" ? (
-                <div className="issue-grid-only">
-                    {/* 하위 컴포넌트들에게 projectId 전달 (필요 시 자체적으로 데이터 로드 가능하도록) */}
-                    {activeTab === "issue" 
-                        ? <IssueTrackerView projectId={projectId} /> 
-                        : <MemberSettingsGrid projectId={projectId} />
-                    }
+            {/* 메인 컨텐츠 영역에 블러 로직 적용 */}
+            <div className="dashboard-blur-container">
+                {/* 1. 내용물 (INVITED면 블러 클래스 추가) */}
+                <div className={isInvited ? "dashboard-blur" : ""}>
+                    {activeTab === "issue" || activeTab === "memberSettings" ? (
+                        <div className="issue-grid-only">
+                            {activeTab === "issue" 
+                                ? <IssueTrackerView projectId={projectId} /> 
+                                : <MemberSettingsGrid projectId={projectId} />
+                            }
+                        </div>
+                    ) : (
+                        <main className="dashboard-grid">
+                            <GridContent projectId={projectId} />
+                        </main>
+                    )}
                 </div>
-            ) : (
-                <main className="dashboard-grid">
-                    <GridContent projectId={projectId} />
-                </main>
-            )}
+
+                {/* 2. 블러 시 보여줄 오버레이 메시지 (기획에 맞게 추가) */}
+                {isInvited && (
+                    <div className="blur-overlay-message">
+                        <p>📢 프로젝트 초대를 수락해주세요!</p>
+                        <p style={{fontSize: '0.9rem', marginTop:'10px', color:'#666'}}>
+                            초대를 수락해야 내용을 확인하고 작업할 수 있습니다.
+                        </p>
+                        {/* 여기에 수락/거절 API 버튼을 바로 붙여주면 UX가 더 좋아집니다 */}
+                    </div>
+                )}
+            </div>
 
         </div>
     );
