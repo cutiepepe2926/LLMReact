@@ -94,16 +94,17 @@ function ProjectDashBoard() {
             {/* 뒤로가기 버튼 */}
             <button onClick={() => navigate(-1)} style={{ marginRight: '10px', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.2rem' }}>←</button>
 
-            {/* 헤더: 데이터가 있을 때만 렌더링 */}
-            {projectData && <ProjectHeader project={projectData} />}
+            {/* 전체 컨텐츠 래퍼: INVITED 상태면 블러 및 클릭 잠금 처리 */}
+            <div className={`dashboard-content-wrapper ${isInvited ? 'blurred-locked' : ''}`}>
 
-            {/* 탭 메뉴 */}
-            <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
+                {/* 헤더: 래퍼 안으로 이동됨 (같이 블러 처리됨) */}
+                {projectData && <ProjectHeader project={projectData} />}
 
-            {/* 메인 컨텐츠 영역에 블러 로직 적용 */}
-            <div className="dashboard-blur-container">
-                {/* 1. 내용물 (INVITED면 블러 클래스 추가) */}
-                <div className={isInvited ? "dashboard-blur" : ""}>
+                {/* 탭 메뉴: 래퍼 안으로 이동됨 (같이 블러 처리됨) */}
+                <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
+
+                {/* 메인 컨텐츠 영역*/}
+                <main className="dashboard-grid">
                     {activeTab === "issue" || activeTab === "memberSettings" ? (
                         <div className="issue-grid-only">
                             {activeTab === "issue" 
@@ -112,23 +113,21 @@ function ProjectDashBoard() {
                             }
                         </div>
                     ) : (
-                        <main className="dashboard-grid">
-                            <GridContent projectId={projectId} />
-                        </main>
+                        <GridContent projectId={projectId} />
                     )}
-                </div>
-
-                {/* 2. 블러 시 보여줄 오버레이 메시지 (기획에 맞게 추가) */}
-                {isInvited && (
-                    <div className="blur-overlay-message">
-                        <p>📢 프로젝트 초대를 수락해주세요!</p>
-                        <p style={{fontSize: '0.9rem', marginTop:'10px', color:'#666'}}>
-                            초대를 수락해야 내용을 확인하고 작업할 수 있습니다.
-                        </p>
-                        {/* 여기에 수락/거절 API 버튼을 바로 붙여주면 UX가 더 좋아집니다 */}
-                    </div>
-                )}
+                </main>
             </div>
+
+            {/* 2. 블러 시 보여줄 오버레이 메시지 (위치 유지) */}
+            {isInvited && (
+                <div className="blur-overlay-message">
+                    <p>📢 프로젝트 초대를 수락해주세요!</p>
+                    <p style={{fontSize: '0.9rem', marginTop:'10px', color:'#666'}}>
+                        초대를 수락해야 내용을 확인하고 작업할 수 있습니다.
+                    </p>
+                    {/* 여기에 수락/거절 API 버튼을 바로 붙여주면 UX가 더 좋아집니다 */}
+                </div>
+            )}
 
         </div>
     );
