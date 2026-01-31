@@ -95,10 +95,21 @@ function ProjectDashBoard() {
     };
 
     // 초대 거절 핸들러
-    const handleDeclineInvite = () => {
-        if(window.confirm("정말 거절하시겠습니까? 프로젝트 목록으로 이동합니다.")) {
-            console.log("초대 거절 API 호출 예정");
-            // TODO: API 호출 로직 추가
+    const handleDeclineInvite = async () => {
+        if (!window.confirm("정말 거절하시겠습니까? 거절 시 프로젝트 목록으로 이동합니다.")) return;
+
+        try {
+            // POST /api/projects/{projectId}/decline 호출
+            await api.post(`/api/projects/${projectId}/decline`);
+
+            alert("초대를 거절했습니다.");
+            
+            // 목록 페이지로 이동
+            navigate('/projectList'); 
+
+        } catch (error) {
+            console.error("초대 거절 실패:", error);
+            alert(error.message || "초대 거절 중 오류가 발생했습니다.");
         }
     };
 
