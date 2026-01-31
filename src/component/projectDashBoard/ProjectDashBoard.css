@@ -54,3 +54,44 @@
     box-sizing: border-box;
     height: 700px;
 }
+
+/* 블러 위에 뜰 안내 메시지 (선택 사항 - 기획에 없으면 빼도 됨) */
+.blur-overlay-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.blurred-locked {
+    filter: blur(6px);          /* 전체 흐리게 */
+    pointer-events: none;       /* 모든 클릭 차단 (핵심) */
+    user-select: none;          /* 텍스트 선택 차단 */
+    opacity: 0.5;               /* 약간 투명하게 */
+    transition: all 0.3s ease;
+}
+
+/* [새로 추가] 오버레이 메시지 스타일 (기존 코드에 없다면 추가) */
+.blur-overlay-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 30px 50px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    border: 1px solid #eee;
+    font-weight: bold;
+}

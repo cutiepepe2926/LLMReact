@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback 추가
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { api } from '../../utils/api';
+import { api } from "../../utils/api";
 
 import ProjectHeader from "../projectHeader/ProjectHeader";
 import TabMenu from "../TabMenu/TabMenu";
@@ -9,17 +9,27 @@ import TaskBoard from "./Grids/TaskGrid/TaskBoard";
 import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid";
 import MemberSettingsGrid from "./Grids/MemberSettingsGrid/MemberSettingsGrid";
 import IssueTrackerView from "./Grids/IssueViewGrid/IssueTrackerView";
+import InviteSelectModal from "../modal/InviteSelectModal";
 import './ProjectDashBoard.css';
 
 function ProjectDashBoard() {
 
     const location = useLocation();
     const params = useParams();
-    // const projectData = location.state?.projectData;
     const navigate = useNavigate();
-    // 1. location.state로 초기값을 잡되, 변경 가능하도록 useState로 감싸기.
-    const [projectData, setProjectData] = useState(location.state?.projectData || null);
-    const projectId = projectData?.projectId || params.projectId || 1;
+
+    // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
+    const stateProjectData = location.state?.projectData;
+    const projectId = stateProjectData?.projectId 
+                      ? parseInt(stateProjectData.projectId) 
+                      : (params.projectId ? parseInt(params.projectId) : 1);
+
+    // 2. State 관리 (Invite 코드 + 갱신을 위한 준비)
+    const [projectData, setProjectData] = useState(
+        (stateProjectData && stateProjectData.name) ? stateProjectData : null
+    );
+    const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = React.useState("dashboard");
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -29,7 +39,68 @@ function ProjectDashBoard() {
         { key: "memberSettings", label: "멤버/설정"},
     ];
 
-    const [activeTab, setActiveTab] = React.useState("dashboard");
+    // 3. 프로젝트 정보 갱신 함수 (하위 컴포넌트 전달용)
+    const refreshProjectData = useCallback(async () => {
+        if (!projectId) return;
+
+        try {
+            console.log("프로젝트 정보 갱신 중...");
+            const res = await api.get(`/api/projects/${projectId}`);
+            setProjectData(res.data || res); 
+        } catch (error) {
+            console.error("프로젝트 정보 갱신 실패:", error);
+        }
+    }, [projectId]);
+
+    // 4. 초대 알림 초기 데이터 페칭
+    useEffect(() => {
+        if (projectData && projectData.projectId === projectId && projectData.name) {
+            return;
+        }
+
+        const fetchProjectDetail = async () => {
+            try {
+                setLoading(true);
+                const response = await api.get(`/api/projects/${projectId}`);
+                setProjectData(response);
+            } catch (error) {
+                console.error("프로젝트 상세 조회 실패:", error);
+                alert("존재하지 않거나 삭제된 프로젝트입니다.");
+                navigate('/projectList');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (projectId) {
+            fetchProjectDetail();
+        }
+    }, [projectId, projectData, navigate]);
+
+    // 5. 초대 수락/거절 핸들러
+    const handleAcceptInvite = async () => {
+        if (!window.confirm("프로젝트 초대를 수락하시겠습니까?")) return;
+        try {
+            await api.post(`/api/projects/${projectId}/accept`);
+            alert("환영합니다! 프로젝트 참여가 완료되었습니다.");
+            await refreshProjectData(); // 수락 후 데이터 갱신 (블러 해제)
+        } catch (error) {
+            console.error("초대 수락 실패:", error);
+            alert(error.message || "초대 수락 중 오류가 발생했습니다.");
+        }
+    };
+
+    const handleDeclineInvite = async () => {
+        if (!window.confirm("정말 거절하시겠습니까? 거절 시 프로젝트 목록으로 이동합니다.")) return;
+        try {
+            await api.post(`/api/projects/${projectId}/decline`);
+            alert("초대를 거절했습니다.");
+            navigate('/projectList'); 
+        } catch (error) {
+            console.error("초대 거절 실패:", error);
+            alert(error.message || "초대 거절 중 오류가 발생했습니다.");
+        }
+    };
 
     const TAB_COMPONENTS = {
         dashboard: DashboardGrid,
@@ -39,57 +110,59 @@ function ProjectDashBoard() {
         memberSettings: MemberSettingsGrid,
     };
 
-    // 프로젝트 상세 정보를 다시 불러오는 함수 (Refetch)
-    const refreshProjectData = useCallback(async () => {
-        if (!projectData?.projectId) return;
-
-        try {
-            console.log("프로젝트 정보 갱신 중...");
-            const res = await api.get(`/api/projects/${projectData.projectId}`);
-            // 받아온 최신 데이터로 상태 업데이트 -> 헤더 및 하위 컴포넌트 자동 리렌더링
-            setProjectData(res.data || res);
-        } catch (error) {
-            console.error("프로젝트 정보 갱신 실패:", error);
-        }
-    }, [projectData?.projectId]);
-
     const GridContent = TAB_COMPONENTS[activeTab] ?? DashboardGrid;
+
+    if (loading) {
+        return <div className="dashboard-loading">프로젝트 정보를 불러오는 중입니다...</div>;
+    }
+
+    const isInvited = projectData?.currentUserStatus === 'INVITED';
 
     return (
         <div className="dashboard-container">
-
-            {/* 2. 프로젝트 헤더 */}
             <button onClick={() => navigate(-1)} style={{ marginRight: '10px', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.2rem' }}>←</button>
 
-            {/*<ProjectHeader*/}
-            {/*    project={{projectData}}*/}
-            {/*    onClickAiReport={() => console.log("AI 리포트 클릭")}*/}
-            {/*/>*/}
-            <ProjectHeader project={projectData} />
+            {/* 블러 처리를 위한 Wrapper */}
+            <div className={`dashboard-content-wrapper ${isInvited ? 'blurred-locked' : ''}`}>
 
+                {projectData && <ProjectHeader project={projectData} />}
 
-            {/* 3. 탭 메뉴 */}
-            <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
+                <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
 
-            {/* 4. 대시보드 메인 그리드 */}
-            {/* 4. 하위 컴포넌트에 refreshProjectData 함수(onProjectUpdate) 전달 */}
-            {activeTab === "issue" || activeTab === "memberSettings" ? (
-                <div className="issue-grid-only">
-                    {activeTab === "issue" ?
-                        <IssueTrackerView project={projectData}/> :
-                        <MemberSettingsGrid project={projectData}
-                                            onProjectUpdate={refreshProjectData} // 갱신 함수 전달
-                        />}
-                </div>
-            ) : (
                 <main className="dashboard-grid">
-                    {/* 프로젝트 ID 넘기기 vs 프로젝트 상세 전체 데이터 넘기기 체크 필요 */}
-                    <GridContent projectId={projectId} project={projectData} />
+                    {activeTab === "issue" || activeTab === "memberSettings" ? (
+                        <div className="issue-grid-only">
+                            {activeTab === "issue" 
+                                ? <IssueTrackerView 
+                                    projectId={projectId} 
+                                    project={projectData} // project 데이터 전달
+                                  /> 
+                                : <MemberSettingsGrid 
+                                    projectId={projectId} 
+                                    project={projectData} // project 데이터 전달
+                                    onProjectUpdate={refreshProjectData} // 갱신 함수 전달
+                                  />
+                            }
+                        </div>
+                    ) : (
+                        <GridContent 
+                            projectId={projectId} 
+                            project={projectData} // 공통적으로 전달
+                        />
+                    )}
                 </main>
+            </div>
+
+            {/* 초대 수락 모달 */}
+            {isInvited && (
+                <InviteSelectModal
+                    projectName={projectData?.name}
+                    onAccept={handleAcceptInvite}
+                    onDecline={handleDeclineInvite}
+                />
             )}
-
-
         </div>
     );
 }
+
 export default ProjectDashBoard;
