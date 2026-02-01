@@ -24,8 +24,12 @@ export default function IssueListPage({ projectId, initialStatus = ALL, onBack, 
         assignee: ALL,
         priority: ALL,
         sort: "LATEST",
-        startDate: "",
-        endDate: "",
+        // 작성일 기준
+        createdStart: "",
+        createdEnd: "",
+        // 마감일 기준
+        dueStart: "",
+        dueEnd: "",
     });
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -53,59 +57,48 @@ export default function IssueListPage({ projectId, initialStatus = ALL, onBack, 
 
         setIsLoading(true);
         try {
-            // 필터 파라미터 구성
             const params = {};
 
-            // 상태 필터 (ALL이면 보내지 않음 -> 백엔드가 전체 조회)
-            if (filters.status !== ALL) {
-                params.status = filters.status;
-            }
+            if (filters.status !== ALL) params.status = filters.status;
+            if (filters.priority !== ALL) params.priority = parseInt(filters.priority.replace("P", ""), 10);
+            if (filters.assignee !== ALL) params.assigneeId = filters.assignee;
 
-            // 우선순위 필터 (ALL이 아니면 "P0" -> 0 변환해서 전송)
-            if (filters.priority !== ALL) {
-                params.priority = parseInt(filters.priority.replace("P", ""), 10);
-            }
+            // [수정] 작성일 필터 파라미터 추가
+            if (filters.createdStart) params.createdStart = filters.createdStart;
+            if (filters.createdEnd) params.createdEnd = filters.createdEnd;
 
-            // 담당자 필터 (User ID)
-            if (filters.assignee !== ALL) {
-                params.assigneeId = filters.assignee;
-            }
+            // [수정] 마감일 필터 파라미터 추가
+            if (filters.dueStart) params.dueStart = filters.dueStart;
+            if (filters.dueEnd) params.dueEnd = filters.dueEnd;
 
-            // 정렬 필터 (LATEST -> createdAt_desc 등 변환)
-            // 백엔드 IssueController: sort=createdAt_desc (기본값)
+            // 정렬 파라미터
             if (filters.sort === "LATEST") params.sort = "createdAt_desc";
             else if (filters.sort === "OLDEST") params.sort = "createdAt_asc";
             else if (filters.sort === "PRIORITY_HIGH") params.sort = "priority_desc";
             else if (filters.sort === "PRIORITY_LOW") params.sort = "priority_asc";
 
-            // API 호출
             const response = await api.get(`/api/projects/${projectId}/issues`, params);
 
-            // 4. 데이터 매핑 (Backend DTO -> Frontend IssueCard Props)
-            // Backend DTO: issueId, title, status, priority(int), assignees(List), ...
+            // ... (데이터 매핑 로직은 기존과 동일)
             const mappedIssues = (response || []).map(item => ({
+                // ... 기존 매핑 코드
                 id: item.issueId,
                 title: item.title,
                 status: item.status,
-                // 백엔드(0) -> 프론트엔드("P0") 변환
                 priority: `P${item.priority}`,
                 dueDate: item.dueDate,
-                // 담당자 리스트 중 첫 번째 사람을 대표로 표시하거나 전체 전달
-                // IssueCard가 어떻게 구현됐냐에 따라 다르지만 일단 객체 형태로 전달
                 assignee: item.assignees && item.assignees.length > 0 ? item.assignees[0] : null,
                 assignees: item.assignees || [],
                 createdAt: item.createdAt,
                 createdBy: item.createdBy
             }));
-
             setIssueList(mappedIssues);
 
         } catch (error) {
             console.error("이슈 목록 조회 실패:", error);
-            // 에러 시 빈 목록 유지
             setIssueList([]);
         } finally {
-            setIsLoading(false); // 로딩 종료
+            setIsLoading(false);
         }
     };
 

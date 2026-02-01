@@ -19,7 +19,6 @@ export default function IssueCard({ item, onClick }) {
             }}
         >
             <div className="issue-card-top">
-                <span className="issue-id">#{item.id}</span>
                 <span className="issue-title">{item.title}</span>
             </div>
 

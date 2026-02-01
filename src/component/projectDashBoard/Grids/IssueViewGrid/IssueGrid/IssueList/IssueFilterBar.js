@@ -56,8 +56,14 @@ export default function IssueFilterBar({ filters, onChange, members = [] }) {
                     담당자 : {getLabel(assigneeOptions, filters.assignee)} ▼
                 </button>
 
-                <button className="filter-pill" onClick={() => setOpenKey("date")}>
-                    기간 ▼
+                <button className={`filter-pill ${filters.createdStart || filters.createdEnd ? 'active' : ''}`}
+                        onClick={() => setOpenKey("DATE_CREATED")}>
+                    작성일 {filters.createdStart ? 'ON' : ''} ▼
+                </button>
+
+                <button className={`filter-pill ${filters.dueStart || filters.dueEnd ? 'active' : ''}`}
+                        onClick={() => setOpenKey("DATE_DUE")}>
+                    마감일 {filters.dueStart ? 'ON' : ''} ▼
                 </button>
 
                 <button className="filter-pill" onClick={() => setOpenKey("priority")}>
@@ -78,6 +84,38 @@ export default function IssueFilterBar({ filters, onChange, members = [] }) {
                 onClose={handleClose}
                 onChange={(v) => {
                     onChange({ ...filters, assignee: v });
+                    handleClose();
+                }}
+            />
+
+            <DateRangeModal
+                open={openKey === "DATE_CREATED"}
+                title="작성일 기간 설정"
+                startDate={filters.createdStart}
+                endDate={filters.createdEnd}
+                onClose={handleClose}
+                onClear={() => {
+                    onChange({ ...filters, createdStart: "", createdEnd: "" });
+                    handleClose();
+                }}
+                onApply={({ startDate, endDate }) => {
+                    onChange({ ...filters, createdStart: startDate, createdEnd: endDate });
+                    handleClose();
+                }}
+            />
+
+            <DateRangeModal
+                open={openKey === "DATE_DUE"}
+                title="마감일 기간 설정"
+                startDate={filters.dueStart}
+                endDate={filters.dueEnd}
+                onClose={handleClose}
+                onClear={() => {
+                    onChange({ ...filters, dueStart: "", dueEnd: "" });
+                    handleClose();
+                }}
+                onApply={({ startDate, endDate }) => {
+                    onChange({ ...filters, dueStart: startDate, dueEnd: endDate });
                     handleClose();
                 }}
             />

@@ -22,9 +22,6 @@ export default function IssueTrackerView({project}) {
         { key: "DONE", label: "완료된 이슈" },
     ];
 
-    const openDetail = (issue) => setSelectedIssue(issue);
-    const closeDetail = () => setSelectedIssue(null);
-
     return (
         <div className="issue-tracker-container">
             {/* 3. 상단에 IssueTabMenu 공간 생성 및 TabMenu 배치 */}
@@ -41,16 +38,23 @@ export default function IssueTrackerView({project}) {
             <IssueListPage
                 projectId={projectId}
                 initialStatus={selectedStatus}
-                onOpenDetail={openDetail}
-                // onBack은 그리드가 없어졌으므로 더 이상 필요하지 않음
+                onOpenDetail={(issue) => setSelectedIssue(issue)}
             />
 
-            <IssueDetailModal
-                open={!!selectedIssue}
-                issue={selectedIssue}
-                onClose={closeDetail}
-                onChangeIssue={(next) => setSelectedIssue(next)}
-            />
+            {selectedIssue && (
+                <IssueDetailModal
+                    open={!!selectedIssue}
+                    issue={selectedIssue}
+                    projectId={projectId}  // <--- 여기가 핵심입니다!
+                    onClose={() => setSelectedIssue(null)}
+                    onChangeIssue={(updated) => {
+                        console.log("Update Issue:", updated);
+                        // 목록 새로고침이 필요하면 여기서 처리하거나 IssueListPage에 신호를 줘야 함
+                        // 지금은 일단 UI 업데이트만 반영 (선택 사항)
+                        setSelectedIssue(updated);
+                    }}
+                />
+            )}
         </div>
     );
 }
