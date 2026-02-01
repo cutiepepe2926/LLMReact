@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { api } from "../../../../utils/api";
 import "./DashBoardGrid.css";
 
@@ -10,34 +9,30 @@ const Icons = {
     More: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
 };
 
-export default function DashboardGrid() {
-    const { projectId } = useParams();
+export default function DashboardGrid({ projectId }) {
+
     const [stats, setStats] = useState({
         totalTasks: 0,
         completedTasks: 0,
+        inProgressTasks: 0,
         openIssues: 0,
         memberCount: 0
     });
 
-    useEffect(() => {
+   useEffect(() => {
         const fetchProjectStats = async () => {
-            if (!projectId) return;
-            try {
-                // ACTIVE와 DONE 프로젝트 모두 조회 후 현재 프로젝트 찾기
-                const activeProjects = await api.get('/api/projects', { type: 'active' });
-                const doneProjects = await api.get('/api/projects', { type: 'done' });
-                
-                const allProjects = [...(activeProjects || []), ...(doneProjects || [])];
-                const currentProject = allProjects.find(p => p.projectId === parseInt(projectId));
+            if (!projectId) return; 
 
-                if (currentProject) {
-                    setStats({
-                        totalTasks: currentProject.totalTaskCount || 0,
-                        completedTasks: currentProject.completedTaskCount || 0,
-                        openIssues: currentProject.openIssueCount || 0,
-                        memberCount: currentProject.memberCount || 0
-                    });
-                }
+            try {
+                const res = await api.get(`/api/projects/${projectId}/dashboard`);
+                
+                setStats({
+                    totalTasks: res.totalTaskCount || 0,
+                    completedTasks: res.completedTaskCount || 0,
+                    inProgressTasks: res.inProgressTaskCount || 0,
+                    openIssues: res.openIssueCount || 0,
+                    memberCount: res.memberCount || 0
+                });
             } catch (error) {
                 console.error("대시보드 데이터 로딩 실패:", error);
             }
@@ -55,20 +50,24 @@ export default function DashboardGrid() {
         <>
             {/* [1] 왼쪽 섹션 */}
             <div className="dashboard-column">
-                {/* 1-1. 진행률 카드 */}
+                {/* 1-1. 프로젝트 진행 현황 카드 */}
                 <div className="card progress-card simple">
                     <div className="card-header-row">
-                        <span className="card-title">진행중인 업무</span>
+                        <span className="card-title">프로젝트 완성도</span>
+                        <span className="status-badge running">
+                            진행중인 업무 {stats.inProgressTasks}건
+                        </span>
                     </div>
-                    <div className="progress-stats-large">
-                        <span className="highlight">{inProgressTasks}</span>
-                        <span className="total">/ {stats.totalTasks} Tasks</span>
+                    <div className="big-fraction-display">
+                        <span className="done-big">{stats.completedTasks}</span>
+                        <span className="divider">/</span>
+                        <span className="total-small">{stats.totalTasks}</span>
                     </div>
                     <div className="progress-bar-bg">
                         <div className="progress-bar-fill" style={{ width: `${progressPercentage}%` }}></div>
                     </div>
-                    <div style={{textAlign: 'right', fontSize: '0.8rem', color: '#6B7280', marginTop: '5px'}}>
-                        {progressPercentage}% 완료 ({stats.completedTasks}개 완료)
+                    <div className="progress-footer-text">
+                        전체 <b>{stats.totalTasks}개</b> 업무 중 <b>{stats.completedTasks}개</b>를 완료했습니다.
                     </div>
                 </div>
 

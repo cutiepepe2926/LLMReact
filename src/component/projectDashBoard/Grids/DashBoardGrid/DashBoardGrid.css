@@ -145,3 +145,55 @@
 .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
 .tag.high { background: #FFEBE9; color: #cf222e; border: 1px solid #FFC1C0; }
 .tag.medium { background: #FFF8C5; color: #D4A72C; border: 1px solid #FBE995; }
+
+/* 진행 중 뱃지 */
+.status-badge.running {
+    background-color: #FEF2F2; /* 연한 빨강/주황 배경 */
+    color: #EF4444;            /* 붉은색 텍스트 */
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 하단 텍스트 정렬 */
+.progress-footer-text {
+    text-align: right;
+    font-size: 0.85rem;
+    color: #6B7280;
+    margin-top: 12px;
+}
+
+/* 카드 헤더 정렬 보정 */
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* 숫자 디자인 (점수판 스타일) */
+.big-fraction-display {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #111827;
+    margin: 10px 0;
+    display: flex;
+    align-items: baseline; /* 숫자 밑줄 맞춤 */
+    gap: 8px;
+}
+
+.big-fraction-display .divider {
+    font-size: 1.5rem;
+    color: #9CA3AF; /* 연한 회색 */
+    font-weight: 400;
+}
+
+.big-fraction-display .total-small {
+    font-size: 1.5rem;
+    color: #6B7280; /* 회색 */
+    font-weight: 600;
+}
