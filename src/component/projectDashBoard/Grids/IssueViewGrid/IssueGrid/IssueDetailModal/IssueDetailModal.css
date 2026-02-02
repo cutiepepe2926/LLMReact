@@ -181,3 +181,22 @@
     border-radius: 4px;
     cursor: pointer;
 }
+
+/* 칩 내부의 x 버튼 스타일 */
+.remove-assignee-btn {
+    background: none;
+    border: none;
+    color: #000000; /* 칩 배경색에 맞춰 조정 필요 */
+    font-weight: bold;
+    font-size: 14px;
+    margin-left: 6px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.7;
+}
+
+.remove-assignee-btn:hover {
+    opacity: 1;
+    color: #ffcccc; /* 호버 시 붉은 계열 추천 */
+}

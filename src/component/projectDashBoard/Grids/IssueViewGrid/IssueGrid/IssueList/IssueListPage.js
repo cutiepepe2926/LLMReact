@@ -10,7 +10,7 @@ import "./IssueListPage.css";
 
 const ALL = "ALL";
 
-export default function IssueListPage({ projectId, initialStatus = ALL, onBack, onOpenDetail }) {
+export default function IssueListPage({ projectId, initialStatus = ALL, onBack, onOpenDetail, refreshKey }) {
 
     // 이슈 목록을 담을 상태 객체
     const [issueList, setIssueList] = useState([]);
@@ -107,7 +107,7 @@ export default function IssueListPage({ projectId, initialStatus = ALL, onBack, 
         fetchIssues();
         fetchProjectMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [projectId, filters]); // filters 객체 전체를 의존성으로 두면 내부 값 변경 시 호출됨
+    }, [projectId, filters, refreshKey]); // filters 객체 전체를 의존성으로 두면 내부 값 변경 시 호출됨
 
 
     // 더 이상 클라이언트 사이드 필터링(useMemo)은 필요 없음 (서버에서 필터링해옴)

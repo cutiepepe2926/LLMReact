@@ -9,10 +9,8 @@ export default function IssueTrackerView({project}) {
     // 2. 탭 메뉴를 위한 상태 관리 (기본값: ALL 또는 UNASSIGNED)
     const [selectedStatus, setSelectedStatus] = useState("UNASSIGNED");
     const [selectedIssue, setSelectedIssue] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0); // 새로고침용 키
     const projectId = project?.projectId || project?.id;
-
-    console.log("이슈트랙뷰야!");
-    console.log(project);
 
     // 탭 구성을 위한 데이터
     const issueTabs = [
@@ -38,6 +36,7 @@ export default function IssueTrackerView({project}) {
             <IssueListPage
                 projectId={projectId}
                 initialStatus={selectedStatus}
+                refreshKey={refreshKey} // 값이 변하면 리스트 재조회
                 onOpenDetail={(issue) => setSelectedIssue(issue)}
             />
 
@@ -45,13 +44,21 @@ export default function IssueTrackerView({project}) {
                 <IssueDetailModal
                     open={!!selectedIssue}
                     issue={selectedIssue}
-                    projectId={projectId}  // <--- 여기가 핵심입니다!
+                    projectId={projectId}
                     onClose={() => setSelectedIssue(null)}
                     onChangeIssue={(updated) => {
                         console.log("Update Issue:", updated);
-                        // 목록 새로고침이 필요하면 여기서 처리하거나 IssueListPage에 신호를 줘야 함
-                        // 지금은 일단 UI 업데이트만 반영 (선택 사항)
+                        // 1. 모달 내부 데이터 최신화 (UI 즉시 반영)
                         setSelectedIssue(updated);
+
+                        // 2. 리스트 페이지 새로고침 트리거
+                        setRefreshKey(prev => prev + 1);
+                        //role={myRole}
+                    }}
+                    onDeleteSuccess={() => {
+                        console.log("이슈 삭제 완료 -> 리스트 갱신");
+                        setSelectedIssue(null);       // 1. 모달 닫기 (선택 해제)
+                        setRefreshKey(prev => prev + 1); // 2. 리스트 새로고침
                     }}
                 />
             )}
