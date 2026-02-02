@@ -75,3 +75,63 @@
 .fr-project-input:focus {
     border-color: var(--primary-blue);
 }
+
+/* 기존 리포트가 있을 때의 스타일 */
+.existing-mode {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 40px;
+}
+
+.final-report-info-box {
+    width: 100%;
+    max-width: 600px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.report-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.report-info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #555;
+}
+
+.info-value {
+    color: #333;
+}
+
+/* 하이퍼링크 스타일 */
+.link-title {
+    color: #007bff;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.link-title:hover {
+    color: #0056b3;
+}
+
+.view-btn {
+    background-color: #28a745; /* 초록색 계열 */
+}
+.view-btn:hover {
+    background-color: #218838;
+}
