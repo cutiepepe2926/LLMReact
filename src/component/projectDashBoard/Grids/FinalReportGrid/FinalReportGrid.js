@@ -54,7 +54,6 @@ export default function FinalReportGrid({projectId}) {
                 projectName: f.projectName,
                 template: f.template,
                 sections: f.sections,
-                sources: f.sources,
                 projectId: projectId,
             },
         });
