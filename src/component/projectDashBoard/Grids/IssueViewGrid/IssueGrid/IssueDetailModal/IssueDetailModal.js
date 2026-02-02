@@ -68,8 +68,6 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
 
     const statusOptions = useMemo(
         () => [
-            { label: "전체", value: ALL },
-            { label: "미배정", value: "UNASSIGNED" },
             { label: "진행중", value: "IN_PROGRESS" },
             { label: "완료", value: "DONE" },
         ],

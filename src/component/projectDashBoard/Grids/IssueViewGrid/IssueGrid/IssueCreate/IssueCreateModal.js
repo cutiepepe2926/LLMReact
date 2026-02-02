@@ -59,9 +59,10 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
     }, [open, projectId]);
 
     const fetchProjectMembers = async () => {
+        if (!projectId) return;
         try {
             // [API] 프로젝트 멤버 전체 조회
-            const response = await api.get(`/api/projects/${projectId}/members`);
+            const response = await api.get(`/api/projects/${projectId}/members/assignees`);
             setAllMembers(response || []); // 전체 멤버 저장
         } catch (error) {
             console.error("멤버 목록 조회 실패:", error);
