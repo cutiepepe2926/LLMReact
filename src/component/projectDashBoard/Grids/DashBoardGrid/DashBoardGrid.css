@@ -197,3 +197,121 @@
     color: #6B7280; /* 회색 */
     font-weight: 600;
 }
+
+/* --- 마감 임박 업무 추가 스타일 --- */
+
+/* 헤더 아이콘과 제목 정렬 */
+.header-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-with-icon h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* 뱃지 카운트 빨간색 버전 */
+.badge-count.red {
+    background: #FFEBE9;
+    color: var(--danger-color);
+    border: 1px solid #FFC1C0;
+}
+
+/* 리스트 컨테이너 */
+.urgent-list {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 개별 업무 항목 카드 */
+.urgent-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: #F9FAFB;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.urgent-item:hover {
+    border-color: var(--primary-color);
+    background: #F0F7FF;
+    transform: translateX(4px);
+}
+
+/* D-Day 태그 디자인 */
+.d-day-tag {
+    min-width: 50px;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #EBF5FF;
+    color: var(--primary-color);
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-right: 12px;
+}
+
+/* 마감 임박/지연 시 빨간색 강조 */
+.d-day-tag.critical {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* 업무 텍스트 정보 */
+.task-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.task-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 글자 길면 ... 처리 */
+}
+
+.task-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* 빈 상태 디자인 */
+.empty-urgent {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-secondary);
+}
+
+.empty-urgent p { margin: 0; font-weight: 600; }
+.empty-urgent span { font-size: 0.8rem; opacity: 0.7; }
+
+/* 전체보기 버튼 */
+.view-all-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.view-all-btn:hover {
+    background: #F3F4F6;
+    color: var(--text-primary);
+}

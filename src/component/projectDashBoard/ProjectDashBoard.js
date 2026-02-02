@@ -20,9 +20,9 @@ function ProjectDashBoard() {
 
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
-    const projectId = stateProjectData?.projectId 
-                      ? parseInt(stateProjectData.projectId) 
-                      : (params.projectId ? parseInt(params.projectId) : 1);
+    const projectId = params.projectId 
+                      ? parseInt(params.projectId) 
+                      : (location.state?.projectData?.projectId ? parseInt(location.state.projectData.projectId) : null);
 
     // 2. State 관리 (Invite 코드 + 갱신을 위한 준비)
     const [projectData, setProjectData] = useState(
@@ -30,6 +30,7 @@ function ProjectDashBoard() {
     );
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = React.useState("dashboard");
+    const [targetTaskId, setTargetTaskId] = useState(null);
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -38,6 +39,28 @@ function ProjectDashBoard() {
         { key: "finalReport", label: "최종 리포트" },
         { key: "memberSettings", label: "멤버/설정"},
     ];
+
+    // 새로고침 한 후 projectData 다시 불러오기
+    useEffect(() => {
+        const fetchProjectDetail = async () => {
+            if (projectId && (!projectData || projectData.projectId !== projectId)) {
+                try {
+                    setLoading(true);
+                    console.log(`데이터 복구 중... 프로젝트 ID: ${projectId}`);
+                    const response = await api.get(`/api/projects/${projectId}`);
+                    setProjectData(response.data || response);
+                } catch (error) {
+                    console.error("데이터 복구 실패:", error);
+                    alert("프로젝트 정보를 불러올 수 없습니다.");
+                    navigate('/projectList');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchProjectDetail();
+    }, [projectId, projectData, navigate]);
 
     // 3. 프로젝트 정보 갱신 함수 (하위 컴포넌트 전달용)
     const refreshProjectData = useCallback(async () => {
@@ -110,11 +133,31 @@ function ProjectDashBoard() {
         memberSettings: MemberSettingsGrid,
     };
 
-    const GridContent = TAB_COMPONENTS[activeTab] ?? DashboardGrid;
+    // 탭 자동 변경 로직
+    useEffect(() => {
+        const requestedTab = location.state?.activeTab;
+        const requestedTaskId = location.state?.targetTaskId; 
+        
+        if (requestedTab && TABS.some(tab => tab.key === requestedTab)) {
+            setActiveTab(requestedTab);
+            
+            if (requestedTaskId) {
+                setTargetTaskId(requestedTaskId);
+                
+                window.history.replaceState(
+                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } }, 
+                    document.title
+                );
+            }
+        }
+    }, [location.state]);
 
-    if (loading) {
-        return <div className="dashboard-loading">프로젝트 정보를 불러오는 중입니다...</div>;
-    }
+    const handleTabChange = (key) => {
+        setTargetTaskId(null); // 다른 탭 누르면 상세 호출 신호 초기화
+        setActiveTab(key);
+    };
+
+    const GridContent = TAB_COMPONENTS[activeTab] ?? DashboardGrid;
 
     const isInvited = projectData?.currentUserStatus === 'INVITED';
 
@@ -127,29 +170,27 @@ function ProjectDashBoard() {
 
                 {projectData && <ProjectHeader project={projectData} />}
 
-                <TabMenu tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
+                <TabMenu tabs={TABS} activeKey={activeTab} onChange={handleTabChange} />
 
                 <main className="dashboard-grid">
-                    {activeTab === "issue" || activeTab === "memberSettings" ? (
-                        <div className="issue-grid-only">
-                            {activeTab === "issue" 
-                                ? <IssueTrackerView 
-                                    projectId={projectId} 
-                                    project={projectData} // project 데이터 전달
-                                  /> 
-                                : <MemberSettingsGrid 
-                                    projectId={projectId} 
-                                    project={projectData} // project 데이터 전달
-                                    onProjectUpdate={refreshProjectData} // 갱신 함수 전달
-                                  />
-                            }
-                        </div>
-                    ) : (
-                        <GridContent 
-                            projectId={projectId} 
-                            project={projectData} // 공통적으로 전달
-                        />
-                    )}
+                    {loading ? (
+                        <div className="grid-loading">데이터를 불러오는 중입니다...</div>
+                    ) : projectData ? (
+                        <>
+                            {activeTab === "issue" || activeTab === "memberSettings" ? (
+                                <div className="issue-grid-only">
+                                    {activeTab === "issue" 
+                                        ? <IssueTrackerView projectId={projectId} project={projectData} /> 
+                                        : <MemberSettingsGrid projectId={projectId} project={projectData} onProjectUpdate={refreshProjectData} />
+                                    }
+                                </div>
+                            ) : activeTab === "task" ? (
+                                <TaskBoard projectId={projectId} project={projectData} initialTaskId={targetTaskId} />
+                            ) : (
+                                <DashboardGrid projectId={projectId} project={projectData} />
+                            )}
+                        </>
+                    ) : null}
                 </main>
             </div>
 

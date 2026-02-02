@@ -6,7 +6,7 @@ import TaskDetailPage from './TaskDetailPage';
 import { api } from '../../../../utils/api';
 import './TaskBoard.css';
 
-function TaskBoard({ projectId: propProjectId }) {
+function TaskBoard({ projectId: propProjectId, initialTaskId, clearTargetTaskId }) {
     const params = useParams();
     const projectId = propProjectId || params.projectId;
 
@@ -15,8 +15,22 @@ function TaskBoard({ projectId: propProjectId }) {
     const [filterType, setFilterType] = useState('ALL');
     const [selectedTask, setSelectedTask] = useState(null); 
     const [editingTask, setEditingTask] = useState(null);
+    const [hasAutoOpened, setHasAutoOpened] = useState(false);
 
     const currentUser = localStorage.getItem("userId"); // 로그인한 유저 ID
+
+    // 0. 부모로부터 받은 initialTaskId 처리
+    useEffect(() => {
+        if (initialTaskId && !hasAutoOpened && tasks.length > 0) {
+            const target = tasks.find(t => t.taskId === parseInt(initialTaskId));
+            if (target) {
+                setSelectedTask(target);
+                setHasAutoOpened(true);
+                
+                if (clearTargetTaskId) clearTargetTaskId();
+            }
+        }
+    }, [initialTaskId, tasks, hasAutoOpened, clearTargetTaskId]);
 
     // 1. 업무 목록 불러오기
     const fetchTasks = async () => {
@@ -26,7 +40,6 @@ function TaskBoard({ projectId: propProjectId }) {
         }
 
         try {
-            console.log(`Fetching tasks for project: ${projectId}`); // [디버깅용 로그]
             const data = await api.get(`/api/projects/${projectId}/tasks`);
             
             if (Array.isArray(data)) {
@@ -55,6 +68,9 @@ function TaskBoard({ projectId: propProjectId }) {
                 // 생성 POST
                 await api.post(`/api/projects/${projectId}/tasks`, taskData);
             }
+
+            window.dispatchEvent(new CustomEvent('taskUpdate'));
+
             setIsModalOpen(false);
             setEditingTask(null);
             fetchTasks(); // 목록 갱신
@@ -78,6 +94,9 @@ function TaskBoard({ projectId: propProjectId }) {
 
         try {
             await api.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status: newStatus });
+        
+            window.dispatchEvent(new CustomEvent('taskUpdate'));
+        
         } catch (error) {
             console.error("상태 변경 실패:", error);
             fetchTasks(); // 실패 시 롤백
@@ -101,6 +120,9 @@ function TaskBoard({ projectId: propProjectId }) {
         if(window.confirm("정말 삭제하시겠습니까?")) {
             try {
                 await api.delete(`/api/projects/${projectId}/tasks/${taskId}`);
+
+                window.dispatchEvent(new CustomEvent('taskUpdate'));
+
                 setSelectedTask(null);
                 fetchTasks();
             } catch (error) {
@@ -115,7 +137,9 @@ function TaskBoard({ projectId: propProjectId }) {
             <TaskDetailPage 
                 projectId={projectId}
                 task={selectedTask} 
-                onBack={() => { setSelectedTask(null); fetchTasks(); }}
+                onBack={() => { 
+                    setSelectedTask(null); 
+                }}
                 onEdit={() => { 
                     setEditingTask(selectedTask); 
                     setSelectedTask(null); 

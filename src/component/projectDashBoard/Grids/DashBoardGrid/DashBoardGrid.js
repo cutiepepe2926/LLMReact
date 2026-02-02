@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from 'react-router-dom';
 import { api } from "../../../../utils/api";
 import "./DashBoardGrid.css";
 
@@ -6,10 +7,13 @@ const Icons = {
     Task: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>,
     Commit: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg>,
     Check: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
-    More: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+    More: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>,
+    Alert: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
 };
 
 export default function DashboardGrid({ projectId }) {
+
+    const navigate = useNavigate();
 
     const [stats, setStats] = useState({
         totalTasks: 0,
@@ -18,6 +22,8 @@ export default function DashboardGrid({ projectId }) {
         openIssues: 0,
         memberCount: 0
     });
+
+    const [myTasks, setMyTasks] = useState([]);
 
    useEffect(() => {
         const fetchProjectStats = async () => {
@@ -33,6 +39,11 @@ export default function DashboardGrid({ projectId }) {
                     openIssues: res.openIssueCount || 0,
                     memberCount: res.memberCount || 0
                 });
+                
+                // 내 업무 리스트 가져오기
+                const sidebarRes = await api.get(`/api/projects/${projectId}/sidebar`);
+                setMyTasks(sidebarRes.myTasks || []);
+
             } catch (error) {
                 console.error("대시보드 데이터 로딩 실패:", error);
             }
@@ -40,6 +51,29 @@ export default function DashboardGrid({ projectId }) {
 
         fetchProjectStats();
     }, [projectId]);
+    
+    // 마감 임박 업무 필터링 로직
+    const urgentTasks = useMemo(() => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        return myTasks
+            .filter(task => task.status !== 'DONE') 
+            .map(task => {
+                const dateStr = task.dueDate || task.due_date; 
+                if (!dateStr) return { ...task, dDay: 999 };
+
+                const dueDate = new Date(dateStr);
+                dueDate.setHours(0, 0, 0, 0);
+                
+                const diffTime = dueDate - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return { ...task, dDay: diffDays };
+            })
+            .filter(task => task.dDay !== 999)
+            .sort((a, b) => a.dDay - b.dDay)
+            .slice(0, 4);
+    }, [myTasks]);
 
     // 진행률 계산 (0으로 나누기 방지)
     const progressPercentage = stats.totalTasks === 0 ? 0 : Math.round((stats.completedTasks / stats.totalTasks) * 100);
@@ -140,45 +174,58 @@ export default function DashboardGrid({ projectId }) {
                 </div>
             </div>
 
-            {/* [3] 오른쪽 섹션 */}
+            {/* [3] 오른쪽 섹션: "나의 할 일" -> "마감 임박 업무"로 교체 */}
             <div className="dashboard-column">
-                <div className="card todo-card">
+                <div className="card todo-card urgent-widget">
                     <div className="card-header">
-                        <h3>나의 할 일</h3>
-                        <span className="badge-count">4</span>
+                        <div className="header-with-icon">
+                            <Icons.Alert />
+                            <h3>마감 임박 업무</h3>
+                        </div>
+                        <span className="badge-count red">{urgentTasks.length}</span>
                     </div>
-                    <ul className="custom-todo-list">
-                        <li className="todo-item">
-                            <label className="checkbox-wrapper">
-                                <input type="checkbox" defaultChecked />
-                                <span className="custom-checkbox"><Icons.Check /></span>
-                                <span className="todo-text completed">요구사항 명세서 작성</span>
-                            </label>
-                        </li>
-                        <li className="todo-item">
-                            <label className="checkbox-wrapper">
-                                <input type="checkbox" />
-                                <span className="custom-checkbox"><Icons.Check /></span>
-                                <span className="todo-text">API 설계 검토</span>
-                            </label>
-                            <span className="tag high">High</span>
-                        </li>
-                        <li className="todo-item">
-                            <label className="checkbox-wrapper">
-                                <input type="checkbox" />
-                                <span className="custom-checkbox"><Icons.Check /></span>
-                                <span className="todo-text">메인 페이지 UI 구현</span>
-                            </label>
-                        </li>
-                        <li className="todo-item">
-                            <label className="checkbox-wrapper">
-                                <input type="checkbox" />
-                                <span className="custom-checkbox"><Icons.Check /></span>
-                                <span className="todo-text">DB 스키마 회의</span>
-                            </label>
-                            <span className="tag medium">Medium</span>
-                        </li>
-                    </ul>
+                    
+                    <div className="urgent-list">
+                        {urgentTasks.length > 0 ? (
+                            urgentTasks.map((task) => (
+                                <div 
+                                    key={task.taskId} 
+                                    className="urgent-item" 
+                                    onClick={() => navigate('/projectDetail', { 
+                                        state: { 
+                                            activeTab: 'task', 
+                                            projectData: { projectId },
+                                            targetTaskId: task.taskId
+                                        }
+                                    })}
+                                >
+                                    <div className={`d-day-tag ${task.dDay <= 1 ? 'critical' : ''}`}>
+                                        {task.dDay === 0 ? "D-Day" : task.dDay < 0 ? "지연" : `D-${task.dDay}`}
+                                    </div>
+                                    <div className="task-info">
+                                        <div className="task-name">{task.title}</div>
+                                        <div className="task-date">{task.dueDate || task.due_date} 마감</div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="empty-urgent">
+                                <p>마감이 임박한 업무가 없습니다.</p>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <button 
+                        className="view-all-btn" 
+                        onClick={() => navigate('/projectDetail', { 
+                            state: { 
+                                activeTab: 'task', // 업무 탭으로 전환 요청
+                                projectData: { projectId } 
+                            } 
+                        })}
+                    >
+                        전체 업무 보러가기
+                    </button>
                 </div>
             </div>
         </>

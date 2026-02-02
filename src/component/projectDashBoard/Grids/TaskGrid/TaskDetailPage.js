@@ -75,6 +75,9 @@ const TaskDetailPage = ({ projectId, task, onBack, onEdit, onDelete, onStatusCha
         try {
             await onStatusChange(localTask.taskId, newStatus);
             setLocalTask(prev => ({ ...prev, status: newStatus }));
+
+            window.dispatchEvent(new CustomEvent('taskUpdate'));
+
             const logData = await api.get(`/api/projects/${projectId}/tasks/${task.taskId}/logs`);
             setLogs(logData || []);
         } catch (e) { console.error(e); }
