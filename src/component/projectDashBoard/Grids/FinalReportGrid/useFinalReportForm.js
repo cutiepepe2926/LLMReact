@@ -53,25 +53,10 @@ export default function useFinalReportForm() {
     const summary = (arr) => (arr.length === 0 ? "선택" : `${arr.length}개 선택`);
 
     return {
-        // input
-        projectName,
-        setProjectName,
-
-        // selected
-        template,
-        sections,
-
-        // open modal
-        openTemplate,
-        openSections,
-
-        // modal props
-        modal,
-        value,
-        setValue,
-        closeModal,
-
-        // helpers
+        projectName, setProjectName,
+        template, sections,
+        openTemplate, openSections,
+        modal, value, setValue, closeModal,
         summary,
     };
 }

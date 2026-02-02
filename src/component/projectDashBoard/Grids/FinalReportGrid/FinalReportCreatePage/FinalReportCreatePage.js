@@ -1,122 +1,171 @@
-// src/component/finalReportCreatePage/FinalReportCreatePage.js
-import React from "react";
+// src/component/projectDashBoard/Grids/FinalReportGrid/FinalReportCreatePage/FinalReportCreatePage.js
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { api } from "../../../../../utils/api";
 import "./FinalReportCreatePage.css";
 
 export default function FinalReportCreatePage() {
     const navigate = useNavigate();
     const { state } = useLocation();
+    
+    // 데이터 추출
+    const { projectId, template, sections, finalReportId, mode } = state || {};
 
-    const [mode, setMode] = React.useState("editor"); // editor | preview
-    const [content, setContent] = React.useState(
-        `# 최종 보고서\n\n- 프로젝트: ${state?.projectName ?? ""}\n- 템플릿: ${state?.template ?? ""}\n- 섹션: ${(state?.sections ?? []).join(", ")}\n- 소스: ${(state?.sources ?? []).join(", ")}\n\n여기에 보고서가 생성되고, 수정할 수 있어요.\n`
-    );
-
-    const [history, setHistory] = React.useState([content]);
-    const [historyIdx, setHistoryIdx] = React.useState(0);
-
-    const apply = () => {
-        const next = [...history.slice(0, historyIdx + 1), content];
-        setHistory(next);
-        setHistoryIdx(next.length - 1);
-    };
-
-    const undo = () => {
-        if (historyIdx <= 0) return;
-        const idx = historyIdx - 1;
-        setHistoryIdx(idx);
-        setContent(history[idx]);
-    };
-
-    // ---- chat (더미) ----
-    const [messages, setMessages] = React.useState([
-        { role: "assistant", text: "최종 보고서를 생성 중이에요..." },
+    // --- State ---
+    const [content, setContent] = useState("리포트를 불러오는 중입니다...");
+    const [loading, setLoading] = useState(false);
+    
+    // 채팅 관련 State 복원
+    const [messages, setMessages] = useState([
+        { role: "assistant", text: "안녕하세요! 생성된 리포트에서 수정하고 싶은 부분이 있다면 말씀해주세요." }
     ]);
-    const [input, setInput] = React.useState("");
+    const [input, setInput] = useState("");
+    const messagesEndRef = useRef(null);
 
-    const send = () => {
-        const text = input.trim();
-        if (!text) return;
+    // --- Helper ---
+    const mapTemplateToCode = (name) => {
+        if (name === "포트폴리오 형식") return "PORTFOLIO";
+        if (name === "기술문서 형식") return "TECHNICAL_DOC";
+        return "PROJECT_REPORT"; 
+    };
 
-        setMessages((prev) => [
-            ...prev,
-            { role: "user", text },
-            { role: "assistant", text: "확인했어요. (여기에 AI 응답 연결)" },
-        ]);
+    // 스크롤 자동 이동
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    // --- API: 리포트 조회/생성 ---
+    useEffect(() => {
+        if (!projectId) {
+            alert("잘못된 접근입니다.");
+            navigate(-1);
+            return;
+        }
+
+        const fetchReport = async () => {
+            setLoading(true);
+            try {
+                // [Case 1] 기존 리포트 열람 모드
+                if (mode === "VIEW" || finalReportId) {
+                    const res = await api.get(`/api/projects/${projectId}/final-reports`);
+                    if (res && res.content) {
+                        setContent(res.content);
+                    }
+                } 
+                // [Case 2] 신규 생성 모드 (AI 호출)
+                else {
+                    const requestBody = {
+                        reportType: mapTemplateToCode(template),
+                        selectedSections: sections || [] 
+                    };
+                    
+                    const res = await api.post(`/api/projects/${projectId}/final-reports`, requestBody);
+                    setContent(res.content);
+                }
+            } catch (error) {
+                console.error("리포트 로드 실패:", error);
+                setContent("# 오류 발생\n리포트를 생성하거나 불러오는 중 문제가 발생했습니다.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReport();
+    }, [projectId, template, sections, finalReportId, mode, navigate]);
+
+    // --- Handler: 채팅 전송 ---
+    const sendMessage = async () => {
+        if (!input.trim()) return;
+
+        const userMsg = { role: "user", text: input };
+        setMessages(prev => [...prev, userMsg]);
         setInput("");
+
+        // TODO: 실제 백엔드 채팅 API 연결 필요 (현재는 더미 응답)
+        // const res = await api.post(..., { message: input, currentContent: content });
+        
+        setTimeout(() => {
+            setMessages(prev => [...prev, { 
+                role: "assistant", 
+                text: "현재는 리포트 생성 기능만 지원하며, 대화형 수정 기능은 준비 중입니다. 에디터에서 직접 수정해 주세요!" 
+            }]);
+        }, 1000);
     };
 
-    const save = () => {
-        // TODO: PUT /final-reports/{reportId}/working 같은 API 붙이면 됨
-        alert("저장(샘플) - API 연결 전");
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
     };
+
+    // --- Handler: 저장 (임시) ---
+    const handleSave = () => {
+        alert("저장 기능이 수행됩니다. (구현 필요)");
+        // api.put(...) 호출 로직 추가 가능
+    };
+
+    if (loading) {
+        return (
+            <div className="loading-overlay">
+                <div className="loader"></div>
+                <p>AI가 프로젝트 리포트를 작성 중입니다...</p>
+                <p className="sub-text">(약 30초 소요)</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="frc-wrap">
-            <header className="frc-header">
-                <h2 className="frc-title">최종 보고서</h2>
-                <button className="frc-close" type="button" onClick={() => navigate(-1)}>
-                    ✕
-                </button>
-            </header>
+        <div className="final-report-create-container">
+            {/* Header */}
+            <div className="frc-header">
+                <h2>{mode === "VIEW" ? "최종 리포트" : "AI 리포트 생성 결과"}</h2>
+                <div className="frc-header-actions">
+                    <button className="frc-btn secondary" onClick={() => navigate(-1)}>나가기</button>
+                    <button className="frc-btn primary" onClick={handleSave}>저장</button>
+                </div>
+            </div>
 
-            <div className="frc-grid">
-                {/* LEFT */}
+            {/* Body: Left(Editor) + Right(Chat) */}
+            <div className="frc-body">
+                {/* Left Side: Markdown Editor */}
                 <section className="frc-left">
-                    <div className="frc-left-body">
-                        {mode === "editor" ? (
-                            <textarea
-                                className="frc-editor"
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                            />
-                        ) : (
-                            <div className="frc-preview">
-                                {content.split("\n").map((line, i) => (
-                                    <div key={i}>{line || "\u00A0"}</div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="frc-left-actions">
-                        <button type="button" className="frc-btn" onClick={apply}>적용</button>
-                        <button type="button" className="frc-btn" onClick={undo}>되돌리기</button>
-                        <button
-                            type="button"
-                            className="frc-btn"
-                            onClick={() => setMode((m) => (m === "editor" ? "preview" : "editor"))}
-                        >
-                            {mode === "editor" ? "미리보기" : "에디터"}
-                        </button>
-                        <button type="button" className="frc-btn primary" onClick={save}>저장</button>
+                    <div className="editor-wrapper">
+                        <textarea 
+                            className="report-editor" 
+                            value={content} 
+                            onChange={(e) => setContent(e.target.value)}
+                            placeholder="리포트 내용이 여기에 표시됩니다."
+                        />
                     </div>
                 </section>
 
-                {/* RIGHT */}
+                {/* Right Side: Chatbot */}
                 <section className="frc-right">
-                    <div className="frc-chat">
-                        <div className="frc-chat-list">
-                            {messages.map((m, i) => (
-                                <div
-                                    key={i}
-                                    className={`frc-bubble ${m.role === "user" ? "user" : "assistant"}`}
-                                >
-                                    {m.text}
+                    <div className="frc-chat-container">
+                        <div className="frc-chat-header">
+                            AI Assistant
+                        </div>
+                        <div className="frc-chat-messages">
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={`chat-bubble ${msg.role}`}>
+                                    {msg.text}
                                 </div>
                             ))}
+                            <div ref={messagesEndRef} />
                         </div>
-
-                        <div className="frc-chat-input">
-                            <input
+                        <div className="frc-chat-input-area">
+                            <textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                placeholder="메시지를 입력하세요"
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") send();
-                                }}
+                                onKeyDown={handleKeyDown}
+                                placeholder="AI에게 수정을 요청해보세요..."
                             />
-                            <button type="button" onClick={send}>↥</button>
+                            <button onClick={sendMessage}>전송</button>
                         </div>
                     </div>
                 </section>

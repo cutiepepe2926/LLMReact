@@ -51,10 +51,10 @@ export default function FinalReportGrid({projectId}) {
     const goCreatePage = () => {
         navigate("/final-report/create", {
             state: {
+                projectId: projectId,
                 projectName: f.projectName,
                 template: f.template,
                 sections: f.sections,
-                projectId: projectId,
             },
         });
     };
