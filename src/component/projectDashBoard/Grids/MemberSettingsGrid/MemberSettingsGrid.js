@@ -1,9 +1,8 @@
 // src/component/memberSettingsGrid/MemberSettingsGrid.js
 import React, { useState, useEffect, useCallback } from "react";
 import MemberMiniGrid from "./MemberMiniGrid/MemberMiniGrid";
-import PermissionMiniGrid from "./PermissionMiniGrid/PermissionMiniGrid";
-// import {MEMBER_DEMO_LIST} from "./MemberSettingsGridDemoData";
-import NotifyIntegrationMiniGrid from "./NotifyIntegrationMiniGrid/NotifyIntegrationMiniGrid";
+// import PermissionMiniGrid from "./PermissionMiniGrid/PermissionMiniGrid";
+// import NotifyIntegrationMiniGrid from "./NotifyIntegrationMiniGrid/NotifyIntegrationMiniGrid";
 import ProjectSettingsMiniGrid from "./ProjectSettingsMiniGrid/ProjectSettingsMiniGrid";
 import { api } from "../../../../utils/api";
 import "./MemberSettingsGrid.css";
@@ -20,8 +19,8 @@ export default function MemberSettingsGrid({project, onProjectUpdate}) {
     const SUB_TABS = [
         { key: "members", label: "멤버 관리 설정" },
         { key: "project", label: "프로젝트 설정" },
-        { key: "notify", label: "알림/연동 설정" },
-        { key: "security", label: "권한/보안 설정" },
+        // { key: "notify", label: "알림/연동 설정" },
+        // { key: "security", label: "권한/보안 설정" },
     ];
 
     // 멤버 목록 불러오기 및 가공
@@ -115,11 +114,11 @@ export default function MemberSettingsGrid({project, onProjectUpdate}) {
                     />
                 )}
 
-                {activeSub === "notify" && <NotifyIntegrationMiniGrid />}
+                {/*{activeSub === "notify" && <NotifyIntegrationMiniGrid />}*/}
 
-                {activeSub === "security" && (
-                    <PermissionMiniGrid onCancel={() => setActiveSub("members")} />
-                )}
+                {/*{activeSub === "security" && (*/}
+                {/*    <PermissionMiniGrid onCancel={() => setActiveSub("members")} />*/}
+                {/*)}*/}
             </div>
         </section>
     );

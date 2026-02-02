@@ -55,3 +55,40 @@
     color: var(--text-secondary);
     font-weight: 600;
 }
+
+.issue-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 0;
+    color: #666;
+    gap: 12px;
+    width: 100%;
+}
+
+.issue-empty-state p {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.issue-empty-state .sub-text {
+    font-size: 14px;
+    color: #999;
+}
+
+/* 간단한 로딩 스피너 애니메이션 */
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #3b82f6; /* 포인트 컬러 */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
