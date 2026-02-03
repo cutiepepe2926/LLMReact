@@ -24,12 +24,28 @@ function ProjectDashBoard() {
                       ? parseInt(stateProjectData.projectId) 
                       : (params.projectId ? parseInt(params.projectId) : 1);
 
+    // 1순위: 다른 페이지에서 넘어올 때 전달된 state (예: "나가기" 버튼)
+    // 2순위: sessionStorage에 저장된 마지막 탭 (브라우저 뒤로가기/새로고침 대응)
+    // 3순위: 기본값 "dashboard"
+    const [activeTab, setActiveTab] = React.useState(() => {
+        if (location.state?.initialTab) {
+            return location.state.initialTab;
+        }
+        const savedTab = sessionStorage.getItem(`lastTab_${projectId}`);
+        return savedTab || "dashboard";
+    });
+
     // 2. State 관리 (Invite 코드 + 갱신을 위한 준비)
     const [projectData, setProjectData] = useState(
         (stateProjectData && stateProjectData.name) ? stateProjectData : null
     );
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = React.useState("dashboard");
+    
+    useEffect(() => {
+        if (projectId && activeTab) {
+            sessionStorage.setItem(`lastTab_${projectId}`, activeTab);
+        }
+    }, [activeTab, projectId]);
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
