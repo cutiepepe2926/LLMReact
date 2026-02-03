@@ -11,20 +11,23 @@ export default function FinalReportGrid({projectId, project}) {
     const f = useFinalReportForm();
     const navigate = useNavigate();
 
-    const [ existingReport, setExistingReport] = useState(null);
+    const [myReports, setMyReports] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // 컴포넌트 마운트 시 최종 리포트 조회
+    // 컴포넌트 마운트 시 내 최종 리포트 목록 조회
     useEffect(() => {
         if(!projectId) return;
 
-        const fetchFinalReport = async () => {
+        const fetchFinalReports = async () => {
             try{
-                // 백엔드 GET API 호출
                 const res = await api.get(`/api/projects/${projectId}/final-reports`);
-                // 데이터가 있으면 상태 업데이트
-                if(res && res.finalReportId){
-                    setExistingReport(res);
+                
+                if (Array.isArray(res)) {
+                    setMyReports(res);
+                } else if (res && res.finalReportId) {
+                    setMyReports([res]);
+                } else {
+                    setMyReports([]);
                 }
             }catch (error){
                 console.error("최종 리포트 조회 실패: ", error);
@@ -33,15 +36,14 @@ export default function FinalReportGrid({projectId, project}) {
             }
         };
 
-        fetchFinalReport();
+        fetchFinalReports();
     }, [projectId]);
 
-    // 기존 리포트 보러가기 핸들러
-    const goViewReport = () => {
-        if(!existingReport) return;
+    const goViewReport = (reportId) => {
+        if(!reportId) return;
         navigate("/final-report/create",{
             state: {
-                finalReportId: existingReport.finalReportId,
+                finalReportId: reportId,
                 projectId: projectId,
                 mode: "VIEW"
             },
@@ -49,6 +51,11 @@ export default function FinalReportGrid({projectId, project}) {
     };
 
     const goCreatePage = () => {
+        if(myReports.length >= 7) {
+            alert("최종 리포트는 최대 7개까지만 생성할 수 있습니다.");
+            return;
+        }
+
         navigate("/final-report/create", {
             state: {
                 projectId: projectId,
@@ -63,92 +70,87 @@ export default function FinalReportGrid({projectId, project}) {
         return <div className="final-report-loading">로딩 중...</div>;
     }
 
-    if (existingReport) {
-        return (
-            <section className="card final-report-card existing-mode">
-                <div className="final-report-header">
-                    <h3>🎉 최종 리포트가 생성되었습니다.</h3>
-                </div>
-                
-                <div className="final-report-info-box">
-                    <div className="report-info-row">
-                        <span className="info-label">문서 제목</span>
-                        {/* Title에 하이퍼링크(클릭 이벤트) 적용 */}
-                        <span className="info-value link-title" onClick={goViewReport}>
-                            {existingReport.title || "제목 없음"} 🔗
-                        </span>
-                    </div>
-                    
-                    <div className="report-info-row">
-                        <span className="info-label">작성자</span>
-                        <span className="info-value">{existingReport.createdBy}</span>
-                    </div>
-                    
-                    <div className="report-info-row">
-                        <span className="info-label">작성일(createAt)</span>
-                        <span className="info-value">
-                            {existingReport.createdAt 
-                                ? new Date(existingReport.createdAt).toLocaleDateString() 
-                                : "-"}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="final-report-actions">
-                    <button className="final-report-btn view-btn" onClick={goViewReport}>
-                        리포트 열람 / 수정
-                    </button>
-                </div>
-            </section>
-        );
-    }
-
+    // 프로젝트 미완료 시 차단
     if (project?.status !== "DONE") {
         return (
-            <section className="card final-report-card">
-                 <div className="final-report-loading" style={{flexDirection: 'column', gap: '10px'}}>
-                    <span style={{fontSize: '1.2rem', fontWeight: 'bold', color: '#666'}}>
-                        프로젝트가 완료되지 않았습니다
-                    </span>
-                    <span style={{fontSize: '0.9rem', color: '#999'}}>
-                        (상태가 'DONE'인 프로젝트만 최종 리포트를 생성할 수 있습니다)
-                    </span>
+            <section className="card final-report-card centered-message">
+                 <div className="message-content">
+                    <span className="msg-title">프로젝트가 완료되지 않았습니다</span>
+                    <span className="msg-desc">(상태가 'DONE'인 프로젝트만 최종 리포트를 생성할 수 있습니다)</span>
                  </div>
             </section>
         );
     }
 
-    // DONE 상태일 때 렌더링
     return (
         <section className="card final-report-card">
-            <div className="final-report-meta">
-                <div className="final-report-meta-right">
-                    <span>진행률: <b>100%</b></span>
-                    <span>상태: <b>DONE</b></span>
-                    <span>완료일자: <b>{new Date().toISOString().split('T')[0]}</b></span>
+            {/* 1. 상단: 리포트 생성 세션 (가로형 배치) */}
+            <div className="final-report-create-section">
+                <div className="fr-header">
+                    <h3>📑 최종 리포트 생성</h3>
+                    <div className="fr-status-badge">
+                        STATUS: <b>DONE</b>
+                    </div>
                 </div>
+
+                {myReports.length < 7 ? (
+                    <div className="fr-controls-container">
+                        <div className="fr-control-item">
+                            <span className="fr-label">1. 템플릿</span>
+                            <button type="button" className="fr-select-btn" onClick={f.openTemplate}>
+                                {f.template} <span className="fr-caret">▼</span>
+                            </button>
+                        </div>
+
+                        <div className="fr-control-item">
+                            <span className="fr-label">2. 섹션 선택</span>
+                            <button type="button" className="fr-select-btn" onClick={f.openSections}>
+                                {f.summary(f.sections)} <span className="fr-caret">▼</span>
+                            </button>
+                        </div>
+
+                        <div className="fr-action-item">
+                            <button className="final-report-btn create-btn" type="button" onClick={goCreatePage}>
+                                ✨ 리포트 생성
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="fr-limit-reached">
+                        🚫 생성 한도(7개)에 도달했습니다. 기존 리포트를 수정하거나 삭제하세요.
+                    </div>
+                )}
             </div>
 
-            <div className="final-report-body">
-                <div className="final-report-step">
-                    <b>1. 템플릿 선택</b>
-                    <button type="button" className="fr-select-btn" onClick={f.openTemplate}>
-                        {f.template} <span className="fr-caret">▼</span>
-                    </button>
-                </div>
+            {/* 2. 구분선 */}
+            <hr className="final-report-divider" />
 
-                <div className="final-report-step">
-                    <b>2. 포함할 섹션 선택</b>
-                    <button type="button" className="fr-select-btn" onClick={f.openSections}>
-                        {f.summary(f.sections)} <span className="fr-caret">▼</span>
-                    </button>
-                </div>
-
-                <div className="final-report-actions">
-                    <button className="final-report-btn" type="button" onClick={goCreatePage}>
-                        최종 리포트 생성
-                    </button>
-                </div>
+            {/* 3. 하단: 리포트 목록 세션 */}
+            <div className="final-report-list-section">
+                <h4>🗂️ 내 리포트 목록 ({myReports.length}/7)</h4>
+                
+                {myReports.length === 0 ? (
+                    <div className="fr-empty-list">
+                        생성된 리포트가 없습니다. 위에서 새로 생성해보세요!
+                    </div>
+                ) : (
+                    <div className="fr-list-container">
+                        {myReports.map((report, index) => (
+                            <div key={report.finalReportId} className="fr-list-item" onClick={() => goViewReport(report.finalReportId)}>
+                                <div className="fr-item-left">
+                                    <span className="fr-index">#{index + 1}</span>
+                                    <span className="fr-title">{report.title || "제목 없는 리포트"}</span>
+                                </div>
+                                <div className="fr-item-right">
+                                    <span className="fr-date">
+                                        {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : "-"}
+                                    </span>
+                                    <button className="fr-arrow-btn">➜</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <ChoiceModal
