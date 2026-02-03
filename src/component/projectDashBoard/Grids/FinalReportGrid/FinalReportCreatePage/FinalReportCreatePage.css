@@ -82,6 +82,18 @@
     background-color: #dee2e6;
 }
 
+.frc-btn.save-as {
+    background-color: #ffffff;
+    border: 1px solid #4a90e2;
+    color: #4a90e2;
+}
+
+.frc-btn.save-as:hover {
+    background-color: #f0f7ff; 
+    border-color: #357abd;   
+    color: #357abd;
+}
+
 .frc-btn.primary {
     background-color: #4a90e2;
     color: white;
