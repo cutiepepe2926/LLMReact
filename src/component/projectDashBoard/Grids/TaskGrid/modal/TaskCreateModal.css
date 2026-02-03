@@ -4,6 +4,7 @@
     background: rgba(0, 0, 0, 0.5); 
     display: flex; justify-content: center; align-items: center; 
     z-index: 1000;
+    flex-shrink: 0;
 }
 
 /* 모달 콘텐츠 (크기 고정 및 Flex 레이아웃) */
@@ -113,6 +114,7 @@
     background-color: #fff;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+    flex-shrink: 0;
 }
 .cancel-btn, .submit-btn { padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
 .cancel-btn { background: white; color: #4b5563; border: 1px solid #d1d5db; }

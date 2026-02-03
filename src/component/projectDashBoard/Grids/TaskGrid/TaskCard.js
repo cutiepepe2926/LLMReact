@@ -16,9 +16,11 @@ const TaskCard = ({ task, onClick, onDragStart }) => {
     const priority = getPriorityInfo(task.priority);
 
     const renderAssignees = () => {
-        if (!task.assignees || task.assignees.length === 0) return "미지정";
-        if (task.assignees.length === 1) return task.assignees[0];
-        return `${task.assignees[0]} 외 ${task.assignees.length - 1}명`;
+        const list = task.assigneeIds || [];
+        if(list.length === 0) return "미지정";
+        if(list.length === 1) return list[0];
+        
+        return `${list[0]} 외 ${list.length - 1}명`; 
     };
 
     return (
@@ -41,7 +43,9 @@ const TaskCard = ({ task, onClick, onDragStart }) => {
             <div className="task-footer">
                 <div className="git-branch-info">
                     <span className="branch-label">Branch</span>
-                    <span className="branch-name">{task.branch}</span>
+                    <span className="branch-name" title={task.branch}>
+                        {task.branch || '-'}
+                    </span>
                 </div>
             </div>
         </div>

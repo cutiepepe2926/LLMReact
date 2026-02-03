@@ -437,99 +437,164 @@
   color: #ef4444;
 }
 
-/* 업무 채팅 영역: 남은 공간 모두 활용 */
 .chat-section {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  margin-top: 0; /* 상단 여백 제거/축소 */
+  min-height: 0; /* 중요: Flex 자식이 부모보다 커지는 것 방지 */
+  margin-top: 0;
+  overflow: hidden; /* 내부 스크롤을 위해 필수 */
 }
 
+/* 채팅 목록 스크롤 영역 */
 .comment-list {
-  flex: 1;
+  flex: 1; /* 남은 공간 모두 차지 */
   overflow-y: auto;
-  margin-bottom: 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-right: 8px;
+  gap: 16px;
+  padding: 10px 14px 10px 4px;
 }
 
-.comment-item {
+/* 메시지 래퍼 (한 줄 전체) */
+.comment-wrapper {
   display: flex;
-  gap: 12px;
+  width: 100%; /* 너비 100% 필수 */
+  gap: 10px;
 }
 
+/* --- 나 (오른쪽 정렬) --- */
+.comment-wrapper.me {
+  justify-content: flex-end; /* 오른쪽 끝으로 밀기 */
+}
+
+.comment-wrapper.me .comment-content-group {
+  align-items: flex-end; /* 내부 요소(시간, 말풍선) 오른쪽 정렬 */
+}
+
+.comment-wrapper.me .comment-bubble {
+  background-color: #0052cc;
+  color: white;
+  border-radius: 12px 12px 0 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  text-align: left; /* 텍스트는 왼쪽 정렬 */
+}
+
+.comment-wrapper.me .time {
+  text-align: right;
+  margin-right: 6px;
+}
+
+/* --- 상대방 (왼쪽 정렬) --- */
+.comment-wrapper.other {
+  justify-content: flex-start; /* 왼쪽 시작 */
+}
+
+.comment-wrapper.other .comment-bubble {
+  background-color: #f4f5f7;
+  color: #172b4d;
+  border-radius: 0 12px 12px 12px;
+  border: 1px solid #ebecf0;
+}
+
+.comment-wrapper.other .time {
+  margin-left: 6px;
+}
+
+/* 공통 스타일 */
 .comment-avatar {
-  width: 32px;
-  height: 32px;
-  background: #e5e7eb;
-  color: #4b5563;
+  width: 36px;
+  height: 36px;
+  background: #ff5630;
+  color: white;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: bold;
+  font-size: 0.9rem;
   flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.comment-content-group {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%; /* 말풍선 최대 너비 제한 */
+}
+
+.user-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #42526e;
+  margin-bottom: 4px;
+  margin-left: 2px;
+}
+
+.bubble-row {
+  display: flex;
+  align-items: flex-end; /* 시간 표시를 하단에 맞춤 */
 }
 
 .comment-bubble {
-  background: #f3f4f6;
   padding: 10px 14px;
-  border-radius: 0 12px 12px 12px;
-  flex: 1;
-}
-
-.comment-meta {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
-  font-size: 0.75rem;
-}
-
-.user-name { font-weight: 700; color: #1f2937; }
-.time { color: #9ca3af; }
-
-.comment-text {
-  font-size: 0.85rem;
-  color: #374151;
+  font-size: 0.9rem;
   line-height: 1.5;
   white-space: pre-wrap;
+  word-break: break-all;
+  position: relative;
 }
 
+.time {
+  font-size: 0.7rem;
+  color: #97a0af;
+  flex-shrink: 0;
+  white-space: nowrap; /* 시간 줄바꿈 방지 */
+  margin-bottom: 2px;
+}
+
+/* [중요] 입력창 영역 스타일 */
 .comment-input-area {
+  flex-shrink: 0; /* [핵심] 공간 부족해도 절대 줄어들지 않음 */
   display: flex;
   gap: 10px;
-  margin-top: auto;
-  padding-top: 10px;
+  padding: 12px;
   background: white;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid #dfe1e6;
+  margin-top: auto;
 }
 
 .comment-input-area textarea {
   flex: 1;
   padding: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #dfe1e6;
   border-radius: 8px;
   resize: none;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   height: 40px;
+  outline: none;
+}
+
+.comment-input-area textarea:focus {
+  border-color: #0052cc;
 }
 
 .btn-send {
-  background: #3b82f6;
+  background: #0052cc;
   color: white;
   border: none;
-  padding: 0 16px;
+  padding: 0 20px;
   border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
-  height: 40px;
+  height: auto; /* textarea 높이에 맞춤 */
+  flex-shrink: 0;
 }
 
-.btn-send:hover { background: #2563eb; }
+.btn-send:hover {
+  background: #0747a6;
+}
 
 /* --- 오른쪽 패널: 활동 로그 --- */
 .right-panel {
@@ -627,4 +692,63 @@
   font-size: 0.85rem;
   background: #f9fafb;
   border-radius: 8px;
+}
+
+/* 노트북/태블릿 (너비 1200px 이하) */
+@media (max-width: 1200px) {
+  .detail-body {
+    /* 3단 -> 2단 변신 (오른쪽 로그 패널을 아래로 내리거나 숨김) */
+    /* 여기서는 로그 패널을 아래로 내리는 방식 적용 */
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: auto auto; 
+    overflow-y: auto; /* 전체 스크롤 허용 */
+    height: auto;
+  }
+
+  .left-panel {
+    grid-column: 1 / 2;
+  }
+  
+  .center-panel {
+    grid-column: 2 / 3;
+    /* 채팅창 높이 확보를 위해 최소 높이 지정 */
+    min-height: 600px; 
+  }
+
+  .right-panel {
+    grid-column: 1 / 3; /* 아래쪽 꽉 채우기 */
+    margin-top: 20px;
+    height: 300px; /* 로그창 높이 고정 */
+  }
+  
+  .task-detail-page {
+      height: auto; /* 전체 페이지 높이 고정 해제 */
+      overflow-y: auto;
+  }
+}
+
+/* 모바일 (너비 768px 이하) */
+@media (max-width: 768px) {
+  .detail-body {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .detail-header {
+      grid-template-columns: 1fr !important;
+      gap: 10px;
+      height: auto;
+  }
+
+  .header-right {
+      justify-content: flex-start !important;
+      flex-wrap: wrap;
+  }
+
+  /* 모바일에서 채팅창 높이 고정해서 내부 스크롤 되게 함 */
+  .center-panel {
+      height: 600px; 
+  }
 }

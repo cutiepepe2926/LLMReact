@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { api } from '../../../../../utils/api'; // 경로는 프로젝트 구조에 맞게
+import { api } from '../../../../../utils/api';
 import './TaskCreateModal.css';
 
 const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
@@ -19,17 +19,38 @@ const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
     // 드롭다운 외부 클릭 감지용
     const dropdownRef = useRef(null);
 
+    // 오늘 날짜 구하기
+    const today = new Date().toISOString().split("T")[0];
+
     // 1. 초기 데이터 및 멤버 로드
     useEffect(() => {
         const fetchMembers = async () => {
+            // projectId가 없으면 요청하지 않음
+            if (!projectId) {
+                console.error("TaskCreateModal: projectId가 없습니다.");
+                return;
+            }
+
             try {
-                // 프로젝트 정보에서 멤버 리스트를 가져온다고 가정
-                const res = await api.get(`/api/projects/${projectId}`);
-                setProjectMembers(res.members || []); 
+                console.log(`멤버 조회 요청: /api/projects/${projectId}/members/assignees`);
+                const res = await api.get(`/api/projects/${projectId}/members/assignees`);
+                
+                let membersData = [];
+                if (Array.isArray(res)) {
+                    membersData = res;
+                } else if (res && Array.isArray(res.data)) {
+                    membersData = res.data;
+                } else {
+                    console.warn("멤버 데이터 형식이 예상과 다릅니다:", res);
+                }
+
+                console.log("불러온 멤버 목록:", membersData);
+                setProjectMembers(membersData);
             } catch (e) {
                 console.error("멤버 로딩 실패", e);
             }
         };
+
         fetchMembers();
 
         if (initialData) {
@@ -71,7 +92,6 @@ const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
                     : [...prev.assigneeIds, userId]
             };
         });
-        setSearchTerm(''); // 선택 후 검색어 초기화
     };
 
     // 선택된 멤버 제거 (태그의 x 버튼)
@@ -106,7 +126,7 @@ const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
                     <button className="close-btn" onClick={onClose}>×</button>
                 </div>
 
-                {/* 바디 (스크롤 영역) */}
+                {/* 바디 */}
                 <div className="modal-body">
                     <div className="form-group">
                         <label>업무명 <span style={{color:'red'}}>*</span></label>
@@ -125,7 +145,7 @@ const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
                         <div className="member-selector-container" ref={dropdownRef}>
                             <input 
                                 type="text" 
-                                placeholder="멤버 이름 검색..." 
+                                placeholder="담당자 이름 검색..." 
                                 value={searchTerm}
                                 onChange={(e) => {
                                     setSearchTerm(e.target.value); 
@@ -137,26 +157,39 @@ const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
                             {isDropdownOpen && (
                                 <div className="member-dropdown">
                                     {projectMembers
-                                        .filter(m => m.name.includes(searchTerm) || m.userId.includes(searchTerm))
-                                        .map(member => (
-                                            <div 
-                                                key={member.userId} 
-                                                className={`member-option ${formData.assigneeIds.includes(member.userId) ? 'selected' : ''}`}
-                                                onClick={() => toggleAssignee(member.userId)}
-                                            >
-                                                {/* 이미지가 없으면 기본 아이콘 처리 */}
-                                                <img src={member.filePath || "/img/Profile.svg"} alt="profile" />
-                                                <span>{member.name} ({member.userId})</span>
-                                                {formData.assigneeIds.includes(member.userId) && <span className="check">✓</span>}
-                                            </div>
-                                    ))}
-                                    {projectMembers.filter(m => m.name.includes(searchTerm)).length === 0 && (
-                                        <div style={{padding:'10px', textAlign:'center', color:'#999'}}>검색 결과 없음</div>
+                                        .filter(m => 
+                                            (m.name && m.name.includes(searchTerm)) || 
+                                            (m.userId && m.userId.includes(searchTerm))
+                                        )
+                                        .map(member => {
+                                            const isSelected = formData.assigneeIds.includes(member.userId);
+                                            return (
+                                                <div 
+                                                    key={member.userId} 
+                                                    className={`member-option ${isSelected ? 'selected' : ''}`}
+                                                    onClick={() => toggleAssignee(member.userId)}
+                                                >
+                                                    <img 
+                                                        src={member.filePath || "/img/Profile.svg"} 
+                                                        alt="profile" 
+                                                        onError={(e) => e.target.src = "/img/Profile.svg"}
+                                                    />
+                                                    <div className="member-info">
+                                                        <span className="name">{member.name}</span>
+                                                        <span className="id">(@{member.userId})</span>
+                                                    </div>
+                                                    {isSelected && <span className="check">✓</span>}
+                                                </div>
+                                            );
+                                        })}
+                                    
+                                    {projectMembers.length === 0 && (
+                                        <div className="no-result">멤버 목록을 불러오는 중이거나 없습니다.</div>
                                     )}
                                 </div>
                             )}
                         </div>
-                        {/* 선택된 담당자 태그 노출 */}
+                        {/* 선택된 태그 */}
                         <div className="selected-tags">
                             {formData.assigneeIds.map(id => {
                                 const member = projectMembers.find(m => m.userId === id);
@@ -190,7 +223,13 @@ const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
 
                     <div className="form-group">
                         <label>마감일</label>
-                        <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} />
+                        <input 
+                            type="date" 
+                            name="endDate" 
+                            value={formData.endDate} 
+                            min={today} 
+                            onChange={handleChange} 
+                        />
                     </div>
 
                     <div className="form-group">
@@ -204,7 +243,6 @@ const TaskCreateModal = ({ onClose, onSave, initialData, projectId }) => {
                     </div>
                 </div>
 
-                {/* 푸터 (하단 고정) */}
                 <div className="modal-footer">
                     <button className="cancel-btn" onClick={onClose}>취소</button>
                     <button className="submit-btn" onClick={handleSubmit}>저장하기</button>

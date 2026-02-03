@@ -158,6 +158,7 @@ function TaskBoard({ projectId: propProjectId, initialTaskId, clearTargetTaskId 
         <div className="task-board-container">
             {isModalOpen && (
                 <TaskCreateModal 
+                    projectId={projectId}
                     initialData={editingTask}
                     onClose={() => setIsModalOpen(false)}
                     onSave={handleSaveTask}

@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../../../../utils/api';
+import SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs';
 import './TaskDetailPage.css';
 
 const TaskDetailPage = ({ projectId, task, onBack, onEdit, onDelete, onStatusChange }) => {
@@ -10,6 +12,15 @@ const TaskDetailPage = ({ projectId, task, onBack, onEdit, onDelete, onStatusCha
     const [newChat, setNewChat] = useState('');
     const [isAddingCheck, setIsAddingCheck] = useState(false);
     const [localTask, setLocalTask] = useState(task);
+    
+    //현재 로그인한 유저 ID 가져오기
+    const currentUserId = localStorage.getItem('userId');
+
+    // 소켓 클라이언트 객체 관리
+    const stompClient = useRef(null);
+
+    // 스크롤 포커스용
+    const messagesEndRef = useRef(null);
 
     // 데이터 로드 전용 함수
     const fetchData = useCallback(async () => {
@@ -32,13 +43,45 @@ const TaskDetailPage = ({ projectId, task, onBack, onEdit, onDelete, onStatusCha
         fetchData();
     }, [fetchData]);
 
+    // 실시간 채팅 연결 (WebSocket)
+    useEffect(() => {
+        const socket = new SockJS('http://localhost:8080/ws-stomp'); 
+        stompClient.current = Stomp.over(socket);
+        stompClient.current.debug = () => {};
+
+        stompClient.current.connect({}, () => {
+            // 2. 구독: /sub/tasks/{taskId}
+            stompClient.current.subscribe(`/sub/tasks/${task.taskId}`, (frame) => {
+                const newChatMessage = JSON.parse(frame.body);
+                
+                const formattedChat = {
+                    ...newChatMessage,
+                    user_id: newChatMessage.userId || newChatMessage.user_id, // 호환성 처리
+                    date: new Date().toISOString() // 받은 시간 현재 시간으로 처리
+                };
+
+                // 3. 채팅 목록에 실시간 추가
+                setChats(prev => [...prev, formattedChat]);
+            });
+        });
+
+        // 4. 언마운트 시 연결 해제
+        return () => {
+            if (stompClient.current) stompClient.current.disconnect();
+        };
+    }, [task.taskId]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [chats]);
+
     const handleAddCheckItem = async () => {
         if (!newCheckItem.trim()) return;
         try {
             await api.post(`/api/projects/${projectId}/tasks/${task.taskId}/checklists`, { content: newCheckItem });
             setNewCheckItem('');
             setIsAddingCheck(false);
-            fetchData(); // 전체 갱신하여 로그까지 실시간 반영
+            fetchData(); 
         } catch (e) { alert("추가 실패"); }
     };
 
@@ -61,13 +104,13 @@ const TaskDetailPage = ({ projectId, task, onBack, onEdit, onDelete, onStatusCha
         } catch (e) { alert("삭제 실패"); }
     };
 
+    // 채팅 전송 함수
     const handleAddChat = async () => {
         if (!newChat.trim()) return;
         try {
             await api.post(`/api/projects/${projectId}/tasks/${task.taskId}/chats`, { content: newChat });
             setNewChat('');
-            const chatData = await api.get(`/api/projects/${projectId}/tasks/${task.taskId}/chats`);
-            setChats(chatData || []);
+            
         } catch (e) { alert("전송 실패"); }
     };
 
@@ -75,9 +118,7 @@ const TaskDetailPage = ({ projectId, task, onBack, onEdit, onDelete, onStatusCha
         try {
             await onStatusChange(localTask.taskId, newStatus);
             setLocalTask(prev => ({ ...prev, status: newStatus }));
-
             window.dispatchEvent(new CustomEvent('taskUpdate'));
-
             const logData = await api.get(`/api/projects/${projectId}/tasks/${task.taskId}/logs`);
             setLogs(logData || []);
         } catch (e) { console.error(e); }
@@ -160,22 +201,50 @@ const TaskDetailPage = ({ projectId, task, onBack, onEdit, onDelete, onStatusCha
 
                     <div className="section-block chat-section">
                         <h4>업무 채팅</h4>
+                        
                         <div className="comment-list">
-                            {chats.map((chat, i) => (
-                                <div key={i} className="comment-item">
-                                    <div className="comment-avatar">{chat.user_id?.charAt(0).toUpperCase()}</div>
-                                    <div className="comment-bubble">
-                                        <div className="comment-meta">
-                                            <span className="user-name">{chat.user_id}</span>
-                                            <span className="time">{chat.date ? new Date(chat.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                            {chats.map((chat, i) => {
+                                // [수정] ID 비교 시 공백 제거 및 문자열 변환으로 정확도 향상
+                                const chatUserId = String(chat.user_id || chat.userId || '').trim();
+                                const isMe = chatUserId === currentUserId;
+
+                                return (
+                                    <div key={i} className={`comment-wrapper ${isMe ? 'me' : 'other'}`}>
+                                        {/* 상대방일 때만 프사 표시 */}
+                                        {!isMe && (
+                                            <div className="comment-avatar">
+                                                {chatUserId.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        
+                                        <div className="comment-content-group">
+                                            {/* 상대방일 때만 이름 표시 */}
+                                            {!isMe && <span className="user-name">{chatUserId}</span>}
+                                            
+                                            <div className="bubble-row">
+                                                {/* 내가 보낸 건 시간 먼저, 상대방은 말풍선 먼저 */}
+                                                {isMe && <span className="time">{chat.date ? new Date(chat.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '방금'}</span>}
+                                                
+                                                <div className="comment-bubble">
+                                                    {chat.content}
+                                                </div>
+                                                
+                                                {!isMe && <span className="time">{chat.date ? new Date(chat.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '방금'}</span>}
+                                            </div>
                                         </div>
-                                        <div className="comment-text">{chat.content}</div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
                         </div>
+                        
                         <div className="comment-input-area">
-                            <textarea value={newChat} onChange={e=>setNewChat(e.target.value)} placeholder="메시지를 입력하세요..." onKeyPress={e => e.key==='Enter' && !e.shiftKey && (e.preventDefault() || handleAddChat())} />
+                            <textarea 
+                                value={newChat} 
+                                onChange={e=>setNewChat(e.target.value)} 
+                                placeholder="메시지 입력..." 
+                                onKeyPress={e => e.key==='Enter' && !e.shiftKey && (e.preventDefault() || handleAddChat())} 
+                            />
                             <button className="btn-send" onClick={handleAddChat}>전송</button>
                         </div>
                     </div>
