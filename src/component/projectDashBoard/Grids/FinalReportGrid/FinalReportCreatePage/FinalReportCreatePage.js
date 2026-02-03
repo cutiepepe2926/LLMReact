@@ -14,12 +14,13 @@ export default function FinalReportCreatePage() {
     const { projectId, template, sections, finalReportId, mode } = state || {};
 
     // --- State ---
+    const [title, setTitle] = useState("제목 없음");
     const [content, setContent] = useState(""); 
     const [loading, setLoading] = useState(true); // 로딩 상태 관리
     
     const editorRef = useRef(null);
     
-    // 채팅 관련 State (기존 유지)
+    // 채팅 관련 State
     const [messages, setMessages] = useState([
         { role: "assistant", text: "안녕하세요! 리포트 내용을 수정하거나 필요한 내용을 말씀해주세요." }
     ]);
@@ -137,7 +138,23 @@ export default function FinalReportCreatePage() {
         <div className="final-report-create-container">
             {/* 헤더 */}
             <div className="frc-header">
-                <h2>{mode === "VIEW" ? "최종 리포트" : "AI 리포트 생성 결과"}</h2>
+                <input 
+                    type="text" 
+                    className="frc-title-input"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="리포트 제목을 입력하세요"
+                    style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 'bold',
+                        border: 'none',
+                        outline: 'none',
+                        background: 'transparent',
+                        color: '#333',
+                        width: '100%',
+                        fontFamily: 'inherit'
+                    }}
+                />
                 <div className="frc-header-actions">
                     <button className="frc-btn secondary" onClick={() => navigate(-1)}>나가기</button>
                     <button className="frc-btn primary" onClick={handleSave}>저장</button>

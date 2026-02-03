@@ -13,69 +13,81 @@
 
 /* 1. 전체 컨테이너 (이전 .frc-wrap 대응) */
 .final-report-create-container {
-    width: 95%;
-    height: 90vh; /* 화면 높이에 맞춤 */
-    margin: 24px auto;
-    background: var(--bg-card);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    background-color: #f5f6f7;
+    overflow: hidden; /* 전체 스크롤 방지 */
 }
 
 /* 2. 헤더 영역 */
 .frc-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between; /* 제목과 버튼 양끝 정렬 */
-    align-items: center;
+    flex: 0 0 auto; /* 높이 고정 */
+    height: 60px;
     background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 양끝 정렬 */
+    padding: 0 20px;
+    gap: 20px; /* 입력창과 버튼 사이 간격 확보 */
+    box-sizing: border-box;
+    z-index: 10;
 }
 
-.frc-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
+.frc-title-input {
+    flex: 1; /* 남은 공간을 차지함 */
+    min-width: 0; /* Flex Item이 컨텐츠보다 작아질 수 있게 허용 (중요) */
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #333;
+    font-family: inherit;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.frc-title-input:focus {
+    background-color: #f8f9fa; /* 포커스 시 살짝 배경색 */
+}
+
+.frc-title-input::placeholder {
+    color: #ccc;
+    font-weight: normal;
 }
 
 .frc-header-actions {
     display: flex;
     gap: 10px;
+    flex-shrink: 0; /* 공간이 부족해도 버튼은 줄어들지 않음 */
 }
 
 .frc-btn {
     padding: 8px 16px;
     border-radius: 6px;
     font-weight: 600;
-    cursor: pointer;
     font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
     transition: all 0.2s;
-    border: 1px solid transparent;
 }
 
 .frc-btn.secondary {
-    background-color: #fff;
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
+    background-color: #e9ecef;
+    color: #495057;
 }
-
 .frc-btn.secondary:hover {
-    background-color: #f3f4f6;
-    color: var(--text-primary);
+    background-color: #dee2e6;
 }
 
 .frc-btn.primary {
-    background-color: var(--primary-color);
+    background-color: #4a90e2;
     color: white;
 }
-
 .frc-btn.primary:hover {
-    opacity: 0.9;
-    box-shadow: 0 2px 4px rgba(88, 166, 255, 0.3);
+    background-color: #357abd;
 }
 
 /* 3. 본문 레이아웃 (이전 .frc-grid 대응) */
