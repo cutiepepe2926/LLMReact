@@ -102,20 +102,6 @@
     overflow: hidden;
 }
 
-.report-editor {
-    width: 100%;
-    height: 100%;
-    resize: none;
-    border: none;
-    padding: 20px;
-    font-size: 1rem;
-    line-height: 1.6;
-    outline: none;
-    color: var(--text-primary);
-    background-color: #fff;
-    font-family: 'Pretendard', sans-serif; /* 폰트 예시 */
-}
-
 /* 5. 우측: 챗봇 영역 */
 .frc-right {
     flex: 3; /* 7:3 비율 */
