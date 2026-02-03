@@ -8,12 +8,19 @@
     padding: 30px;
     background-color: #fff;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    
+    box-shadow: none !important; 
+    border: 1px solid #eee;
+
     gap: 25px; 
     box-sizing: border-box;
 
-    /* [핵심 수정] 부모 그리드(3단 배열)를 무시하고 가로 전체를 차지하도록 설정 */
     grid-column: 1 / -1;
+}
+
+.final-report-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 /* --- 메시지 전용 (프로젝트 미완료 등) --- */

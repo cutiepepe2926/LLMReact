@@ -87,7 +87,7 @@ export default function FinalReportGrid({projectId, project}) {
             {/* 1. 상단: 리포트 생성 세션 (가로형 배치) */}
             <div className="final-report-create-section">
                 <div className="fr-header">
-                    <h3>📑 최종 리포트 생성</h3>
+                    <h3>최종 리포트 생성</h3>
                     <div className="fr-status-badge">
                         STATUS: <b>DONE</b>
                     </div>
@@ -111,7 +111,7 @@ export default function FinalReportGrid({projectId, project}) {
 
                         <div className="fr-action-item">
                             <button className="final-report-btn create-btn" type="button" onClick={goCreatePage}>
-                                ✨ 리포트 생성
+                                리포트 생성
                             </button>
                         </div>
                     </div>
@@ -127,7 +127,7 @@ export default function FinalReportGrid({projectId, project}) {
 
             {/* 3. 하단: 리포트 목록 세션 */}
             <div className="final-report-list-section">
-                <h4>🗂️ 내 리포트 목록 ({myReports.length}/7)</h4>
+                <h4>내 리포트 목록 ({myReports.length}/7)</h4>
                 
                 {myReports.length === 0 ? (
                     <div className="fr-empty-list">
