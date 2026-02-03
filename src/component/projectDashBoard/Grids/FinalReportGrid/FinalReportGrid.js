@@ -39,12 +39,14 @@ export default function FinalReportGrid({projectId, project}) {
         fetchFinalReports();
     }, [projectId]);
 
-    const goViewReport = (reportId) => {
-        if(!reportId) return;
+    // report 객체 전체를 인자로 받음
+    const goViewReport = (report) => {
+        if(!report) return;
         navigate("/final-report/create",{
             state: {
-                finalReportId: reportId,
+                finalReportId: report.finalReportId,
                 projectId: projectId,
+                title: report.title, // 제목 정보를 함께 전달
                 mode: "VIEW"
             },
         });
@@ -62,6 +64,7 @@ export default function FinalReportGrid({projectId, project}) {
                 projectName: f.projectName,
                 template: f.template,
                 sections: f.sections,
+                title: "새 리포트", // 신규 생성 시 기본 제목 전달
             },
         });
     };
@@ -70,7 +73,6 @@ export default function FinalReportGrid({projectId, project}) {
         return <div className="final-report-loading">로딩 중...</div>;
     }
 
-    // 프로젝트 미완료 시 차단
     if (project?.status !== "DONE") {
         return (
             <section className="card final-report-card centered-message">
@@ -84,7 +86,6 @@ export default function FinalReportGrid({projectId, project}) {
 
     return (
         <section className="card final-report-card">
-            {/* 1. 상단: 리포트 생성 세션 (가로형 배치) */}
             <div className="final-report-create-section">
                 <div className="fr-header">
                     <h3>최종 리포트 생성</h3>
@@ -117,15 +118,13 @@ export default function FinalReportGrid({projectId, project}) {
                     </div>
                 ) : (
                     <div className="fr-limit-reached">
-                        🚫 생성 한도(7개)에 도달했습니다. 기존 리포트를 수정하거나 삭제하세요.
+                        생성 한도(7개)에 도달했습니다. 기존 리포트를 수정하거나 삭제하세요.
                     </div>
                 )}
             </div>
 
-            {/* 2. 구분선 */}
             <hr className="final-report-divider" />
 
-            {/* 3. 하단: 리포트 목록 세션 */}
             <div className="final-report-list-section">
                 <h4>내 리포트 목록 ({myReports.length}/7)</h4>
                 
@@ -136,7 +135,8 @@ export default function FinalReportGrid({projectId, project}) {
                 ) : (
                     <div className="fr-list-container">
                         {myReports.map((report, index) => (
-                            <div key={report.finalReportId} className="fr-list-item" onClick={() => goViewReport(report.finalReportId)}>
+                            // onClick에 report 객체 전체 전달
+                            <div key={report.finalReportId} className="fr-list-item" onClick={() => goViewReport(report)}>
                                 <div className="fr-item-left">
                                     <span className="fr-index">#{index + 1}</span>
                                     <span className="fr-title">{report.title || "제목 없는 리포트"}</span>
