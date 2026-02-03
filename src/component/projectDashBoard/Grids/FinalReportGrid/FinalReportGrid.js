@@ -6,7 +6,7 @@ import {api} from "../../../../utils/api";
 import "./FinalReportGrid.css";
 import "./Modal/Modal.css"
 
-export default function FinalReportGrid({projectId}) {
+export default function FinalReportGrid({projectId, project}) {
 
     const f = useFinalReportForm();
     const navigate = useNavigate();
@@ -60,7 +60,7 @@ export default function FinalReportGrid({projectId}) {
     };
 
     if(loading){
-        return <div classNAme="final-report-loading">로딩 중...</div>;
+        return <div className="final-report-loading">로딩 중...</div>;
     }
 
     if (existingReport) {
@@ -103,6 +103,22 @@ export default function FinalReportGrid({projectId}) {
         );
     }
 
+    if (project?.status !== "DONE") {
+        return (
+            <section className="card final-report-card">
+                 <div className="final-report-loading" style={{flexDirection: 'column', gap: '10px'}}>
+                    <span style={{fontSize: '1.2rem', fontWeight: 'bold', color: '#666'}}>
+                        프로젝트가 완료되지 않았습니다
+                    </span>
+                    <span style={{fontSize: '0.9rem', color: '#999'}}>
+                        (상태가 'DONE'인 프로젝트만 최종 리포트를 생성할 수 있습니다)
+                    </span>
+                 </div>
+            </section>
+        );
+    }
+
+    // DONE 상태일 때 렌더링
     return (
         <section className="card final-report-card">
             <div className="final-report-meta">
