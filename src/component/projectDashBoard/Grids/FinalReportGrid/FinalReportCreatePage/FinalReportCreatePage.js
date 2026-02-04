@@ -199,12 +199,65 @@ export default function FinalReportCreatePage() {
     // ... (sendMessage, handleKeyDown 등 채팅 로직은 그대로 유지)
     const sendMessage = async () => {
         if (!input.trim()) return;
-        const userMsg = { role: "user", text: input };
+        
+        // 1. 에디터 인스턴스 확인
+        const editorInstance = editorRef.current;
+        if (!editorInstance) {
+            alert("에디터가 로드되지 않았습니다.");
+            return;
+        }
+
+        // 2. 텍스트 추출 로직
+        const selectedText = editorInstance.getSelectedText(); // 드래그한 텍스트
+        const allText = editorInstance.getMarkdown();          // 전체 텍스트
+        
+        let contextText = "";
+        let isSelection = false;
+
+        if (selectedText && selectedText.trim().length > 0) {
+            // Case A: 사용자가 특정 부분을 드래그함
+            contextText = selectedText;
+            isSelection = true;
+        } else {
+            // Case B: 선택 안 함 -> 전체 텍스트 전송 (토큰 절약을 위한 압축 로직은 여기에 추가 가능)
+            contextText = allText;
+            isSelection = false;
+        }
+
+        // 3. UI에 내 말풍선 즉시 표시
+        const userMsg = { 
+            role: "user", 
+            text: input,
+            hasContext: isSelection // (선택: UI에 '부분 참조' 아이콘 등을 띄울 때 사용 가능)
+        };
         setMessages(prev => [...prev, userMsg]);
-        setInput("");
-        setTimeout(() => {
-            setMessages(prev => [...prev, { role: "assistant", text: "네, 내용을 수정해드리겠습니다." }]);
-        }, 800);
+        setInput(""); // 입력창 초기화
+
+        // 4. 백엔드로 전송할 데이터 구성
+        const requestPayload = {
+            message: input,        // 사용자 질문 (예: "이거 좀 더 공손하게 바꿔줘")
+            context: contextText,  // AI가 참고할 텍스트 (선택 영역 or 전체)
+            isSelection: isSelection, // 백엔드에서 범위를 알 수 있게 플래그 전송
+            projectId: projectId   // (필요 시) 프로젝트 정보
+        };
+
+        try {
+            // 5. 실제 API 호출 (예시)
+            // const response = await api.post(`/api/projects/${projectId}/final-reports/ai-chat`, requestPayload);
+            
+            // [테스트용 가짜 응답] - 나중엔 response.data.reply 등으로 교체
+            setTimeout(() => {
+                const mockReply = isSelection 
+                    ? `선택하신 "${contextText.substring(0, 10)}..." 부분에 대한 수정 제안입니다.` 
+                    : "전체 문서를 바탕으로 답변 드립니다.";
+                
+                setMessages(prev => [...prev, { role: "assistant", text: mockReply }]);
+            }, 800);
+
+        } catch (error) {
+            console.error("AI 요청 실패:", error);
+            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다. 다시 시도해주세요." }]);
+        }
     };
 
     const handleKeyDown = (e) => {
@@ -259,11 +312,24 @@ export default function FinalReportCreatePage() {
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="frc-chat-input-area">
+                            {/* 컨텍스트 상태 표시 (선택사항) */}
+                            <div className="context-indicator">
+                                {editorRef.current?.getSelectedText() ? (
+                                    <span className="badge-select">선택 영역 참조 중</span>
+                                ) : (
+                                    <span className="badge-all">전체 문서 참조 중</span>
+                                )}
+                            </div>
+                            
                             <textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="AI에게 요청하세요..."
+                                placeholder={
+                                    editorRef.current?.getSelectedText() 
+                                    ? "선택한 내용을 어떻게 수정할까요?" 
+                                    : "전체 문서에 대해 질문하거나 수정할 부분을 드래그하세요."
+                                }
                             />
                             <button onClick={sendMessage}>전송</button>
                         </div>

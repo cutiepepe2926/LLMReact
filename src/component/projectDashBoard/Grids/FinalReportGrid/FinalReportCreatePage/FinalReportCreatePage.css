@@ -152,7 +152,7 @@
 
 /* 채팅 메시지 리스트 (이전 .frc-chat-list 대응) */
 .frc-chat-messages {
-    flex: 1;
+    flex: 3; /* 기존 1에서 3으로 변경 */
     padding: 20px;
     overflow-y: auto;
     display: flex;
@@ -188,12 +188,14 @@
 
 /* 입력창 영역 (이전 .frc-chat-input 대응) */
 .frc-chat-input-area {
+    flex: 1; /* 새로 추가: 1만큼의 비율 차지 */
     padding: 16px;
     border-top: 1px solid var(--border-color);
     background-color: #fff;
     display: flex;
     gap: 10px;
-    align-items: flex-end;
+    align-items: flex-end; /* 버튼은 바닥에 붙여서 정렬 */
+    box-sizing: border-box;
 }
 
 .frc-chat-input-area textarea {
@@ -203,11 +205,15 @@
     padding: 10px;
     font-size: 0.9rem;
     resize: none;
-    height: 44px; /* 기본 높이 */
-    max-height: 100px;
+    
+    /* [수정] 고정 높이/최대 높이 제거하고 100%로 설정 */
+    height: 100%; 
+    /* max-height: 100px;  <-- 삭제 */
+    
     outline: none;
     background-color: #f9fafb;
     transition: all 0.2s;
+    box-sizing: border-box; /* 패딩 포함 높이 계산 */
 }
 
 .frc-chat-input-area textarea:focus {
