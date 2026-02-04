@@ -94,6 +94,50 @@ export default function FinalReportCreatePage() {
         fetchReport();
     }, [projectId, template, sections, finalReportId, mode, navigate, initialTitle]);
 
+    useEffect(() => {
+        if (loading) return;
+        if (!editorRef.current) return;
+
+        const inst = editorRef.current.getInstance();
+        const rootEl = editorRef.current.getRootElement(); // ✅ ToastUI 에디터 루트 DOM
+
+        const resetToSafe = () => {
+            try {
+            // 문서가 완전 빈 문자열이면 최소 1줄 유지 (안전장치)
+            const md = inst.getMarkdown?.() ?? "";
+            if (md === "") inst.setMarkdown("\n", false);
+            } catch (e) {}
+
+            try {
+            inst.setSelection([0, 0], [0, 0]);
+            } catch (e) {}
+        };
+
+        // ✅ 모드 전환 버튼을 "클릭 직전"에 잡기 (capture = true)
+        const onClickCapture = (e) => {
+            const target = e.target;
+            if (!(target instanceof Element)) return;
+
+            // ToastUI 모드 스위치는 보통 "mode" 관련 class/영역 안에 있음
+            // (버전마다 class가 달라서 넓게 잡음)
+            const isModeSwitchClick =
+            target.closest?.('.toastui-editor-mode-switch') ||
+            target.closest?.('[class*="mode"]') ||
+            target.closest?.('[class*="switch"]');
+
+            if (isModeSwitchClick) {
+            resetToSafe();
+            }
+        };
+
+        rootEl.addEventListener("click", onClickCapture, true);
+
+        return () => {
+            rootEl.removeEventListener("click", onClickCapture, true);
+        };
+    }, [loading]);
+
+
     // 저장
     const handleSave = async () => {
         // 저장 시점의 에디터 내용을 직접 가져옴 (state에 의존하지 않음)
