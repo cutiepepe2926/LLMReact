@@ -1,202 +1,368 @@
 /* src/component/projectDashBoard/Grids/IssueViewGrid/IssueGrid/IssueDetailModal/IssueDetailModal.css */
 
-.issue-detail-overlay{
+.issue-detail-overlay {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.3);
-    display:flex; align-items:center; justify-content:center;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
     z-index: 9999;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
 }
 
-.issue-detail-modal{
-    width: 900px;
-    max-width: calc(100vw - 40px);
-    background: var(--bg-card);
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.issue-detail-modal {
+    width: 800px;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-    padding: 18px;
-    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 헤더 고정, 바디 스크롤 */
 }
 
-.issue-detail-header{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom: 10px;
-}
-
-.issue-detail-title-row{
-    display:flex; gap: 12px; align-items:center;
-    font-size: 18px; font-weight: 700;
-    color: var(--text-primary);
-}
-
-.issue-detail-id{ color: var(--danger-color); }
-
-.issue-detail-x{
-    border:none; background:transparent; font-size:22px; cursor:pointer;
-    color: var(--text-secondary);
-}
-.issue-detail-x:hover { color: var(--danger-color); }
-
-.issue-detail-meta{
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 16px;
-    background: #F9FAFB;
-}
-
-.meta-line{
-    display:flex; gap: 18px; align-items:center;
-    flex-wrap: wrap;
-    margin: 6px 0;
-    color: var(--text-secondary);
-}
-
-.meta-item{ font-size: 15px; font-weight: 600; }
-
-.meta-select{
-    margin-left: 6px;
-    border: 1px solid var(--border-color);
-    background: #fff;
-    border-radius: 8px;
-    padding: 4px 8px;
-    cursor: pointer;
-    color: var(--text-primary);
-}
-
-.meta-actions{
+/* --- 헤더 --- */
+.issue-detail-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #eee;
+    display: flex;
     justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    flex-shrink: 0;
 }
 
-.btn-green{
-    border:none;
-    background: var(--success-color); /* #2da44e */
-    color: #fff;
+.issue-detail-title-row {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.issue-detail-title {
+    font-size: 20px;
     font-weight: 700;
-    border-radius: 8px;
-    padding: 8px 14px;
-    cursor:pointer;
+    color: #1a1a1a;
+    line-height: 1.4;
+}
+
+.issue-detail-title-input {
+    width: 100%;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: #f5f5f5;
     transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(45, 164, 78, 0.2);
 }
-
-.btn-green:hover {
-    filter: brightness(1.05);
-    box-shadow: 0 4px 8px rgba(45, 164, 78, 0.3);
-}
-
-.btn-green:disabled{
-    opacity: .5;
-    cursor: not-allowed;
-    background: #ccc;
-    box-shadow: none;
-}
-
-.issue-detail-section{
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 14px; /* 간격 추가 */
-}
-
-.section-title{
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: var(--text-primary);
-}
-
-.desc-box{
-    width:100%;
-    min-height: 240px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px;
-    resize: vertical;
+.issue-detail-title-input:focus {
+    background: #fff;
+    border-color: #3b82f6;
     outline: none;
-    color: var(--text-primary);
-    transition: border-color 0.2s;
-}
-.desc-box:focus {
-    border-color: var(--primary-color);
 }
 
-.assignee-list {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    align-items: center;
-}
-
-.assignee-chip {
-    background-color: #e8f0fe;
-    color: #1967d2;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.add-assignee-btn {
-    background: none;
-    border: 1px dashed #ccc;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 16px;
-    line-height: 18px;
+.issue-detail-x {
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    color: #999;
     cursor: pointer;
-    color: #666;
+    width: 32px; height: 32px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+}
+.issue-detail-x:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+/* --- 액션 툴바 (새로 추가) --- */
+.issue-action-bar {
+    padding: 12px 24px;
+    background: #fcfcfc;
+    border-bottom: 1px solid #eee;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    margin-left: 4px;
+    flex-shrink: 0;
 }
 
-.add-assignee-btn:hover {
-    background-color: #f1f3f4;
-    border-color: #999;
+.writer-badge {
+    font-size: 13px;
+    color: #666;
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 20px;
 }
 
-.issue-edit-actions {
-    margin-top: 10px;
+.action-right {
     display: flex;
-    justify-content: flex-end;
     gap: 8px;
 }
 
+.btn-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.btn-action:hover {
+    background: #f3f4f6;
+    border-color: #bbb;
+    color: #000;
+}
+
+.btn-action .icon {
+    font-size: 14px;
+}
+
+/* --- 바디 영역 (스크롤 가능) --- */
+.issue-content-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* --- 메타 데이터 박스 --- */
+.issue-detail-meta {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.meta-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #555;
+    font-size: 14px;
+}
+
+.meta-divider {
+    color: #ddd;
+    font-size: 12px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.meta-select, .meta-select-text {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+.meta-select:hover, .meta-select-text:hover {
+    background: #f5f5f5;
+}
+
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.status-badge.IN_PROGRESS { color: #d29922; background: #fff8c5; }
+.status-badge.DONE { color: #1a7f37; background: #dafbe1; }
+.status-badge.UNASSIGNED { color: #57606a; background: #f6f8fa; }
+
+/* 담당자 라인 */
+.assignee-line {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #eee;
+}
+.meta-label {
+    font-weight: 600;
+    color: #777;
+    margin-right: 8px;
+}
+.assignee-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.assignee-chip {
+    display: inline-flex;
+    align-items: center;
+    background: #f0f7ff;
+    color: #0969da;
+    border: 1px solid #dbe9fa;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.avatar-placeholder {
+    width: 18px; height: 18px;
+    background: #0969da;
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 6px;
+}
+.remove-assignee-btn {
+    margin-left: 6px;
+    background: none; border: none;
+    color: #0969da; opacity: 0.6; cursor: pointer;
+    font-size: 16px; display: flex; align-items: center;
+}
+.remove-assignee-btn:hover { opacity: 1; }
+
+.add-assignee-btn {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1px dashed #ccc;
+    background: white;
+    color: #888;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+.add-assignee-btn:hover {
+    border-color: #0969da;
+    color: #0969da;
+    background: #f0f7ff;
+}
+
+/* --- 연결된 커밋 섹션 (독립) --- */
+.linked-commit-container {
+    margin-bottom: 24px;
+}
+.section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+}
+.commit-link-card {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    padding: 16px;
+    text-decoration: none;
+    color: #24292f;
+    transition: all 0.2s;
+}
+.commit-link-card:hover {
+    border-color: #0969da;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+.commit-icon {
+    color: #24292f;
+    margin-right: 16px;
+    display: flex; align-items: center;
+}
+.commit-info {
+    flex: 1;
+    overflow: hidden;
+}
+.commit-message {
+    display: block;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.commit-sha {
+    font-family: monospace;
+    font-size: 12px;
+    color: #57606a;
+    background: #f6f8fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.external-link-icon {
+    color: #8c959f;
+    margin-left: 12px;
+}
+
+/* --- 설명 섹션 --- */
+.issue-detail-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+.desc-box {
+    width: 100%;
+    min-height: 200px;
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+    resize: vertical;
+    background: #fcfcfc;
+}
+.desc-box:focus {
+    background: #fff;
+    border-color: #3b82f6;
+    outline: none;
+}
+
+/* 하단 버튼 액션 */
+.issue-edit-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
 .btn-save {
-    background-color: #1a73e8;
+    padding: 8px 16px;
+    background: #0969da;
     color: white;
     border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.2s;
 }
+.btn-save:hover { background: #085ebd; }
 
 .btn-delete {
-    background-color: #d93025;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
+    padding: 8px 16px;
+    background: white;
+    color: #d1242f;
+    border: 1px solid #d1242f;
+    border-radius: 6px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.2s;
 }
-
-/* 칩 내부의 x 버튼 스타일 */
-.remove-assignee-btn {
-    background: none;
-    border: none;
-    color: #000000; /* 칩 배경색에 맞춰 조정 필요 */
-    font-weight: bold;
-    font-size: 14px;
-    margin-left: 6px;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    opacity: 0.7;
-}
-
-.remove-assignee-btn:hover {
-    opacity: 1;
-    color: #ffcccc; /* 호버 시 붉은 계열 추천 */
-}
+.btn-delete:hover { background: #fff0f0; }

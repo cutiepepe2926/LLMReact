@@ -14,6 +14,30 @@ export default function ProjectSettingsMiniGrid({ project, myRole ,onRefresh }) 
     // 삭제 예정 상태인지 확인 (deletedAt 값이 있으면 삭제 대기 중)
     const isDeleteRequested = !!project.deletedAt;
 
+    // 현재 프로젝트 완료(아카이브) 상태인지 확인
+    const isArchived = project.status === "DONE";
+
+    // [핸들러] 프로젝트 상태 토글 (ACTIVE <-> DONE)
+    const handleArchiveToggle = async () => {
+        const nextStatus = isArchived ? "ACTIVE" : "DONE";
+        const actionName = isArchived ? "재활성화" : "완료(아카이브)";
+
+        const confirmMsg = isArchived
+            ? "프로젝트를 다시 활성화하시겠습니까?\n이제 프로젝트 수정이 가능해집니다."
+            : "프로젝트를 완료 처리하시겠습니까?\n완료 시 프로젝트가 '읽기 전용' 상태가 되어 수정할 수 없습니다.";
+
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            await api.patch(`/api/projects/${project.projectId}/status`, { status: nextStatus });
+            alert(`프로젝트가 ${actionName} 되었습니다.`);
+            if (onRefresh) onRefresh();
+        } catch (error) {
+            console.error(error);
+            alert("상태 변경 실패: " + (error.message || "오류 발생"));
+        }
+    };
+
     // 삭제까지 남은 기간 계산 (D-Day)
     const remainingDays = useMemo(() => {
         if (!project.deletedAt) return null;
@@ -83,11 +107,22 @@ export default function ProjectSettingsMiniGrid({ project, myRole ,onRefresh }) 
                 {/* 고급 설정 */}
                 <div className="psg-section-title">고급 설정</div>
 
+                {/* 아카이브 (상태 변경) 버튼 */}
                 <div className="psg-row">
-                    <button type="button" className="psg-btn" disabled>
-                        [프로젝트 아카이브]
+                    <button
+                        type="button"
+                        className={`psg-btn ${isArchived ? "active" : ""}`} // 스타일 필요 시 css 추가 (선택사항)
+                        onClick={handleArchiveToggle}
+                        disabled={!isOwner}
+                        title={!isOwner ? "프로젝트 소유자만 상태를 변경할 수 있습니다" : ""}
+                    >
+                        {isArchived ? "[프로젝트 활성화]" : "[프로젝트 완료]"}
                     </button>
-                    <div className="psg-desc">(완료 처리, Read-only 전환 - 준비중)</div>
+                    <div className="psg-desc">
+                        {isArchived
+                            ? "(현재 완료 상태입니다. 다시 활성화하려면 클릭하세요.)"
+                            : "(프로젝트가 끝났다면 완료처리하세요.)"}
+                    </div>
                 </div>
 
                 <div className="psg-row">

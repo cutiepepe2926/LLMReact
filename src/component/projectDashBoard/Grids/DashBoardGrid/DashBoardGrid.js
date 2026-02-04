@@ -78,6 +78,7 @@ export default function DashboardGrid({ projectId }) {
     // 진행률 계산 (0으로 나누기 방지)
     const progressPercentage = stats.totalTasks === 0 ? 0 : Math.round((stats.completedTasks / stats.totalTasks) * 100);
     // 진행 중인 업무 = 전체 - 완료 (단순 계산)
+    // eslint-disable-next-line
     const inProgressTasks = stats.totalTasks - stats.completedTasks;
 
     return (
@@ -133,7 +134,7 @@ export default function DashboardGrid({ projectId }) {
                 <div className="stat-grid-row">
                     <div className="card stat-box">
                         <span className="stat-label">오픈 이슈</span>
-                        <span className="stat-value red">3</span>
+                        <span className="stat-value red">{stats.openIssues}</span>
                     </div>
                     <div className="card stat-box">
                         <span className="stat-label">오늘 커밋</span>
