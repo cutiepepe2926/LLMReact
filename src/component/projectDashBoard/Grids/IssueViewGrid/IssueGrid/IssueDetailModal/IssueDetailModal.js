@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../../../../../utils/api"; // api 유틸 경로 확인 필요
 import SelectModal from "../IssueList/IssueListModal/SelectModal";
 import DateRangeModal from "../IssueList/IssueListModal/DateRangeModal";
-import CommitLinkModal from "./CommitLinkModal/CommitLinkModal";
 import IssueChatModal from "./IssueChatModal/IssueChatModal";
+import CommitSelectModal from "../IssueCreate/CommitSelectModal";
 import "./IssueDetailModal.css";
 
 const ALL = "ALL";
@@ -47,14 +47,19 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
                         status: response.status,
                         priority: response.priority,
                         dueDate: response.dueDate,
-                        commitSummary: response.commitSummary // 커밋 연결 정보 등
+                        linkedCommitSha: response.linkedCommitSha,
+                        linkedCommitMessage: response.linkedCommitMessage,
+                        linkedCommitUrl: response.linkedCommitUrl
                     });
                 })
                 .catch((err) => {
                     console.error("이슈 상세 조회 실패:", err);
                     // 실패 시 목록에서 넘겨받은 초기 데이터라도 보여줌
                     setDetail(initialIssue);
-                    setEditData(initialIssue);
+                    setEditData({...initialIssue,
+                        linkedCommitSha: initialIssue.linkedCommitSha || null,
+                        linkedCommitMessage: initialIssue.linkedCommitMessage || null,
+                        linkedCommitUrl: initialIssue.linkedCommitUrl || null});
                 });
         }
     }, [open, initialIssue, projectId]);
@@ -166,6 +171,20 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
         }
     };
 
+    // 커밋 선택 완료 핸들러
+    const handleCommitSelect = (commit) => {
+        // 1. editData(수정 대기 상태)에 커밋 정보 반영
+        setEditData((prev) => ({
+            ...prev,
+            linkedCommitSha: commit.sha,
+            linkedCommitMessage: commit.message,
+            linkedCommitUrl: commit.htmlUrl
+        }));
+
+        // 2. 모달 닫기
+        setOpenKey(null);
+    };
+
     // 통합 수정 핸들러 (값을 변경한다고 바로 변경하지 않음)
     const handleUpdate = async () => {
         if (!isAuthorized) {
@@ -181,7 +200,9 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
                 status: editData.status,
                 priority: editData.priority,
                 dueDate: editData.dueDate,
-                // 커밋 연결은 별도 모달에서 처리하거나 여기서 ID를 보낼 수 있음 (구현에 따라 다름)
+                linkedCommitSha: editData.linkedCommitSha,
+                linkedCommitMessage: editData.linkedCommitMessage,
+                linkedCommitUrl: editData.linkedCommitUrl,
             });
 
             alert("이슈가 수정되었습니다.");
@@ -249,9 +270,10 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
             }}
         >
             <div className="issue-detail-modal" onMouseDown={(e) => e.stopPropagation()}>
+
+                {/* [1] 헤더 영역 */}
                 <div className="issue-detail-header">
                     <div className="issue-detail-title-row">
-                        {/* 요구사항 4: #숫자 제거 및 제목 수정 공간 제공 */}
                         {isAuthorized ? (
                             <input
                                 type="text"
@@ -264,151 +286,155 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
                             <span className="issue-detail-title">{detail.title}</span>
                         )}
                     </div>
-
-                    <button className="issue-detail-x" type="button" onClick={onClose}>
-                        ×
-                    </button>
+                    <button className="issue-detail-x" type="button" onClick={onClose}>×</button>
                 </div>
 
-                {/* 상단 메타 영역 */}
-                <div className="issue-detail-meta">
-                    {/* 첫 번째 줄: 상태, 작성자 */}
-                    <div className="meta-line">
-                        <span className="meta-item">
-                            상태 :
-                            <button
-                                type="button"
-                                className="meta-select"
-                                onClick={() => isAuthorized ? setOpenKey("status") : alert("권한이 없습니다.")}
-                            >
-                                {/* [수정] UNASSIGNED일 때도 "진행중"으로 표시되도록 로직 변경 */}
-                                [{getDisplayStatus(editData.status, statusOptions)}▼]
-                            </button>
-                        </span>
-
-                        {/* 작성자 정보 표시 (이름 + ID) */}
-                        <span className="meta-item">
-                            작성자 : <b>{detail.creatorName ? `${detail.creatorName}` : detail.createdBy}</b>
+                {/* [2] 액션 툴바 (새로 추가됨) */}
+                <div className="issue-action-bar">
+                    <div className="action-left">
+                        {/* 작성자 정보 등 간단한 정보는 여기 남겨두거나 메타박스로 이동 */}
+                        <span className="writer-badge">
+                            Written by <b>{detail.creatorName || detail.createdBy}</b>
                         </span>
                     </div>
-
-                    {/* 두 번째 줄: 담당자 목록 (칩 형태) */}
-                    <div className="meta-line" style={{ alignItems: "center" }}>
-                        <span className="meta-item" style={{ marginRight: "8px" }}>담당자 : </span>
-                        <div className="assignee-list">
-                            {detail.assignees && detail.assignees.length > 0 ? (
-                                detail.assignees.map((assignee) => (
-                                    <span key={assignee.userId} className="assignee-chip">
-                                        {assignee.userName}
-                                        {/* 권한 있을 때만 제거 버튼('x') 표시 */}
-                                        {isAuthorized && (
-                                            <button
-                                                className="remove-assignee-btn"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleRemoveAssignee(assignee.userId);
-                                                }}
-                                            >
-                                                ×
-                                            </button>
-                                        )}
-                                    </span>
-                                ))
-                            ) : (
-                                <span className="no-assignee">없음</span>
-                            )}
-                            {/* 담당자 추가 버튼 */}
-                            <button className="add-assignee-btn" onClick={fetchAssigneeCandidates}>
-                                +
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 세 번째 줄: 날짜, 우선순위 */}
-                    <div className="meta-line">
-                        <span className="meta-item">
-                            생성일 : <b>{formatDate(detail.createdAt)}</b>
-                        </span>
-
-                        <span className="meta-item">
-                            마감일 :
-                            <button
-                                type="button"
-                                className="meta-select"
-                                onClick={() => isAuthorized ? setOpenKey("dueDate") : alert("권한이 없습니다.")}
-                            >
-                                [{formatDate(detail.dueDate) || "-"}▼]
-                            </button>
-                        </span>
-
-                        <span className="meta-item">
-                            우선도 :
-                            <button
-                                type="button"
-                                className="meta-select"
-                                onClick={() => {
-                                    if(isAuthorized) setOpenKey("priority");
-                                    else alert("권한이 없습니다.");
-                                }}
-                            >
-                                [P{editData.priority}▼]
-                            </button>
-                        </span>
-                    </div>
-
-                    {/* 네 번째 줄: 커밋, 채팅 버튼 (더미) */}
-                    <div className="meta-line meta-actions">
-                         <span className="meta-item">
-                            관련 커밋 : <b>{detail.commitSummary ?? "-"}</b>
-                        </span>
-
+                    <div className="action-right">
                         <button
                             type="button"
-                            className="btn-green"
+                            className="btn-action"
                             onClick={() => {
                                 if(isAuthorized) setOpenKey("commit");
                                 else alert("권한이 없습니다.");
                             }}
                         >
-                            커밋 연결하기
+                            <span className="icon">🔗</span> 커밋 연결
                         </button>
-
-                        <button type="button" className="btn-green" onClick={() => setOpenKey("chat")}>
-                            채팅
+                        <button
+                            type="button"
+                            className="btn-action"
+                            onClick={() => setOpenKey("chat")}
+                        >
+                            <span className="icon">💬</span> 채팅
                         </button>
                     </div>
                 </div>
 
-                {/* Description */}
-                <div className="issue-detail-section">
-                    <div className="section-title">설명(Description)</div>
-                    <textarea
-                        className="desc-box"
-                        value={editData.description ?? ""}
-                        placeholder="설명..."
-                        readOnly={!isAuthorized} // 권한 없으면 읽기 전용
-                        onChange={(e) =>
-                            setEditData({ ...editData, description: e.target.value })
-                        }
-                    />
+                <div className="issue-content-body">
+                    {/* [3] 메타 데이터 영역 (좌우 분할 혹은 상단 배치) */}
+                    <div className="issue-detail-meta">
+                        {/* 첫 번째 줄: 상태, 날짜 */}
+                        <div className="meta-line">
+                            <span className="meta-item">
+                                상태
+                                <button
+                                    type="button"
+                                    className="meta-select"
+                                    onClick={() => isAuthorized ? setOpenKey("status") : alert("권한이 없습니다.")}
+                                >
+                                    <span className={`status-badge ${editData.status}`}>
+                                        {getDisplayStatus(editData.status, statusOptions)}
+                                    </span> ▼
+                                </button>
+                            </span>
 
-                    {/* 수정/삭제 버튼 영역 (권한 있을 때만 표시) */}
-                    {isAuthorized && (
-                        <div className="issue-edit-actions">
-                            {/* 이 버튼을 눌러야 제목, 설명, 상태, 마감일, 우선도 등이 일괄 API 전송됨 */}
-                            <button className="btn-save" onClick={handleUpdate}>
-                                수정 완료
-                            </button>
-                            <button className="btn-delete" onClick={handleDelete}>
-                                삭제
-                            </button>
+                            <span className="meta-divider">|</span>
+
+                            <span className="meta-item">
+                                우선순위
+                                <button
+                                    type="button"
+                                    className="meta-select"
+                                    onClick={() => isAuthorized ? setOpenKey("priority") : alert("권한이 없습니다.")}
+                                >
+                                    P{editData.priority} ▼
+                                </button>
+                            </span>
+
+                            <span className="meta-divider">|</span>
+
+                            <span className="meta-item">
+                                마감일 :
+                                <button
+                                    type="button"
+                                    className="meta-select-text"
+                                    onClick={() => isAuthorized ? setOpenKey("dueDate") : alert("권한이 없습니다.")}
+                                >
+                                    {formatDate(detail.dueDate) || "설정 안됨"}
+                                </button>
+                            </span>
+                        </div>
+
+                        {/* 두 번째 줄: 담당자 */}
+                        <div className="meta-line assignee-line">
+                            <span className="meta-label">담당자</span>
+                            <div className="assignee-list">
+                                {detail.assignees && detail.assignees.length > 0 ? (
+                                    detail.assignees.map((assignee) => (
+                                        <span key={assignee.userId} className="assignee-chip">
+                                            <span className="avatar-placeholder">{assignee.userName[0]}</span>
+                                            {assignee.userName}
+                                            {isAuthorized && (
+                                                <button
+                                                    className="remove-assignee-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleRemoveAssignee(assignee.userId);
+                                                    }}
+                                                >×</button>
+                                            )}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="no-assignee">담당자 없음</span>
+                                )}
+                                <button className="add-assignee-btn" onClick={fetchAssigneeCandidates}>+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 커밋 섹션: detail 대신 editData를 바라보게 변경 (미리보기 기능) */}
+                    {editData.linkedCommitUrl && (
+                        <div className="linked-commit-container">
+                            <div className="section-label">🔗 Linked Commit</div>
+                            <a
+                                href={editData.linkedCommitUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="commit-link-card"
+                            >
+                                <div className="commit-icon">
+                                    <svg viewBox="0 0 16 16" width="24" height="24" fill="currentColor"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
+                                </div>
+                                <div className="commit-info">
+                                    <span className="commit-message">{editData.linkedCommitMessage || "No commit message"}</span>
+                                    <span className="commit-sha">{editData.linkedCommitSha ? editData.linkedCommitSha.substring(0, 7) : "unknown"}</span>
+                                </div>
+                                <div className="external-link-icon">↗</div>
+                            </a>
                         </div>
                     )}
+
+                    {/* [5] 설명(Description) 영역 */}
+                    <div className="issue-detail-section">
+                        <div className="section-title">Description</div>
+                        <textarea
+                            className="desc-box"
+                            value={editData.description ?? ""}
+                            placeholder="이슈에 대한 상세 설명을 작성하세요."
+                            readOnly={!isAuthorized}
+                            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        />
+
+                        {/* 저장/삭제 버튼 */}
+                        {isAuthorized && (
+                            <div className="issue-edit-actions">
+                                <button className="btn-delete" onClick={handleDelete}>이슈 삭제</button>
+                                <button className="btn-save" onClick={handleUpdate}>변경사항 저장</button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* --- 모달 컴포넌트들 --- */}
-
-                {/* 상태 변경 */}
+                {/* --- 모달 컴포넌트들 (기존과 동일) --- */}
                 <SelectModal
                     open={openKey === "status"}
                     title="상태 선택"
@@ -417,8 +443,6 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
                     onClose={() => setOpenKey(null)}
                     onChange={(v) => handleLocalChange("status", v)}
                 />
-
-                {/* 우선순위 변경 */}
                 <SelectModal
                     open={openKey === "priority"}
                     title="우선도 선택"
@@ -427,39 +451,28 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
                     onClose={() => setOpenKey(null)}
                     onChange={(v) => handleLocalChange("priority", v)}
                 />
-
                 <SelectModal
                     open={openKey === "addAssignee"}
                     title="담당자 추가"
                     options={assigneeOptions}
-                    value={null} // 선택된 값이 없으므로 null
+                    value={null}
                     onClose={() => setOpenKey(null)}
                     onChange={(userId) => handleAddAssigneeSubmit(userId)}
                 />
-
-                {/* 마감일 변경 */}
                 <DateRangeModal
                     open={openKey === "dueDate"}
-                    // title="마감일 설정"  // 필요하다면 제목 변경
-
-                    // [추가] 단일 날짜 선택 모드 활성화
                     isSingle={true}
-
-                    // [추가] 오늘 날짜를 구해서 minDate로 전달 (오늘 이전 선택 불가)
                     minDate={new Date().toISOString().split("T")[0]}
-
                     onClose={() => setOpenKey(null)}
                     onApply={({ endDate }) => handleLocalChange("dueDate", endDate)}
                 />
-
-                {/* 커밋 (더미) */}
-                <CommitLinkModal
-                    open={openKey === "commit"}
-                    onClose={() => setOpenKey(null)}
-                    issue={editData}
-                />
-
-                {/* 채팅 (더미) */}
+                {openKey === "commit" && (
+                    <CommitSelectModal
+                        projectId={projectId}
+                        onClose={() => setOpenKey(null)}
+                        onSelect={handleCommitSelect}
+                    />
+                )}
                 <IssueChatModal
                     open={openKey === "chat"}
                     onClose={() => setOpenKey(null)}
