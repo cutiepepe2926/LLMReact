@@ -69,6 +69,25 @@ export default function FinalReportGrid({projectId, project}) {
         });
     };
 
+    const handleDeleteReport = async (e, reportId) => {
+        e.stopPropagation();
+
+        if (!window.confirm("정말로 이 리포트를 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.")) {
+            return;
+        }
+
+        try {
+            await api.delete(`/api/projects/${projectId}/final-reports/${reportId}`);
+            alert("리포트가 삭제되었습니다.");
+            
+            // 삭제 후 목록 갱신 (서버 재호출 대신 로컬 상태 업데이트로 최적화 가능)
+            setMyReports(prev => prev.filter(r => r.finalReportId !== reportId));
+        } catch (error) {
+            console.error("삭제 실패:", error);
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    };
+
     if(loading){
         return <div className="final-report-loading">로딩 중...</div>;
     }
@@ -145,7 +164,13 @@ export default function FinalReportGrid({projectId, project}) {
                                     <span className="fr-date">
                                         {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : "-"}
                                     </span>
-                                    <button className="fr-arrow-btn">➜</button>
+                                    <button 
+                                        className="fr-delete-btn" 
+                                        onClick={(e) => handleDeleteReport(e, report.finalReportId)}
+                                        title="리포트 삭제"
+                                    >
+                                        삭제
+                                    </button>
                                 </div>
                             </div>
                         ))}

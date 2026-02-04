@@ -291,15 +291,21 @@
     color: #888;
 }
 
-.fr-arrow-btn {
-    background: none;
-    border: none;
-    color: #ccc;
-    font-size: 1.4rem;
+.fr-delete-btn {
+    background: white;
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
     cursor: pointer;
-    transition: color 0.2s;
-    display: flex;
-    align-items: center;
+    transition: all 0.2s;
+    margin-left: 10px;
+}
+
+.fr-delete-btn:hover {
+    background: #ff6b6b;
+    color: white;
 }
 
 .fr-list-item:hover .fr-arrow-btn {
