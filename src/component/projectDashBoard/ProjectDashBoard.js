@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'; // useCallback 추가
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { api } from "../../utils/api";
 
@@ -6,7 +6,7 @@ import ProjectHeader from "../projectHeader/ProjectHeader";
 import TabMenu from "../TabMenu/TabMenu";
 import DashboardGrid from "./Grids/DashBoardGrid/DashBoardGrid";
 import TaskBoard from "./Grids/TaskGrid/TaskBoard";
-import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid";
+import FinalReportGrid from "./Grids/FinalReportGrid/FinalReportGrid"; // [병합] 최종 리포트 컴포넌트
 import MemberSettingsGrid from "./Grids/MemberSettingsGrid/MemberSettingsGrid";
 import IssueTrackerView from "./Grids/IssueViewGrid/IssueTrackerView";
 import InviteSelectModal from "../modal/InviteSelectModal";
@@ -20,32 +20,19 @@ function ProjectDashBoard() {
 
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
-    const projectId = stateProjectData?.projectId 
-                      ? parseInt(stateProjectData.projectId) 
-                      : (params.projectId ? parseInt(params.projectId) : 1);
+    const projectId = params.projectId 
+                      ? parseInt(params.projectId) 
+                      : (location.state?.projectData?.projectId ? parseInt(location.state.projectData.projectId) : null);
 
-    // 1순위: 다른 페이지에서 넘어올 때 전달된 state (예: "나가기" 버튼)
-    // 2순위: sessionStorage에 저장된 마지막 탭 (브라우저 뒤로가기/새로고침 대응)
-    // 3순위: 기본값 "dashboard"
-    const [activeTab, setActiveTab] = React.useState(() => {
-        if (location.state?.initialTab) {
-            return location.state.initialTab;
-        }
-        const savedTab = sessionStorage.getItem(`lastTab_${projectId}`);
-        return savedTab || "dashboard";
-    });
-
-    // 2. State 관리 (Invite 코드 + 갱신을 위한 준비)
+    // 2. State 관리
     const [projectData, setProjectData] = useState(
         (stateProjectData && stateProjectData.name) ? stateProjectData : null
     );
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        if (projectId && activeTab) {
-            sessionStorage.setItem(`lastTab_${projectId}`, activeTab);
-        }
-    }, [activeTab, projectId]);
+    
+    // [초기 탭 설정] location.state로 넘어온 탭이 있으면 우선 사용, 없으면 dashboard
+    const [activeTab, setActiveTab] = React.useState(location.state?.initialTab || "dashboard");
+    const [targetTaskId, setTargetTaskId] = useState(null);
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -90,7 +77,7 @@ function ProjectDashBoard() {
         }
     }, [projectId]);
 
-    // 4. 초대 알림 초기 데이터 페칭
+    // 4. 초대 알림 초기 데이터 페칭 (중복 호출 방지 로직 포함)
     useEffect(() => {
         if (projectData && projectData.projectId === projectId && projectData.name) {
             return;
@@ -140,18 +127,10 @@ function ProjectDashBoard() {
         }
     };
 
-    const TAB_COMPONENTS = {
-        dashboard: DashboardGrid,
-        issue: IssueTrackerView,
-        task: TaskBoard,
-        finalReport: FinalReportGrid,
-        memberSettings: MemberSettingsGrid,
-    };
-
-    // 탭 자동 변경 로직
+    // 탭 자동 변경 로직 (외부 링크나 네비게이션으로 들어왔을 때)
     useEffect(() => {
-        const requestedTab = location.state?.activeTab;
-        const requestedTaskId = location.state?.targetTaskId;
+        const requestedTab = location.state?.activeTab || location.state?.initialTab;
+        const requestedTaskId = location.state?.targetTaskId; 
 
         if (requestedTab && TABS.some(tab => tab.key === requestedTab)) {
             setActiveTab(requestedTab);
@@ -159,8 +138,9 @@ function ProjectDashBoard() {
             if (requestedTaskId) {
                 setTargetTaskId(requestedTaskId);
 
+                // URL 상태 정리 (새로고침 시 반복 실행 방지)
                 window.history.replaceState(
-                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } },
+                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } }, 
                     document.title
                 );
             }
@@ -172,9 +152,6 @@ function ProjectDashBoard() {
         setTargetTaskId(null); // 다른 탭 누르면 상세 호출 신호 초기화
         setActiveTab(key);
     };
-
-    // eslint-disable-next-line
-    const GridContent = TAB_COMPONENTS[activeTab] ?? DashboardGrid;
 
     const isInvited = projectData?.currentUserStatus === 'INVITED';
 
@@ -194,15 +171,19 @@ function ProjectDashBoard() {
                         <div className="grid-loading">데이터를 불러오는 중입니다...</div>
                     ) : projectData ? (
                         <>
+                            {/* [병합된 렌더링 로직] */}
                             {activeTab === "issue" || activeTab === "memberSettings" ? (
                                 <div className="issue-grid-only">
-                                    {activeTab === "issue"
-                                        ? <IssueTrackerView projectId={projectId} project={projectData} />
+                                    {activeTab === "issue" 
+                                        ? <IssueTrackerView projectId={projectId} project={projectData} /> 
                                         : <MemberSettingsGrid projectId={projectId} project={projectData} onProjectUpdate={refreshProjectData} />
                                     }
                                 </div>
                             ) : activeTab === "task" ? (
                                 <TaskBoard projectId={projectId} project={projectData} initialTaskId={targetTaskId} />
+                            ) : activeTab === "finalReport" ? (
+                                // [추가] 최종 리포트 탭 연결
+                                <FinalReportGrid projectId={projectId} project={projectData} />
                             ) : (
                                 <DashboardGrid projectId={projectId} project={projectData} />
                             )}
