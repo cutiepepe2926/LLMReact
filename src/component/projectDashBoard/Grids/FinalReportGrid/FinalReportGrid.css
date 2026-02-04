@@ -1,77 +1,313 @@
-/* --- 최종 리포트 --- */
+/* --- 메인 카드 컨테이너 --- */
 .final-report-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%; 
+    height: 100%;
+    min-height: 500px;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 12px;
+    
+    box-shadow: none !important; 
+    border: 1px solid #eee;
+
+    gap: 25px; 
+    box-sizing: border-box;
+
     grid-column: 1 / -1;
-    padding: 10px; /* meta에 padding 줄 거라 카드 padding 제거 */
 }
 
-/* meta: 100% 채우고 좌우 여백 + 양끝 정렬 */
-.final-report-meta {
+.final-report-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* --- 메시지 전용 (프로젝트 미완료 등) --- */
+.centered-message {
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    text-align: center;
+}
+.message-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.msg-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #555;
+}
+.msg-desc {
+    font-size: 0.95rem;
+    color: #999;
+}
+
+/* =========================================
+   1. 상단: 리포트 생성 섹션 (가로 배치)
+   ========================================= */
+.final-report-create-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
     width: 100%;
+}
+
+/* 헤더 영역 */
+.fr-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
-    box-sizing: border-box;
-
-    padding: 18px 22px; /* 좌우 여백 */
-    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    width: 100%;
 }
 
-.final-report-meta-right {
+.fr-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+    font-weight: 700;
+}
+
+.fr-status-badge {
+    background-color: #e6f4ea;
+    color: #1e8e3e;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 컨트롤 박스: 좌우로 길게 배치 */
+.fr-controls-container {
     display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 20px;
+    background-color: #f8f9fa;
+    padding: 25px 30px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* body: grid + 버튼을 우측 하단으로 보내기 위해 row 하나 확보 */
-.final-report-body {
-    padding: 22px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px 28px;
-    align-items: start;
-}
-
-/* 기존 */
-.final-report-step {
+/* 개별 컨트롤 아이템 */
+.fr-control-item {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex: 1;
+    min-width: 200px;
 }
 
-.final-report-source {
+.fr-action-item {
+    flex: 0 0 auto;
+}
+
+.fr-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #555;
+}
+
+/* 셀렉트 버튼 */
+.fr-select-btn {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    text-align: left;
     display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #333;
+    box-sizing: border-box;
+    transition: all 0.2s;
 }
 
-/* 버튼: body 안에서 우측 하단 */
-.final-report-actions {
-    grid-column: 2;          /* 오른쪽 컬럼에 두고 */
-    justify-self: end;       /* 오른쪽 끝 */
-    align-self: end;         /* 아래 끝 */
-    margin-top: 8px;
+.fr-select-btn:hover {
+    border-color: #aaa;
+    background-color: #fafafa;
 }
 
-.final-report-btn {
-    background: var(--primary-blue);
-    color: #fff;
+.fr-caret {
+    font-size: 0.75rem;
+    color: #999;
+}
+
+/* 생성 버튼 */
+.final-report-btn.create-btn {
+    background-color: #4a90e2;
+    color: white;
     border: none;
-    padding: 12px 18px;
-    border-radius: 12px;
+    padding: 0 30px;
+    border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
+    height: 48px;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+    white-space: nowrap;
 }
 
-.fr-project-input {
-    width: min(360px, 100%);
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
+.final-report-btn.create-btn:hover {
+    background-color: #357abd;
+}
+
+.fr-limit-reached {
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    background-color: #fff0f0;
+    color: #d32f2f;
+    border-radius: 8px;
+    font-weight: 600;
+    border: 1px solid #ffcdd2;
+    box-sizing: border-box;
+}
+
+/* =========================================
+   2. 구분선
+   ========================================= */
+.final-report-divider {
+    border: 0;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 10px 0;
+    width: 100%;
+}
+
+/* =========================================
+   3. 하단: 리포트 목록 섹션
+   ========================================= */
+.final-report-list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    flex: 1; 
+    overflow: hidden;
+}
+
+.final-report-list-section h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #444;
+    font-weight: 600;
+}
+
+/* 목록 컨테이너 */
+.fr-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    height: 100%;
+    padding-right: 8px;
+    width: 100%;
+}
+
+/* 스크롤바 커스텀 */
+.fr-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+.fr-list-container::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+/* 빈 목록 메시지 */
+.fr-empty-list {
+    width: 100%;
+    text-align: center;
+    color: #aaa;
+    padding: 50px 0;
+    font-size: 1rem;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+    box-sizing: border-box;
+}
+
+/* 리스트 아이템 카드 */
+.fr-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 25px;
+    background-color: #fff;
+    border: 1px solid #eee;
     border-radius: 10px;
-    outline: none;
-    background: var(--white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.fr-project-input:focus {
-    border-color: var(--primary-blue);
+.fr-list-item:hover {
+    border-color: #b3d7ff;
+    background-color: #f0f7ff;
+}
+
+.fr-item-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.fr-index {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.fr-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.05rem;
+}
+
+.fr-item-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.fr-date {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.fr-delete-btn {
+    background: white;
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 10px;
+}
+
+.fr-delete-btn:hover {
+    background: #ff6b6b;
+    color: white;
+}
+
+.fr-list-item:hover .fr-arrow-btn {
+    color: #4a90e2;
 }

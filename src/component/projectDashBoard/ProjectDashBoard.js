@@ -20,17 +20,32 @@ function ProjectDashBoard() {
 
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
-    const projectId = params.projectId 
-                      ? parseInt(params.projectId) 
-                      : (location.state?.projectData?.projectId ? parseInt(location.state.projectData.projectId) : null);
+    const projectId = stateProjectData?.projectId 
+                      ? parseInt(stateProjectData.projectId) 
+                      : (params.projectId ? parseInt(params.projectId) : 1);
+
+    // 1순위: 다른 페이지에서 넘어올 때 전달된 state (예: "나가기" 버튼)
+    // 2순위: sessionStorage에 저장된 마지막 탭 (브라우저 뒤로가기/새로고침 대응)
+    // 3순위: 기본값 "dashboard"
+    const [activeTab, setActiveTab] = React.useState(() => {
+        if (location.state?.initialTab) {
+            return location.state.initialTab;
+        }
+        const savedTab = sessionStorage.getItem(`lastTab_${projectId}`);
+        return savedTab || "dashboard";
+    });
 
     // 2. State 관리 (Invite 코드 + 갱신을 위한 준비)
     const [projectData, setProjectData] = useState(
         (stateProjectData && stateProjectData.name) ? stateProjectData : null
     );
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = React.useState("dashboard");
-    const [targetTaskId, setTargetTaskId] = useState(null);
+
+    useEffect(() => {
+        if (projectId && activeTab) {
+            sessionStorage.setItem(`lastTab_${projectId}`, activeTab);
+        }
+    }, [activeTab, projectId]);
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -136,16 +151,16 @@ function ProjectDashBoard() {
     // 탭 자동 변경 로직
     useEffect(() => {
         const requestedTab = location.state?.activeTab;
-        const requestedTaskId = location.state?.targetTaskId; 
-        
+        const requestedTaskId = location.state?.targetTaskId;
+
         if (requestedTab && TABS.some(tab => tab.key === requestedTab)) {
             setActiveTab(requestedTab);
-            
+
             if (requestedTaskId) {
                 setTargetTaskId(requestedTaskId);
-                
+
                 window.history.replaceState(
-                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } }, 
+                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } },
                     document.title
                 );
             }
@@ -181,8 +196,8 @@ function ProjectDashBoard() {
                         <>
                             {activeTab === "issue" || activeTab === "memberSettings" ? (
                                 <div className="issue-grid-only">
-                                    {activeTab === "issue" 
-                                        ? <IssueTrackerView projectId={projectId} project={projectData} /> 
+                                    {activeTab === "issue"
+                                        ? <IssueTrackerView projectId={projectId} project={projectData} />
                                         : <MemberSettingsGrid projectId={projectId} project={projectData} onProjectUpdate={refreshProjectData} />
                                     }
                                 </div>
