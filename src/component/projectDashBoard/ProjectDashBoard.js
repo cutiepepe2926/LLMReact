@@ -150,6 +150,7 @@ function ProjectDashBoard() {
                 );
             }
         }
+        // eslint-disable-next-line
     }, [location.state]);
 
     const handleTabChange = (key) => {
@@ -157,6 +158,7 @@ function ProjectDashBoard() {
         setActiveTab(key);
     };
 
+    // eslint-disable-next-line
     const GridContent = TAB_COMPONENTS[activeTab] ?? DashboardGrid;
 
     const isInvited = projectData?.currentUserStatus === 'INVITED';

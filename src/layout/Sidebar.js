@@ -51,13 +51,16 @@ const Sidebar = () => {
     const [isReportWritten, setIsReportWritten] = useState(false);
     const [reportTargetTime, setReportTargetTime] = useState(null);
     const [displayTime, setDisplayTime] = useState("00:00:00");
+    const [myIssues, setMyIssues] = useState([]);
 
     // Sidebar.js 로고 클릭
+    // eslint-disable-next-line
     const goToHome = () => {
         navigate('/projectList', { replace: true, state: {} }); // state를 비움
     };
 
     // ProjectHeader.js 뒤로가기
+    // eslint-disable-next-line
     const goBackToList = () => {
         navigate('/projectList', { state: {} });
     };
@@ -67,6 +70,7 @@ const Sidebar = () => {
             if (isProjectContext) {
                 const res = await api.get(`/api/projects/${projectId}/sidebar`);
                 setMyTasks(Array.isArray(res.myTasks) ? res.myTasks : []);
+                setMyIssues(Array.isArray(res.myIssues) ? res.myIssues : []);
                 setProjectStatus(res.projectStatus || "ACTIVE");
                 setGithubUrl(res.githubRepoUrl || ""); // URL 바인딩
                 setIsReportWritten(res.reportWritten);
@@ -197,6 +201,38 @@ const Sidebar = () => {
                                     </div>
                                 );
                             }) : <div className="no-tasks">남은 업무가 없습니다.</div>}
+                        </div>
+
+                        {/* MY ISSUES 섹션 (업무 목록 바로 아래에 추가) */}
+                        <div className="menu-divider" />
+                        <div className="menu-section-label">MY ISSUES ({myIssues.length})</div>
+
+                        <div className="task-scroll-area" style={{ maxHeight: '150px' }}> {/* 필요시 높이 조절 */}
+                            {myIssues.length > 0 ? myIssues.map((issue, idx) => (
+                                <div
+                                    key={issue.issueId || idx}
+                                    className="sidebar-task-item"
+                                    onClick={() => navigate('/projectDetail', {
+                                        state: {
+                                            activeTab: 'issue', // 탭을 '이슈'로 전환
+                                            projectData: { projectId },
+                                            targetIssueId: issue.issueId
+                                        }
+                                    })}
+                                >
+                                    {/* 이슈 구분용 보라색 점 (색상은 추후 논의) */}
+                                    <span className="task-dot" style={{ backgroundColor: '#A855F7', boxShadow: '0 0 0 2px rgba(168, 85, 247, 0.2)' }}></span>
+
+                                    <span className="task-title">{issue.title}</span>
+
+                                    {/* 우선순위 뱃지 (P0 ~ P5) */}
+                                    {issue.priority !== undefined && (
+                                        <span className="mini-badge badge-high" style={{ backgroundColor: '#F3F4F6', color: '#4B5563', border: '1px solid #E5E7EB' }}>
+                                            P{issue.priority}
+                                        </span>
+                                    )}
+                                </div>
+                            )) : <div className="no-tasks">할당된 이슈가 없습니다.</div>}
                         </div>
 
                         <div style={{ flex: 1 }} />

@@ -1,6 +1,8 @@
 import React, {useMemo, useRef, useState, useEffect } from "react";
-import SelectModal from "./SelectModal";
 import { api } from '../../../../../../utils/api';
+
+import SelectModal from "./SelectModal";
+import CommitSelectModal from './CommitSelectModal';
 import "./IssueCreateModal.css";
 
 function todayStr() {
@@ -11,7 +13,7 @@ function todayStr() {
     return `${yyyy}-${mm}-${dd}`;
 }
 
-export default function IssueCreateModal({ open, onClose, projectId }) {
+export default function IssueCreateModal({ open, onClose, projectId, onCreate }) {
 
     // === 기본 입력 데이터 ===
     const [title, setTitle] = useState("");
@@ -24,6 +26,10 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
     const [allMembers, setAllMembers] = useState([]);           // 전체 프로젝트 멤버 리스트
     const [searchResults, setSearchResults] = useState([]);     // 검색 결과 (드롭다운 표시용)
     const [selectedAssignees, setSelectedAssignees] = useState([]); // 선택된 담당자들
+
+    // === 커밋 연결 관련 상태 ===
+    const [linkedCommit, setLinkedCommit] = useState(null); // { sha, message, htmlUrl }
+    const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
 
     // 드롭다운 제어를 위한 Ref
     const searchWrapperRef = useRef(null);
@@ -54,6 +60,8 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
             setSelectedAssignees([]);
             setSearchResults([]);
             setPriority("P0");
+            setLinkedCommit(null);
+            setEndDate(todayStr());
         }
         // eslint-disable-next-line
     }, [open, projectId]);
@@ -63,7 +71,8 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
         try {
             // [API] 프로젝트 멤버 전체 조회
             const response = await api.get(`/api/projects/${projectId}/members/assignees`);
-            setAllMembers(response || []); // 전체 멤버 저장
+            const members = Array.isArray(response) ? response : (response.data || []);
+            setAllMembers(members);
         } catch (error) {
             console.error("멤버 목록 조회 실패:", error);
         }
@@ -144,7 +153,10 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
             description: description,   // 설명
             priority: priorityInt,      // 우선순위 (int)
             dueDate: endDate,           // [중요] 변수명 매칭 (endDate -> dueDate)
-            assigneeIds: assigneeIdsPayload // 담당자 리스트
+            assigneeIds: assigneeIdsPayload, // 담당자 리스트
+            linkedCommitSha: linkedCommit?.sha || null,
+            linkedCommitMessage: linkedCommit?.message || null,
+            linkedCommitUrl: linkedCommit?.htmlUrl || null,
         };
 
         try {
@@ -153,6 +165,9 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
 
             console.log("이슈 생성 성공:", response);
             alert("이슈가 성공적으로 생성되었습니다.");
+            if (typeof onCreate === 'function') {
+                onCreate();
+            }
 
             // 입력 필드 초기화
             setTitle("");
@@ -165,6 +180,12 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
             console.error("이슈 생성 실패:", error);
             alert(error.message || "이슈 생성 중 오류가 발생했습니다.");
         }
+    };
+
+    // 커밋 선택 완료 핸들러
+    const handleCommitSelect = (commit) => {
+        setLinkedCommit(commit);
+        setIsCommitModalOpen(false);
     };
 
     if (!open) return null;
@@ -223,10 +244,18 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
                                 <input
                                     className="field-input"
                                     placeholder="커밋을 지정해주세요."
+                                    // [수정] 선택된 커밋 메시지 표시
+                                    value={linkedCommit ? `[${linkedCommit.sha.substring(0,7)}] ${linkedCommit.message}` : ""}
                                     disabled
+                                    readOnly
                                 />
-                                <button type="button" className="btn gray" disabled>
-                                    커밋 연결
+                                <button
+                                    type="button"
+                                    className="btn gray"
+                                    // [수정] 버튼 활성화 및 클릭 이벤트
+                                    onClick={() => setIsCommitModalOpen(true)}
+                                >
+                                    {linkedCommit ? "변경" : "커밋 연결"}
                                 </button>
                             </div>
                         </div>
@@ -346,6 +375,14 @@ export default function IssueCreateModal({ open, onClose, projectId }) {
                         setPriorityModalOpen(false);
                     }}
                     onClose={() => setPriorityModalOpen(false)}
+                />
+            )}
+
+            {isCommitModalOpen && (
+                <CommitSelectModal
+                    projectId={projectId}
+                    onClose={() => setIsCommitModalOpen(false)}
+                    onSelect={handleCommitSelect}
                 />
             )}
         </>

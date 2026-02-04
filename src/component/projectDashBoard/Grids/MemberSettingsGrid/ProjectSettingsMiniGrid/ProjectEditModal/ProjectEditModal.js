@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../../../../../utils/api';
 import '../../../../../modal/CreateProjectModal.css'
+import "./ProjectEditModal.css";
 
 const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        reportTime: '09:00',
-        repoUrl: '',
+        name: project.name || "",
+        description: project.description || "",
+        startDate: project.startDate || "",
+        endDate: project.endDate || "",
+        repoUrl: project.githubRepoUrl || "", // DB 필드명에 맞춰 초기값 설정
     });
+
+    // 깃허브 저장소 목록 및 미니 모달 상태
+    const [myRepos, setMyRepos] = useState([]);
+    const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
+    const [repoPage, setRepoPage] = useState(1);
+    const [isLoadingRepos, setIsLoadingRepos] = useState(false);
 
     // 1. 모달 진입 시 상세 정보 API 호출
     useEffect(() => {
@@ -84,6 +90,50 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
         } catch (error) {
             alert("수정 실패: " + (error.message || "오류가 발생했습니다."));
         }
+    };
+
+    // 깃허브 저장소 목록 불러오기 (페이지네이션 적용)
+    const fetchMyRepos = async (pageToLoad = 1) => {
+        try {
+            setIsLoadingRepos(true);
+
+            if (pageToLoad === 1) {
+                setIsRepoModalOpen(true);
+                setMyRepos([]);
+            }
+
+            const res = await api.get(`/api/github/repos?page=${pageToLoad}`);
+            const newData = res.data || res;
+
+            if (pageToLoad === 1) {
+                setMyRepos(newData);
+            } else {
+                setMyRepos(prev => [...prev, ...newData]);
+            }
+
+            setRepoPage(pageToLoad);
+
+        } catch (error) {
+            console.error("저장소 목록 로딩 실패:", error);
+            alert("깃허브 저장소 목록을 불러오지 못했습니다.");
+            if (pageToLoad === 1) setIsRepoModalOpen(false);
+        } finally {
+            setIsLoadingRepos(false);
+        }
+    };
+
+    // 더보기 버튼 핸들러
+    const handleLoadMore = () => {
+        fetchMyRepos(repoPage + 1);
+    };
+
+    // 저장소 선택 핸들러
+    const handleSelectRepo = (repo) => {
+        setFormData(prev => ({
+            ...prev,
+            repoUrl: repo.html_url,
+        }));
+        setIsRepoModalOpen(false);
     };
 
     const isFormValid = formData.name.trim() !== '';
@@ -163,14 +213,27 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
 
                     <div className="form-group">
                         <label>깃허브 주소</label>
-                        <div className="input-with-button">
+                        <div className="repo-input-group" style={{ display: 'flex', gap: '10px' }}> {/* 인라인 스타일 또는 CSS 클래스 사용 */}
                             <input
                                 type="text"
                                 name="repoUrl"
                                 value={formData.repoUrl}
                                 onChange={handleChange}
+                                placeholder="https://github.com/username/repo"
+                                style={{ flex: 1 }}
                             />
-                            <button className="verify-btn" type="button">깃허브 연결하기</button>
+                            <button
+                                className="btn-connect-github"
+                                type="button"
+                                onClick={() => fetchMyRepos(1)}
+                                style={{
+                                    backgroundColor: '#24292e', color: 'white', border: 'none',
+                                    padding: '0 16px', borderRadius: '6px', cursor: 'pointer',
+                                    fontWeight: '600', whiteSpace: 'nowrap'
+                                }}
+                            >
+                                🔗 GitHub 연결
+                            </button>
                         </div>
                     </div>
 
@@ -188,6 +251,51 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
                     </div>
                 </div>
             </div>
+
+            {isRepoModalOpen && (
+                <div className="mini-modal-overlay" onClick={() => setIsRepoModalOpen(false)}>
+                    <div className="mini-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="mini-modal-header">
+                            <h3>내 GitHub 저장소 목록</h3>
+                            <button className="close-btn" onClick={() => setIsRepoModalOpen(false)}>×</button>
+                        </div>
+
+                        <div className="repo-list-container">
+                            {isLoadingRepos && myRepos.length === 0 ? (
+                                <p className="loading-text">목록을 불러오는 중...</p>
+                            ) : myRepos.length > 0 ? (
+                                <>
+                                    <ul className="repo-list">
+                                        {myRepos.map((repo, index) => (
+                                            <li key={`${repo.full_name}-${index}`} className="repo-item" onClick={() => handleSelectRepo(repo)}>
+                                                <div className="repo-info">
+                                                    <span className="repo-name">{repo.name}</span>
+                                                    <span className={`repo-badge ${repo.private ? 'private' : 'public'}`}>
+                                                        {repo.private ? 'Private' : 'Public'}
+                                                    </span>
+                                                </div>
+                                                <div className="repo-desc">{repo.description || "설명 없음"}</div>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    {!isLoadingRepos && myRepos.length % 10 === 0 && myRepos.length > 0 && (
+                                        <button className="btn-load-more" onClick={handleLoadMore}>
+                                            ▼ 더보기
+                                        </button>
+                                    )}
+
+                                    {isLoadingRepos && myRepos.length > 0 && (
+                                        <div className="loading-more-text">불러오는 중...</div>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="no-data-text">연결된 저장소가 없습니다.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
