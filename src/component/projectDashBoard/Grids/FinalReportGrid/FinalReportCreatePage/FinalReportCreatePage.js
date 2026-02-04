@@ -10,11 +10,14 @@ export default function FinalReportCreatePage() {
     const navigate = useNavigate();
     const { state } = useLocation();
     
-    // state에서 title도 받아옴
     const { projectId, template, sections, finalReportId, mode, title: initialTitle } = state || {};
 
-    // 넘어온 title이 있으면 그것을 초기값으로 사용, 없으면 "제목 없음"
+    // 현재 작업 중인 리포트 ID
+    const [currentReportId, setCurrentReportId] = useState(finalReportId || null);
+
     const [title, setTitle] = useState(initialTitle || "제목 없음");
+    
+    // content는 '초기 로딩' 시에만 사용하고, 실시간 타이핑 시에는 업데이트하지 않음 (성능 최적화 & 에러 방지)
     const [content, setContent] = useState(""); 
     const [loading, setLoading] = useState(true); 
     
@@ -45,12 +48,11 @@ export default function FinalReportCreatePage() {
             try {
                 let reportContent = "";
                 let reportTitle = "";
+                let fetchedId = null;
 
                 if (projectId) {
-                    // 1. 기존 리포트 조회
                     if (mode === "VIEW" || finalReportId) {
                         const res = await api.get(`/api/projects/${projectId}/final-reports`);
-                        // 리스트(배열)에서 내 리포트 찾기
                         const data = Array.isArray(res) 
                             ? res.find(r => r.finalReportId === finalReportId) 
                             : res;
@@ -58,26 +60,28 @@ export default function FinalReportCreatePage() {
                         if (data) {
                             reportContent = data.content || "";
                             reportTitle = data.title || initialTitle || "제목 없음";
+                            fetchedId = data.finalReportId;
                         }
                     } 
-                    // 2. 신규 리포트 생성 (AI)
                     else {
                         const requestBody = {
                             reportType: mapTemplateToCode(template),
                             selectedSections: sections || [] 
                         };
                         const res = await api.post(`/api/projects/${projectId}/final-reports`, requestBody);
-                        reportContent = res.content;
+                        
+                        reportContent = res.content || "";
                         reportTitle = res.title || "AI 리포트 생성 결과";
+                        fetchedId = res.finalReportId; 
                     }
                 } else {
                     reportContent = "# 테스트 리포트\n\n내용";
                     reportTitle = "테스트 리포트";
                 }
 
-                setContent(reportContent);
-                // API에서 가져온 제목이 유효하면 업데이트, 아니면 기존 유지
+                setContent(reportContent); // 초기값 설정
                 if (reportTitle) setTitle(reportTitle);
+                if (fetchedId) setCurrentReportId(fetchedId); 
 
             } catch (error) {
                 console.error("리포트 로드 실패:", error);
@@ -90,13 +94,9 @@ export default function FinalReportCreatePage() {
         fetchReport();
     }, [projectId, template, sections, finalReportId, mode, navigate, initialTitle]);
 
-    const onChangeEditor = () => {
-        if (editorRef.current) {
-            setContent(editorRef.current.getInstance().getMarkdown());
-        }
-    };
-
+    // 저장
     const handleSave = async () => {
+        // 저장 시점의 에디터 내용을 직접 가져옴 (state에 의존하지 않음)
         const contentToSave = editorRef.current ? editorRef.current.getInstance().getMarkdown() : content;
         
         if (!title.trim()) {
@@ -105,31 +105,45 @@ export default function FinalReportCreatePage() {
         }
 
         try {
-            if (finalReportId) {
-                // [CASE 1] 기존 리포트 수정 (PUT)
-                await api.put(`/api/projects/${projectId}/final-reports/${finalReportId}`, {
+            if (currentReportId) {
+                await api.put(`/api/projects/${projectId}/final-reports/${currentReportId}`, {
                     title: title,
                     content: contentToSave
                 });
                 alert("성공적으로 저장되었습니다.");
             } else {
-                // [CASE 2] 신규 리포트 생성 (POST) - 기존 로직 유지 혹은 저장 로직 구현
-                // 만약 '새 리포트' 상태에서 저장을 누르면 실제 DB에 Insert 해야 함
-                // 현재 기획상 AI 생성 직후엔 DB에 이미 들어가 있으므로(finalReportId 존재),
-                // 이 블록은 '완전 빈 페이지에서 시작'할 때만 탈 수 있음.
-                
-                // 예시: 신규 생성 로직이 필요하다면 아래와 같이 작성
-                /*
-                const res = await api.post(`/api/projects/${projectId}/final-reports/manual`, {
-                    title, content: contentToSave
-                });
-                // 저장 후 ID 받아서 URL 변경 등 처리 필요
-                */
-                alert("신규 생성 저장은 '다른 이름으로 저장'을 이용하거나 자동 저장됩니다.");
+                alert("오류: 리포트 ID를 찾을 수 없습니다.");
             }
         } catch (e) {
             console.error(e);
-            alert("저장 중 오류가 발생했습니다: " + (e.response?.data || e.message));
+            alert("저장 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 다른 이름으로 저장
+    const handleSaveAs = async () => {
+        const contentToSave = editorRef.current ? editorRef.current.getInstance().getMarkdown() : content;
+
+        if (!title.trim()) {
+            alert("제목을 입력해주세요.");
+            return;
+        }
+
+        if(!window.confirm(`'${title}'(으)로 새로 저장하시겠습니까?`)) return;
+
+        try {
+            const res = await api.post(`/api/projects/${projectId}/final-reports/save-as`, {
+                title: title,
+                content: contentToSave
+            });
+
+            if (res && res.finalReportId) {
+                setCurrentReportId(res.finalReportId);
+                alert(`[새 파일 저장 완료]\n이제부터 '${res.title}' 파일을 편집합니다.`);
+            }
+        } catch (e) {
+            console.error("다른 이름으로 저장 실패:", e);
+            alert("저장 중 오류가 발생했습니다.");
         }
     };
 
@@ -172,7 +186,7 @@ export default function FinalReportCreatePage() {
                 
                 <div className="frc-header-actions">
                     <button className="frc-btn secondary" onClick={() => navigate(-1)}>나가기</button>
-                    <button className="frc-btn secondary save-as" onClick={() => alert("기능 구현 예정")}>다른 이름으로 저장</button>
+                    <button className="frc-btn secondary save-as" onClick={handleSaveAs}>다른 이름으로 저장</button>
                     <button className="frc-btn primary" onClick={handleSave}>저장</button>
                 </div>
             </div>
@@ -187,14 +201,20 @@ export default function FinalReportCreatePage() {
                             height="100%"
                             initialEditType="wysiwyg"
                             useCommandShortcut={true}
-                            onChange={onChangeEditor}
                             language="ko-KR"
+                            toolbarItems={[
+                                ['heading', 'bold', 'italic', 'strike'],
+                                ['hr', 'quote'],
+                                ['ul', 'ol', 'task', 'indent', 'outdent'],
+                                ['table', 'image', 'link'],
+                                ['code', 'codeblock']
+                            ]}
                         />
                     </div>
                 </section>
-
+                
                 <section className="frc-right">
-                    <div className="frc-chat-container">
+                   <div className="frc-chat-container">
                         <div className="frc-chat-header">AI Assistant</div>
                         <div className="frc-chat-messages">
                             {messages.map((msg, idx) => (
