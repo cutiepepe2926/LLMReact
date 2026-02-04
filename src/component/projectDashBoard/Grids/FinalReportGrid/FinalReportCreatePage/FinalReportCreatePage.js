@@ -115,8 +115,8 @@ export default function FinalReportCreatePage() {
                 alert("오류: 리포트 ID를 찾을 수 없습니다.");
             }
         } catch (e) {
-            console.error(e);
-            alert("저장 중 오류가 발생했습니다.");
+            console.error("다른 이름으로 저장 실패:", e);
+            alert("저장 중 오류가 발생했습니다: " + (e.response?.data?.message || e.message));
         }
     };
 
@@ -143,7 +143,9 @@ export default function FinalReportCreatePage() {
             }
         } catch (e) {
             console.error("다른 이름으로 저장 실패:", e);
-            alert("저장 중 오류가 발생했습니다.");
+            const errorMessage = e.response?.data?.message || e.message;
+            
+            alert(errorMessage);
         }
     };
 
