@@ -1,16 +1,27 @@
 // IssueTrackerView.js
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import IssueListPage from "./IssueGrid/IssueList/IssueListPage";
 import IssueDetailModal from "./IssueGrid/IssueDetailModal/IssueDetailModal";
 import TabMenu from "../../../TabMenu/TabMenu"; // TabMenu 컴포넌트 경로에 맞춰 임포트
 
-export default function IssueTrackerView({project}) {
+export default function IssueTrackerView({project, initialIssueId}) {
     // 1. 기존 view ("GRID" | "LIST") 상태 제거
     // 2. 탭 메뉴를 위한 상태 관리 (기본값: ALL 또는 UNASSIGNED)
     const [selectedStatus, setSelectedStatus] = useState("UNASSIGNED");
     const [selectedIssue, setSelectedIssue] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0); // 새로고침용 키
     const projectId = project?.projectId || project?.id;
+
+    // 알림을 통해 들어온 경우 초기 설정
+    useEffect(() => {
+        if (initialIssueId) {
+            // 1. 이슈 할당 알림이므로 상태를 '처리중(IN_PROGRESS)'으로 전환
+            setSelectedStatus("IN_PROGRESS");
+
+            // 2. 상세 모달 오픈 (ID만 객체로 넣어주면 Modal 내부에서 API로 상세 정보를 긁어옴)
+            setSelectedIssue({ id: initialIssueId });
+        }
+    }, [initialIssueId]);
 
     // 탭 구성을 위한 데이터
     const issueTabs = [

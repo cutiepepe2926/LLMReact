@@ -212,13 +212,18 @@ const Sidebar = () => {
                                 <div
                                     key={issue.issueId || idx}
                                     className="sidebar-task-item"
-                                    onClick={() => navigate('/projectDetail', {
-                                        state: {
-                                            activeTab: 'issue', // 탭을 '이슈'로 전환
-                                            projectData: { projectId },
-                                            targetIssueId: issue.issueId
-                                        }
-                                    })}
+                                    onClick={() => {
+                                        // state 대신 search(쿼리 스트링) 사용
+                                        navigate({
+                                            pathname: '/projectDetail', // 또는 `/project/${projectId}/dashboard`
+                                            search: `?issueId=${issue.issueId}`,
+                                        }, {
+                                            // state도 같이 보내주면 안전장치 역할 (프로젝트 정보 유지)
+                                            state: {
+                                                projectData: { projectId, name: projectName }
+                                            }
+                                        });
+                                    }}
                                 >
                                     {/* 이슈 구분용 보라색 점 (색상은 추후 논의) */}
                                     <span className="task-dot" style={{ backgroundColor: '#A855F7', boxShadow: '0 0 0 2px rgba(168, 85, 247, 0.2)' }}></span>

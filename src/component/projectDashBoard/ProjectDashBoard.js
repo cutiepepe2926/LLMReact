@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { api } from "../../utils/api";
 
 import ProjectHeader from "../projectHeader/ProjectHeader";
@@ -17,6 +17,11 @@ function ProjectDashBoard() {
     const location = useLocation();
     const params = useParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const queryIssueId = searchParams.get('issueId'); // 예: "15"
+
+    console.log("📍 [Dashboard] 현재 URL:", window.location.href);
+    console.log("📍 [Dashboard] 감지된 issueId:", queryIssueId);
 
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
@@ -29,10 +34,19 @@ function ProjectDashBoard() {
         (stateProjectData && stateProjectData.name) ? stateProjectData : null
     );
     const [loading, setLoading] = useState(false);
+
+    // queryTab이 'ISSUE'면 소문자 'issue'로 변환하여 매칭
+    const getInitialTab = () => {
+        if (queryIssueId) return 'issue'; // issueId가 있으면 이슈 탭 우선
+        return location.state?.initialTab || "dashboard";
+    };
     
     // [초기 탭 설정] location.state로 넘어온 탭이 있으면 우선 사용, 없으면 dashboard
-    const [activeTab, setActiveTab] = React.useState(location.state?.initialTab || "dashboard");
+    //const [activeTab, setActiveTab] = React.useState(location.state?.initialTab || "dashboard");
+    const [activeTab, setActiveTab] = React.useState(getInitialTab());
     const [targetTaskId, setTargetTaskId] = useState(null);
+    const [targetIssueId, setTargetIssueId] = useState(queryIssueId ? parseInt(queryIssueId) : null);
+
 
     const TABS = [
         { key: "dashboard", label: "대시보드" },
@@ -48,19 +62,16 @@ function ProjectDashBoard() {
             if (projectId && (!projectData || projectData.projectId !== projectId)) {
                 try {
                     setLoading(true);
-                    console.log(`데이터 복구 중... 프로젝트 ID: ${projectId}`);
                     const response = await api.get(`/api/projects/${projectId}`);
                     setProjectData(response.data || response);
                 } catch (error) {
                     console.error("데이터 복구 실패:", error);
-                    alert("프로젝트 정보를 불러올 수 없습니다.");
                     navigate('/projectList');
                 } finally {
                     setLoading(false);
                 }
             }
         };
-
         fetchProjectDetail();
     }, [projectId, projectData, navigate]);
 
@@ -128,19 +139,35 @@ function ProjectDashBoard() {
     };
 
     // 탭 자동 변경 로직 (외부 링크나 네비게이션으로 들어왔을 때)
+    // useEffect(() => {
+    //     const requestedTab = location.state?.activeTab || location.state?.initialTab;
+    //     const requestedTaskId = location.state?.targetTaskId;
+    //
+    //     if (requestedTab && TABS.some(tab => tab.key === requestedTab)) {
+    //         setActiveTab(requestedTab);
+    //
+    //         if (requestedTaskId) {
+    //             setTargetTaskId(requestedTaskId);
+    //
+    //             // URL 상태 정리 (새로고침 시 반복 실행 방지)
+    //             window.history.replaceState(
+    //                 { ...window.history.state, usr: { ...location.state, targetTaskId: null } },
+    //                 document.title
+    //             );
+    //         }
+    //     }
+    //     // eslint-disable-next-line
+    // }, [location.state]);
     useEffect(() => {
         const requestedTab = location.state?.activeTab || location.state?.initialTab;
-        const requestedTaskId = location.state?.targetTaskId; 
+        const requestedTaskId = location.state?.targetTaskId;
 
         if (requestedTab && TABS.some(tab => tab.key === requestedTab)) {
             setActiveTab(requestedTab);
-
             if (requestedTaskId) {
                 setTargetTaskId(requestedTaskId);
-
-                // URL 상태 정리 (새로고침 시 반복 실행 방지)
                 window.history.replaceState(
-                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } }, 
+                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } },
                     document.title
                 );
             }
@@ -148,8 +175,17 @@ function ProjectDashBoard() {
         // eslint-disable-next-line
     }, [location.state]);
 
+    useEffect(() => {
+        if (queryIssueId) {
+            console.log("🔔 이슈 알림 감지! 탭 이동 및 모달 오픈");
+            setActiveTab('issue'); // 탭을 '이슈'로 변경
+            setTargetIssueId(parseInt(queryIssueId)); // 타겟 이슈 ID 설정 -> IssueTrackerView로 전달됨
+        }
+    }, [queryIssueId]);
+
     const handleTabChange = (key) => {
-        setTargetTaskId(null); // 다른 탭 누르면 상세 호출 신호 초기화
+        setTargetTaskId(null);
+        setTargetIssueId(null); // 탭을 직접 누르면 타겟팅 해제
         setActiveTab(key);
     };
 
@@ -175,7 +211,10 @@ function ProjectDashBoard() {
                             {activeTab === "issue" || activeTab === "memberSettings" ? (
                                 <div className="issue-grid-only">
                                     {activeTab === "issue" 
-                                        ? <IssueTrackerView projectId={projectId} project={projectData} /> 
+                                        ? <IssueTrackerView
+                                            projectId={projectId}
+                                            project={projectData}
+                                            initialIssueId={targetIssueId} />
                                         : <MemberSettingsGrid projectId={projectId} project={projectData} onProjectUpdate={refreshProjectData} />
                                     }
                                 </div>

@@ -52,6 +52,14 @@ const AlarmModal = ({ onClose, onUpdate }) => {
             }
         }
 
+        // 페이지 이동 로직
+        // 백엔드에서 준 URL이 있으면 그걸로 이동 (쿼리 파라미터 포함됨)
+        if (alarm.url) {
+            navigate(alarm.url);
+            if (onClose) onClose();
+            return; // 여기서 종료
+        }
+
         if (alarm.projectId) {
             navigate('/projectDetail', {
                 state: {

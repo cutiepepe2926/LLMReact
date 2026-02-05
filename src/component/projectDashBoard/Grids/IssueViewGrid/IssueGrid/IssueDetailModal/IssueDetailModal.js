@@ -477,6 +477,8 @@ export default function IssueDetailModal({ open, issue: initialIssue, projectId,
                     open={openKey === "chat"}
                     onClose={() => setOpenKey(null)}
                     issue={detail}
+                    projectId={projectId}          // API 호출 및 메시지 전송용
+                    currentUserId={currentUserId}  // '나'와 '상대방' 메시지 구분용
                 />
 
             </div>
