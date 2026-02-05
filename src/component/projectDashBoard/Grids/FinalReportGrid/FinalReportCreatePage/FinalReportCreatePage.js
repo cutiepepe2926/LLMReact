@@ -33,6 +33,8 @@ export default function FinalReportCreatePage() {
     const highlightRef = useRef(null);
     const rafRef = useRef(null);
 
+    const lastEditorSelectionRef = useRef(null);
+
     // [상태 관리] 하이라이트 스타일 및 로직 제어
     const [highlightStyle, setHighlightStyle] = useState(null);
     const lastRangeRef = useRef(null); // 선택 영역(Range) 저장
@@ -120,10 +122,15 @@ export default function FinalReportCreatePage() {
         const editorInstance = new Editor({
             el: containerRef.current,
             initialValue: initialContent,
-            previewStyle: 'vertical',
+            previewStyle: 'vertical', // 미리보기 스타일 (유지)
             height: '100%',
-            initialEditType: 'wysiwyg',
-            hideModeSwitch: true,
+            
+            // [수정] 초기 모드를 'markdown'으로 변경합니다.
+            initialEditType: 'markdown', 
+            
+            // [옵션] 사용자가 위지윅으로 바꾸지 못하게 하려면 true 유지, 아니면 false로 변경
+            hideModeSwitch: true, 
+            
             useCommandShortcut: true,
             language: 'ko-KR',
             toolbarItems: TOOLBAR_ITEMS
@@ -132,8 +139,8 @@ export default function FinalReportCreatePage() {
         editorRef.current = editorInstance;
 
         // Toast UI v3 DOM 접근
-        const { wwEditor } = editorInstance.getEditorElements(); 
-        const scrollContainer = wwEditor ? wwEditor.parentElement : null;
+        const { mdEditor } = editorInstance.getEditorElements();
+        const scrollContainer = mdEditor ? mdEditor.parentElement : null;
 
         const saveRange = () => {
             const selection = window.getSelection();
@@ -141,9 +148,15 @@ export default function FinalReportCreatePage() {
                 const range = selection.getRangeAt(0);
                 if (!range.collapsed && range.toString().trim().length > 0) {
                     lastRangeRef.current = range.cloneRange();
+
+                    if (editorInstance) {
+                        lastEditorSelectionRef.current = editorInstance.getSelection();
+                    }
+
                     setHasSelection(true);
                 } else {
                     lastRangeRef.current = null;
+                    lastEditorSelectionRef.current = null;
                     setHasSelection(false);
                 }
             }
@@ -199,30 +212,25 @@ export default function FinalReportCreatePage() {
             });
         };
 
-        if (wwEditor && scrollContainer) {
-            wwEditor.addEventListener('mouseup', saveRange);
-            wwEditor.addEventListener('keyup', saveRange);
+        if (mdEditor && scrollContainer) {
+            mdEditor.addEventListener('mouseup', saveRange);
+            mdEditor.addEventListener('keyup', saveRange);
             
-            wwEditor.addEventListener('focus', clearHighlight);
-            wwEditor.addEventListener('mousedown', clearHighlight);
-            wwEditor.addEventListener('keydown', clearHighlight);
+            mdEditor.addEventListener('focus', clearHighlight);
+            mdEditor.addEventListener('mousedown', clearHighlight);
+            mdEditor.addEventListener('keydown', clearHighlight);
             
-            // [중요] 스크롤 이벤트는 'scrollContainer'에 걸어야 가장 정확함
-            // 하지만 ToastUI 구조상 wwEditor에서 버블링되는 스크롤을 잡거나 
-            // 직접 scrollContainer에 리스너를 붙여야 함. capture: true로 잡는 것이 안전.
             scrollContainer.addEventListener('scroll', updateHighlightPosition, { capture: true });
-            
-            // 윈도우 리사이즈 시에도 위치가 틀어질 수 있으므로 추가하면 좋음
             window.addEventListener('resize', updateHighlightPosition);
         }
 
         return () => {
-            if (wwEditor && scrollContainer) {
-                wwEditor.removeEventListener('mouseup', saveRange);
-                wwEditor.removeEventListener('keyup', saveRange);
-                wwEditor.removeEventListener('focus', clearHighlight);
-                wwEditor.removeEventListener('mousedown', clearHighlight);
-                wwEditor.removeEventListener('keydown', clearHighlight);
+            if (mdEditor && scrollContainer) {
+                mdEditor.removeEventListener('mouseup', saveRange);
+                mdEditor.removeEventListener('keyup', saveRange);
+                mdEditor.removeEventListener('focus', clearHighlight);
+                mdEditor.removeEventListener('mousedown', clearHighlight);
+                mdEditor.removeEventListener('keydown', clearHighlight);
                 
                 scrollContainer.removeEventListener('scroll', updateHighlightPosition, { capture: true });
                 window.removeEventListener('resize', updateHighlightPosition);
@@ -285,20 +293,28 @@ export default function FinalReportCreatePage() {
             return;
         }
 
+        // 1. [좌표 복구] 채팅창 클릭으로 인해 풀린 선택 영역을 다시 선택합니다.
+        if (hasSelection && lastEditorSelectionRef.current) {
+            try {
+                editorInstance.setSelection(
+                    lastEditorSelectionRef.current[0], 
+                    lastEditorSelectionRef.current[1]
+                );
+            } catch (e) {
+                console.warn("선택 영역 복구 실패:", e);
+            }
+        }
+
         let contextText = "";
         let isSelection = false;
-        let currentSelectionRange = null; // [추가] 선택 영역 좌표 저장용
+        let currentSelectionRange = null;
 
-        // 1. Toast UI Editor API를 사용하여 '선택된 텍스트' 확인
-        // getSelectedText(): 선택된 영역의 마크다운 텍스트를 반환 (줄바꿈, 문법 포함)
         const selectedMarkdown = editorInstance.getSelectedText();
         
-        // 2. 선택된 텍스트가 있는지 확인
         if (selectedMarkdown && selectedMarkdown.trim().length > 0) {
-            contextText = selectedMarkdown; // 마크다운 문법이 살아있는 텍스트
+            contextText = selectedMarkdown; 
             isSelection = true;
-            
-            // [중요] 현재 선택된 좌표(시작, 끝)를 저장 (나중에 복구하기 위해)
+            // 현재(복구된) 좌표를 메시지 객체에 저장 (나중에 '적용' 버튼 클릭 시 사용)
             currentSelectionRange = editorInstance.getSelection(); 
         } else {
             // 선택 안 했으면 전체 문서 가져오기
