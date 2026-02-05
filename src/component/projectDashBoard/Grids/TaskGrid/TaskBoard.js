@@ -1,145 +1,131 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import TaskCard from './TaskCard';
 import TaskCreateModal from './modal/TaskCreateModal';
 import TaskDetailPage from './TaskDetailPage';
 import { api } from '../../../../utils/api';
 import './TaskBoard.css';
 
-function TaskBoard({ projectId: propProjectId, initialTaskId, clearTargetTaskId }) {
-    const params = useParams();
-    const projectId = propProjectId || params.projectId;
-
+function TaskBoard({ projectId, project, initialTaskId, clearTargetTaskId }) {
     const [tasks, setTasks] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filterType, setFilterType] = useState('ALL');
     const [selectedTask, setSelectedTask] = useState(null); 
     const [editingTask, setEditingTask] = useState(null);
-    const [hasAutoOpened, setHasAutoOpened] = useState(false);
+    const [myRole, setMyRole] = useState('MEMBER');
 
-    const currentUser = localStorage.getItem("userId"); // 로그인한 유저 ID
+    const currentUser = localStorage.getItem("userId");
+    const isAdminOrOwner = myRole === 'OWNER' || myRole === 'ADMIN';
 
-    // 0. 부모로부터 받은 initialTaskId 처리
+    // 데이터 조회 (업무 목록 & 내 권한)
     useEffect(() => {
-        if (initialTaskId && !hasAutoOpened && tasks.length > 0) {
-            const target = tasks.find(t => t.taskId === parseInt(initialTaskId));
+        if (!projectId) return;
+
+        const fetchData = async () => {
+            try {
+                const taskRes = await api.get(`/api/projects/${projectId}/tasks`);
+                setTasks(Array.isArray(taskRes) ? taskRes : []);
+
+                const roleRes = await api.get(`/api/projects/${projectId}/tasks/my-role`);
+                if (roleRes && roleRes.role) {
+                    setMyRole(roleRes.role);
+                }
+            } catch (error) {
+                console.error(error);
+                setTasks([]);
+            }
+        };
+
+        fetchData();
+    }, [projectId]);
+
+    // 알람 진입 처리
+    useEffect(() => {
+        if (initialTaskId && tasks.length > 0) {
+            const targetId = parseInt(initialTaskId);
+            const target = tasks.find(t => t.taskId === targetId);
             if (target) {
                 setSelectedTask(target);
-                setHasAutoOpened(true);
-                
                 if (clearTargetTaskId) clearTargetTaskId();
             }
         }
-    }, [initialTaskId, tasks, hasAutoOpened, clearTargetTaskId]);
+    }, [initialTaskId, tasks, clearTargetTaskId]);
 
-    // 1. 업무 목록 불러오기
-    const fetchTasks = async () => {
-        if (!projectId) {
-            console.error("projectId가 없습니다!");
-            return;
-        }
-
-        try {
-            const data = await api.get(`/api/projects/${projectId}/tasks`);
-            
-            if (Array.isArray(data)) {
-                setTasks(data);
-            } else {
-                setTasks([]); 
-            }
-        } catch (error) {
-            console.error("업무 목록 로딩 실패:", error);
-            setTasks([]);
-        }
-    };
-
-    useEffect(() => {
-        fetchTasks();
-        // eslint-disable-next-line
-    }, [projectId]);
-
-    // 2. 업무 생성/수정 저장
+    // 업무 생성 및 수정 저장
     const handleSaveTask = async (taskData) => {
         try {
             if (editingTask) {
-                // 수정 PUT
                 await api.put(`/api/projects/${projectId}/tasks/${editingTask.taskId}`, taskData);
             } else {
-                // 생성 POST
                 await api.post(`/api/projects/${projectId}/tasks`, taskData);
             }
-
             window.dispatchEvent(new CustomEvent('taskUpdate'));
-
             setIsModalOpen(false);
             setEditingTask(null);
-            fetchTasks(); // 목록 갱신
+            
+            const data = await api.get(`/api/projects/${projectId}/tasks`);
+            setTasks(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error("업무 저장 실패:", error);
-            alert("업무 저장에 실패했습니다.");
+            alert("저장 실패");
         }
     };
 
-    // 3. 드래그 앤 드롭 상태 변경
-    const onDragStart = (e, taskId) => {
-        e.dataTransfer.setData("taskId", taskId);
-    };
+    // 드래그 앤 드롭
+    const onDragStart = (e, taskId) => e.dataTransfer.setData("taskId", taskId);
     const onDragOver = (e) => e.preventDefault();
     
     const onDrop = async (e, newStatus) => {
         const taskId = parseInt(e.dataTransfer.getData("taskId"));
-        
-        // 낙관적 업데이트 (UI 먼저 반영)
+        const targetTask = tasks.find(t => t.taskId === taskId);
+        const isAssignee = targetTask?.assigneeIds?.includes(currentUser);
+
+        if (!isAdminOrOwner && !isAssignee) {
+            alert("권한이 없습니다.");
+            return;
+        }
+
         setTasks(prev => prev.map(t => t.taskId === taskId ? { ...t, status: newStatus } : t));
 
         try {
             await api.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status: newStatus });
-        
             window.dispatchEvent(new CustomEvent('taskUpdate'));
-        
         } catch (error) {
-            console.error("상태 변경 실패:", error);
-            fetchTasks(); // 실패 시 롤백
+            const data = await api.get(`/api/projects/${projectId}/tasks`);
+            setTasks(Array.isArray(data) ? data : []);
         }
     };
 
-    // 4. 필터링 로직
+    // 필터링
     const getTasksByStatus = (status) => {
         if (!Array.isArray(tasks)) return [];
-
         const filtered = filterType === 'MY' 
             ? tasks.filter(t => t.userId === currentUser || (t.assigneeIds && t.assigneeIds.includes(currentUser)))
             : tasks;
-            
-        // filtered가 배열인지 확인 후 filter 실행
-        return Array.isArray(filtered) ? filtered.filter(t => t.status === status) : [];
+        return filtered.filter(t => t.status === status);
     };
 
-    // 5. 삭제 핸들러
+    // 삭제
     const handleDeleteTask = async (taskId) => {
-        if(window.confirm("정말 삭제하시겠습니까?")) {
+        if(window.confirm("삭제하시겠습니까?")) {
             try {
                 await api.delete(`/api/projects/${projectId}/tasks/${taskId}`);
-
                 window.dispatchEvent(new CustomEvent('taskUpdate'));
-
                 setSelectedTask(null);
-                fetchTasks();
+                
+                const data = await api.get(`/api/projects/${projectId}/tasks`);
+                setTasks(Array.isArray(data) ? data : []);
             } catch (error) {
                 alert("삭제 실패");
             }
         }
     };
 
-    // 상세 페이지 렌더링
     if (selectedTask) {
         return (
             <TaskDetailPage 
                 projectId={projectId}
                 task={selectedTask} 
-                onBack={() => { 
-                    setSelectedTask(null); 
-                }}
+                myRole={myRole}
+                onBack={() => setSelectedTask(null)}
                 onEdit={() => { 
                     setEditingTask(selectedTask); 
                     setSelectedTask(null); 
@@ -148,7 +134,8 @@ function TaskBoard({ projectId: propProjectId, initialTaskId, clearTargetTaskId 
                 onDelete={() => handleDeleteTask(selectedTask.taskId)}
                 onStatusChange={async (taskId, status) => {
                     await api.patch(`/api/projects/${projectId}/tasks/${taskId}/status`, { status });
-                    fetchTasks();
+                    const data = await api.get(`/api/projects/${projectId}/tasks`);
+                    setTasks(Array.isArray(data) ? data : []);
                 }}
             />
         );
@@ -168,7 +155,12 @@ function TaskBoard({ projectId: propProjectId, initialTaskId, clearTargetTaskId 
             <div className="board-controls">
                 <h3 className="section-title">업무 현황</h3>
                 <div className="control-buttons">
-                    <button className="btn-primary" onClick={() => { setEditingTask(null); setIsModalOpen(true); }}>+ 업무 추가</button>
+                    {isAdminOrOwner && (
+                        <button className="btn-primary" onClick={() => { setEditingTask(null); setIsModalOpen(true); }}>
+                            + 업무 추가
+                        </button>
+                    )}
+                    
                     <button 
                         className={`btn-filter ${filterType === 'MY' ? 'active' : ''}`}
                         onClick={() => setFilterType(filterType === 'ALL' ? 'MY' : 'ALL')}
