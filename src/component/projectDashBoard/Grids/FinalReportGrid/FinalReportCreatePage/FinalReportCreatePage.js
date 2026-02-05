@@ -366,7 +366,7 @@ export default function FinalReportCreatePage() {
     };
 
     // [수정] selection(좌표) 인자 추가
-    const handleApply = (text, hasContext, selection) => {
+    const handleApply = (text, hasContext, selection, index) => {
         const editor = editorRef.current;
         if (!editor) {
             alert("에디터를 찾을 수 없습니다.");
@@ -374,24 +374,21 @@ export default function FinalReportCreatePage() {
         }
 
         try {
-            // Case A: 전체 문서 모드일 때 (드래그 없이 질문)
+            // Case A: 전체 문서 모드일 때
             if (!hasContext) {
-                 // 전체 문서를 AI 응답으로 교체
                  editor.setMarkdown(text);
-                 return;
             }
-
-            // Case B: 부분 선택 모드일 때 (드래그 후 질문)
-            if (hasContext && selection) {
-                // 1. 에디터에 포커스
+            // Case B: 부분 선택 모드일 때
+            else if (hasContext && selection) {
                 editor.focus();
-                
-                // 2. 아까 저장해둔 좌표로 선택 영역 다시 잡기 (좌표 복구)
                 editor.setSelection(selection[0], selection[1]);
-                
-                // 3. 선택된 영역을 AI 응답 텍스트로 '교체' (Insert가 덮어쓰기 역할)
                 editor.insertText(text);
             }
+
+            // 해당 메시지의 'isApplied' 상태를 true로 변경
+            setMessages(prev => prev.map((msg, i) => 
+                i === index ? { ...msg, isApplied: true } : msg
+            ));
 
         } catch (e) {
             console.error("에디터 적용 실패:", e);
@@ -437,31 +434,41 @@ export default function FinalReportCreatePage() {
                     <div className="frc-chat-container">
                         <div className="frc-chat-header">AI Assistant</div>
                         <div className="frc-chat-messages">
-                            {messages.map((msg, idx) => (
-                                <div key={idx} className={`chat-bubble ${msg.role}`}>
-                                    {msg.role === 'user' && (
-                                        <div className="msg-context-icon">
-                                            {msg.hasContext ? '부분 참조' : '전체 참조'}
-                                        </div>
-                                    )}
-                                    {msg.text}
+                            {messages.map((msg, idx) => {
+                                // [수정 2] 현재 메시지가 '가장 최신 메시지'인지 확인
+                                const isLastMessage = idx === messages.length - 1;
 
-                                    {msg.role === 'assistant' && idx !== 0 && (
-                                        <div className="msg-actions">
-                                            <button className="action-btn copy" onClick={() => handleCopy(msg.text)}>
-                                                복사
-                                            </button>
-                                            {/* [수정] selection 정보도 함께 전달 */}
-                                            <button 
-                                                className="action-btn apply" 
-                                                onClick={() => handleApply(msg.text, msg.hasContext, msg.selection)}
-                                            >
-                                                에디터에 적용
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                                return (
+                                    <div key={idx} className={`chat-bubble ${msg.role}`}>
+                                        {msg.role === 'user' && (
+                                            <div className="msg-context-icon">
+                                                {msg.hasContext ? '부분 참조' : '전체 참조'}
+                                            </div>
+                                        )}
+                                        {msg.text}
+
+                                        {msg.role === 'assistant' && idx !== 0 && (
+                                            <div className="msg-actions">
+                                                <button className="action-btn copy" onClick={() => handleCopy(msg.text)}>
+                                                    복사
+                                                </button>
+                                                
+                                                {/* [수정 3] 최신 메시지일 때만 버튼 노출 & 적용된 경우 비활성화 */}
+                                                {isLastMessage && (
+                                                    <button 
+                                                        className={`action-btn apply ${msg.isApplied ? 'applied' : ''}`}
+                                                        // index를 함께 전달
+                                                        onClick={() => handleApply(msg.text, msg.hasContext, msg.selection, idx)}
+                                                        disabled={msg.isApplied} // 이미 적용했으면 버튼 비활성화
+                                                    >
+                                                        {msg.isApplied ? "적용 완료" : "에디터에 적용"}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
 
                             {isAiThinking && (
                                 <div className="chat-bubble assistant loading">

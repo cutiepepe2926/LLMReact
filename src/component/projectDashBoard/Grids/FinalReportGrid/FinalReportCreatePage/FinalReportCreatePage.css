@@ -291,6 +291,18 @@
     color: white;
 }
 
+.action-btn.apply:disabled {
+    background-color: #e5e7eb; /* 회색 배경 */
+    color: #9ca3af;            /* 흐린 텍스트 */
+    border-color: #d1d5db;
+    cursor: not-allowed;       /* 금지 커서 */
+    transform: none;           /* 눌림 효과 제거 */
+}
+
+.action-btn.apply:disabled:hover {
+    background-color: #e5e7eb; /* 호버 시 색상 변경 방지 */
+}
+
 /* 로딩 오버레이 스타일 */
 .loading-overlay {
     display: flex;
