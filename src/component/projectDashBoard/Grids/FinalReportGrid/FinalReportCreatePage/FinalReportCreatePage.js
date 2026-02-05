@@ -25,7 +25,9 @@ export default function FinalReportCreatePage() {
     const [currentReportId, setCurrentReportId] = useState(finalReportId || null);
     const [title, setTitle] = useState(initialTitle || "제목 없음");
     const [initialContent, setInitialContent] = useState(""); 
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false); 
     
     const editorRef = useRef(null); 
     const containerRef = useRef(null); 
@@ -261,29 +263,109 @@ export default function FinalReportCreatePage() {
     };
 
     const handleSave = async () => {
+        // 1. 이미 저장 중이면 중복 실행 방지
+        if (isSaving) return;
+
         const contentToSave = editorRef.current ? editorRef.current.getMarkdown() : initialContent;
         if (!title.trim()) { alert("제목을 입력해주세요."); return; }
+        
+        // 2. 저장 시작 (로딩 ON)
+        setIsSaving(true);
+
         try {
             if (currentReportId) {
                 await api.put(`/api/projects/${projectId}/final-reports/${currentReportId}`, { title, content: contentToSave });
-                alert("성공적으로 저장되었습니다.");
-            } else { alert("오류: 리포트 ID를 찾을 수 없습니다."); }
-        } catch (e) { alert("저장 중 오류가 발생했습니다."); }
+                
+                // 3. 저장 성공 (로딩 OFF, 성공 ON)
+                setIsSaving(false);
+                setSaveSuccess(true);
+
+                // 4. 5초 뒤에 원래 버튼(저장)으로 복귀
+                setTimeout(() => {
+                    setSaveSuccess(false);
+                }, 5000);
+
+            } else { 
+                alert("오류: 리포트 ID를 찾을 수 없습니다."); 
+                setIsSaving(false);
+            }
+        } catch (e) { 
+            alert("저장 중 오류가 발생했습니다."); 
+            setIsSaving(false); // 실패 시 로딩 끄기
+        }
     };
 
+    useEffect(() => {
+        const editorInstance = editorRef.current;
+        if (!editorInstance) return;
+
+        const handleShortcut = (e) => {
+            // Ctrl+S 또는 Cmd+S 감지
+            if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                handleSave();
+            }
+        };
+
+        const { mdEditor, wwEditor } = editorInstance.getEditorElements();
+        
+        if (mdEditor) mdEditor.addEventListener('keydown', handleShortcut, true);
+        if (wwEditor) wwEditor.addEventListener('keydown', handleShortcut, true);
+
+        return () => {
+            if (mdEditor) mdEditor.removeEventListener('keydown', handleShortcut, true);
+            if (wwEditor) wwEditor.removeEventListener('keydown', handleShortcut, true);
+        };
+    }, [handleSave]);
+
     const handleSaveAs = async () => {
-        const contentToSave = editorRef.current ? editorRef.current.getMarkdown() : initialContent;
-        if (!title.trim()) { alert("제목을 입력해주세요."); return; }
-        if(!window.confirm(`'${title}'(으)로 새로 저장하시겠습니까?`)) return;
+        // 1. 제목 입력 확인
+        if (!title.trim()) { 
+            alert("제목을 입력해주세요."); 
+            return; 
+        }
+
         try {
-            const res = await api.post(`/api/projects/${projectId}/final-reports/save-as`, { title, content: contentToSave });
+            // [추가 로직] 중복 제목 체크 시작
+            // 2. 현재 프로젝트의 최종 리포트 목록 조회
+            const listRes = await api.get(`/api/projects/${projectId}/final-reports`);
+            
+            // API 응답 형태에 따라 배열 추출 (axios response 구조 대응)
+            const reportList = Array.isArray(listRes) ? listRes : (listRes.data || []);
+
+            // 3. 현재 입력된 제목(title)과 똑같은 제목이 있는지 검사
+            const isDuplicate = reportList.some(report => report.title.trim() === title.trim());
+
+            if (isDuplicate) {
+                alert("이미 동일한 이름의 리포트가 존재합니다.\n다른 이름으로 저장해주세요.");
+                return; // 저장 중단
+            }
+            // [추가 로직] 중복 제목 체크 끝
+
+
+            // 4. 중복이 없으면 저장 진행 여부 확인
+            const contentToSave = editorRef.current ? editorRef.current.getMarkdown() : initialContent;
+            
+            if(!window.confirm(`'${title}'(으)로 새로 저장하시겠습니까?`)) return;
+
+            // 5. '다른 이름으로 저장' API 호출
+            const res = await api.post(`/api/projects/${projectId}/final-reports/save-as`, { 
+                title, 
+                content: contentToSave 
+            });
+
             if (res && res.finalReportId) {
                 setCurrentReportId(res.finalReportId);
                 alert(`[새 파일 저장 완료]\n이제부터 '${res.title}' 파일을 편집합니다.`);
             }
-        } catch (e) { alert(e.response?.data?.message || "저장 중 오류가 발생했습니다."); }
-    };
 
+        } catch (e) { 
+            console.error(e);
+            alert(e.response?.data?.message || "저장 중 오류가 발생했습니다."); 
+        }
+    };
+    
     const sendMessage = async () => {
         if (!input.trim()) return;
         
@@ -412,6 +494,18 @@ export default function FinalReportCreatePage() {
         }
     };
 
+    const handleExit = () => {
+        if (projectId) {
+            // 명시적으로 대시보드의 'finalReport' 탭으로 이동
+            navigate(`/project/${projectId}/dashboard`, {
+                state: { initialTab: 'finalReport' }
+            });
+        } else {
+            // projectId가 없는 예외적인 경우 그냥 뒤로가기
+            navigate(-1);
+        }
+    };
+
     if (loading) return <div className="loading-overlay"><div className="loader"></div><p>로딩 중...</p></div>;
 
     return (
@@ -433,9 +527,25 @@ export default function FinalReportCreatePage() {
             <div className="frc-header">
                 <input type="text" className="frc-title-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="리포트 제목" />
                 <div className="frc-header-actions">
-                    <button className="frc-btn secondary" onClick={() => navigate(-1)}>나가기</button>
+                    <button className="frc-btn secondary" onClick={handleExit}>나가기</button>
                     <button className="frc-btn secondary save-as" onClick={handleSaveAs}>다른 이름으로 저장</button>
-                    <button className="frc-btn primary" onClick={handleSave}>저장</button>
+                    <button 
+                        className={`frc-btn primary ${saveSuccess ? 'success-btn' : ''}`} // 성공 시 초록색 등으로 스타일 변경 가능
+                        onClick={handleSave}
+                        disabled={isSaving} // 저장 중 클릭 불가
+                        style={{ minWidth: '80px', transition: 'all 0.3s' }} // 버튼 너비 고정 (글자 바뀔 때 덜컹거림 방지)
+                    >
+                        {isSaving ? (
+                            // 저장 중: 로딩 스피너 (CSS로 회전 애니메이션 적용 필요)
+                            <span className="loading-spinner"></span> 
+                        ) : saveSuccess ? (
+                            // 저장 완료: 체크 표시
+                            <>✔</>
+                        ) : (
+                            // 기본 상태
+                            "저장"
+                        )}
+                    </button>
                 </div>
             </div>
 
