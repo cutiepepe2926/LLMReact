@@ -279,7 +279,10 @@ export default function FinalReportCreatePage() {
         if (!input.trim()) return;
         
         const editorInstance = editorRef.current;
-        if (!editorInstance) { alert("에디터가 로드되지 않았습니다."); return; }
+        if (!editorInstance) {
+            alert("에디터가 로드되지 않았습니다.");
+            return;
+        }
 
         let contextText = "";
         let isSelection = false;
@@ -292,27 +295,34 @@ export default function FinalReportCreatePage() {
             isSelection = false;
         }
 
-        const userMsg = { role: "user", text: input, hasContext: isSelection };
+        const userMsg = { 
+            role: "user", 
+            text: input,
+            hasContext: isSelection 
+        };
         setMessages(prev => [...prev, userMsg]);
-        setInput("");
+        setInput(""); // 입력창 초기화
 
         const requestPayload = {
-            message: input,
+            message: userMsg.text,
             context: contextText,
             isSelection: isSelection,
-            projectId: projectId
+            reportType: "FINAL" 
         };
 
         try {
-            // API 호출 시뮬레이션
-            setTimeout(() => {
-                const mockReply = isSelection 
-                    ? `선택하신 내용에 대한 답변입니다: ${contextText.substring(0, 10)}...` 
-                    : "전체 문서를 바탕으로 답변 드립니다.";
-                setMessages(prev => [...prev, { role: "assistant", text: mockReply }]);
-            }, 800);
+            const response = await api.post(`/api/projects/${projectId}/reports/chat`, requestPayload);
+            
+            if (response && response.reply) {
+                setMessages(prev => [...prev, { role: "assistant", text: response.reply }]);
+            } else {
+                 const replyText = response.data?.reply || response.reply || "응답을 받을 수 없습니다.";
+                 setMessages(prev => [...prev, { role: "assistant", text: replyText }]);
+            }
+
         } catch (error) {
-            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다." }]);
+            console.error("AI 요청 실패:", error);
+            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다. 다시 시도해주세요." }]);
         }
     };
 
