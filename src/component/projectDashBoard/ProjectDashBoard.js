@@ -14,15 +14,14 @@ import './ProjectDashBoard.css';
 
 function ProjectDashBoard() {
 
-    const [searchParams, setSearchParams] = useSearchParams();
     const location = useLocation();
     const params = useParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const queryIssueId = searchParams.get('issueId'); // 예: "15"
 
     console.log("📍 [Dashboard] 현재 URL:", window.location.href);
     console.log("📍 [Dashboard] 감지된 issueId:", queryIssueId);
-
 
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
@@ -184,32 +183,18 @@ function ProjectDashBoard() {
         }
     }, [queryIssueId]);
 
-    // 알람 클릭 감지
-    useEffect(() => {
-        const taskIdFromUrl = searchParams.get('taskId');
-
-        if (taskIdFromUrl) {
-            setActiveTab("task");
-            setTimeout(() => {
-                setTargetTaskId(taskIdFromUrl); 
-            }, 100);
-        } 
-        else if (location.state?.initialTab) {
-            setActiveTab(location.state.initialTab);
-        }
-    }, [searchParams, location.state]);
-
-    // URL 파라미터 청소
-    const clearTargetTaskId = useCallback(() => {
-        searchParams.delete('taskId');
-        setSearchParams(searchParams);
-        setTargetTaskId(null);
-    }, [searchParams, setSearchParams]);
-
     const handleTabChange = (key) => {
         setTargetTaskId(null);
         setTargetIssueId(null); // 탭을 직접 누르면 타겟팅 해제
         setActiveTab(key);
+
+        navigate('.', { 
+            replace: true, 
+            state: { 
+                ...location.state, // 기존 state(projectData 등) 유지
+                initialTab: key    // 변경된 탭 정보 저장
+            } 
+        });
     };
 
     const isInvited = projectData?.currentUserStatus === 'INVITED';
@@ -242,13 +227,7 @@ function ProjectDashBoard() {
                                     }
                                 </div>
                             ) : activeTab === "task" ? (
-                                // [수정됨] TaskBoard에 clearTargetTaskId 전달
-                                <TaskBoard 
-                                    projectId={projectId} 
-                                    project={projectData} 
-                                    initialTaskId={targetTaskId} 
-                                    clearTargetTaskId={clearTargetTaskId} 
-                                />
+                                <TaskBoard projectId={projectId} project={projectData} initialTaskId={targetTaskId} />
                             ) : activeTab === "finalReport" ? (
                                 // [추가] 최종 리포트 탭 연결
                                 <FinalReportGrid projectId={projectId} project={projectData} />
