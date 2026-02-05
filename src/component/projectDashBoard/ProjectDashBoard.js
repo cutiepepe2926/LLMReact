@@ -190,7 +190,6 @@ function ProjectDashBoard() {
 
     return (
         <div className="dashboard-container">
-            <button onClick={() => navigate(-1)} style={{ marginRight: '10px', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.2rem' }}>←</button>
 
             {/* 블러 처리를 위한 Wrapper */}
             <div className={`dashboard-content-wrapper ${isInvited ? 'blurred-locked' : ''}`}>

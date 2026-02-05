@@ -6,8 +6,6 @@ export default function ProjectHeader({ project }) {
 
     const navigate = useNavigate();
 
-    console.log(project); //디버깅 용 로그
-
     const onClickAiReport = () => {
         navigate("/aiReport");
     }

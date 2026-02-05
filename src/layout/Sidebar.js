@@ -16,18 +16,29 @@ const Icons = {
     ExternalLink: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>,
 };
 
+// 기존 함수를 지우고 이 코드로 덮어씌워주세요.
 const calculateTimeRemaining = (targetTimeStr) => {
     if (!targetTimeStr) return "00:00:00";
     try {
         const now = new Date();
         const [h, m, s] = targetTimeStr.split(':').map(Number);
+
         const target = new Date();
-        target.setHours(h, m, s || 0);
+        target.setHours(h, m, s || 0, 0); // 초, 밀리초까지 정확하게 설정
+
+        // [핵심 수정] 목표 시간이 현재보다 이전이면(이미 지났으면), 내일 날짜로 설정
+        if (target <= now) {
+            target.setDate(target.getDate() + 1);
+        }
+
         let diff = target - now;
-        if (diff < 0) return "00:00:00"; 
-        const rh = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        if (diff < 0) return "00:00:00";
+
+        // 전체 남은 시간 계산 (24시간 넘지 않으므로 % 24는 그대로 둬도 무방하나 제거해도 됨)
+        const rh = Math.floor(diff / (1000 * 60 * 60));
         const rm = Math.floor((diff / (1000 * 60)) % 60);
         const rs = Math.floor((diff / 1000) % 60);
+
         return `${String(rh).padStart(2, '0')}:${String(rm).padStart(2, '0')}:${String(rs).padStart(2, '0')}`;
     } catch (e) { return "00:00:00"; }
 };
@@ -151,7 +162,7 @@ const Sidebar = () => {
                             <div className="timer-box">
                                 <Icons.Clock /><span className="timer-text">{isReportWritten ? "작성 완료" : displayTime}</span>
                             </div>
-                            <div className={`daily-report-box ${isReportWritten ? 'disabled' : ''}`} onClick={() => !isReportWritten && navigate(`/projects/${projectId}/daily-reports`, { state: { projectData: { projectId, name: projectName } } })}>
+                            <div className={`daily-report-box ${isReportWritten ? 'disabled' : ''}`} onClick={() => !isReportWritten && navigate(`/aiReport`, { state: { projectData: { projectId, name: projectName } } })}>
                                 <div className="report-icon-bg"><Icons.Edit /></div>
                                 <div className="report-text-group">
                                     <span className="report-title">Daily Report</span>
@@ -163,8 +174,13 @@ const Sidebar = () => {
                         <div className="menu-section-label">PROJECT TOOLS</div>
                         
                         {/* ★ GitHub 바로가기 (테이블 없이 구현) */}
-                        {githubUrl ? (
-                            <a href={githubUrl} target="_blank" rel="noreferrer" className="menu-item github-link">
+                        {githubUrl && githubUrl.trim() !== "" ? (
+                            <a
+                                href={githubUrl.startsWith('http') ? githubUrl : `https://${githubUrl}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="menu-item github-link"
+                            >
                                 <span className="menu-icon-box"><Icons.Github /></span>
                                 <span className="menu-text">GitHub 저장소</span>
                                 <Icons.ExternalLink style={{ marginLeft: 'auto', opacity: 0.6 }} />

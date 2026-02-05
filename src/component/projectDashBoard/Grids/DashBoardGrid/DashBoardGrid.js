@@ -20,7 +20,8 @@ export default function DashboardGrid({ projectId }) {
         completedTasks: 0,
         inProgressTasks: 0,
         openIssues: 0,
-        memberCount: 0
+        memberCount: 0,
+        todayCommitCount: 0
     });
 
     const [myTasks, setMyTasks] = useState([]);
@@ -37,7 +38,8 @@ export default function DashboardGrid({ projectId }) {
                     completedTasks: res.completedTaskCount || 0,
                     inProgressTasks: res.inProgressTaskCount || 0,
                     openIssues: res.openIssueCount || 0,
-                    memberCount: res.memberCount || 0
+                    memberCount: res.memberCount || 0,
+                    todayCommitCount: res.todayCommitCount || 0
                 });
                 
                 // 내 업무 리스트 가져오기
@@ -80,6 +82,8 @@ export default function DashboardGrid({ projectId }) {
     // 진행 중인 업무 = 전체 - 완료 (단순 계산)
     // eslint-disable-next-line
     const inProgressTasks = stats.totalTasks - stats.completedTasks;
+
+    console.log(stats);
 
     return (
         <>
@@ -138,7 +142,7 @@ export default function DashboardGrid({ projectId }) {
                     </div>
                     <div className="card stat-box">
                         <span className="stat-label">오늘 커밋</span>
-                        <span className="stat-value blue">12</span>
+                        <span className="stat-value blue">{stats.todayCommitCount}</span>
                     </div>
                 </div>
 
