@@ -14,6 +14,7 @@ import './ProjectDashBoard.css';
 
 function ProjectDashBoard() {
 
+    const [searchParams, setSearchParams] = useSearchParams();
     const location = useLocation();
     const params = useParams();
     const navigate = useNavigate();
@@ -22,7 +23,6 @@ function ProjectDashBoard() {
     console.log("📍 [Dashboard] 현재 URL:", window.location.href);
     console.log("📍 [Dashboard] 감지된 issueId:", queryIssueId);
 
-    const [searchParams, setSearchParams] = useSearchParams();
 
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
