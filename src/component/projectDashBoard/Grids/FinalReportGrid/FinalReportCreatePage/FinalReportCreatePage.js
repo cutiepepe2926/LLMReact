@@ -288,6 +288,7 @@ export default function FinalReportCreatePage() {
         let contextText = "";
         let isSelection = false;
 
+        // ... 기존 컨텍스트 추출 로직 ...
         if (lastRangeRef.current && lastRangeRef.current.toString().trim().length > 0) {
             contextText = lastRangeRef.current.toString();
             isSelection = true;
@@ -302,7 +303,7 @@ export default function FinalReportCreatePage() {
             hasContext: isSelection 
         };
         setMessages(prev => [...prev, userMsg]);
-        setInput(""); // 입력창 초기화
+        setInput(""); 
 
         setIsAiThinking(true);
 
@@ -323,16 +324,21 @@ export default function FinalReportCreatePage() {
                 replyText = response.data.reply;
             }
             
-            setMessages(prev => [...prev, { role: "assistant", text: replyText }]);
+            // [수정 1] AI 메시지에도 hasContext 정보(전체/부분 여부)를 함께 저장
+            setMessages(prev => [...prev, { 
+                role: "assistant", 
+                text: replyText,
+                hasContext: isSelection 
+            }]);
 
         } catch (error) {
             console.error("AI 요청 실패:", error);
-            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다. 잠시 후 다시 시도해주세요." }]);
+            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다." }]);
         } finally {
             setIsAiThinking(false);
         }
     };
-
+    
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -349,33 +355,30 @@ export default function FinalReportCreatePage() {
         }
     };
 
-    const handleApply = (text) => {
+    const handleApply = (text, hasContext) => {
         const editor = editorRef.current;
         if (!editor) {
             alert("에디터를 찾을 수 없습니다.");
             return;
         }
 
-        // 현재 에디터 모드 확인
+        // Case A: 드래그 없이 전체 문맥을 보낸 경우 -> 문서 전체 교체
+        if (!hasContext) {
+
+            editor.setMarkdown(text); // 전체 덮어쓰기
+
+            return;
+        }
+
+        // Case B: 드래그하여 부분 문맥을 보낸 경우 -> 커서 위치/선택 영역에 삽입 (기존 로직)
         const isWysiwyg = editor.isWysiwygMode();
-
         try {
-            // 1 강제로 Markdown 모드로 전환 (텍스트를 마크다운 문법으로 인식시키기 위함)
-            if (isWysiwyg) {
-                editor.changeMode('markdown');
-            }
-
-            // 2 텍스트 삽입 (현재 커서 위치 or 선택 영역을 대체함)
-            editor.insertText(text);
-
-            // 3 다시 원래 모드(WYSIWYG)로 복귀 -> 이때 마크다운이 렌더링됨
-            if (isWysiwyg) {
-                editor.changeMode('wysiwyg');
-            }
+            if (isWysiwyg) editor.changeMode('markdown');
             
-            // 에디터로 포커스 이동
+            editor.insertText(text); // 부분 삽입
+            
+            if (isWysiwyg) editor.changeMode('wysiwyg');
             editor.focus();
-
         } catch (e) {
             console.error("에디터 적용 실패:", e);
             alert("적용 중 오류가 발생했습니다.");
@@ -434,7 +437,8 @@ export default function FinalReportCreatePage() {
                                             <button className="action-btn copy" onClick={() => handleCopy(msg.text)}>
                                                 복사
                                             </button>
-                                            <button className="action-btn apply" onClick={() => handleApply(msg.text)}>
+                                            {/* [수정 3] onClick 핸들러에 msg.hasContext 전달 */}
+                                            <button className="action-btn apply" onClick={() => handleApply(msg.text, msg.hasContext)}>
                                                 에디터에 적용
                                             </button>
                                         </div>
