@@ -152,7 +152,7 @@
 
 /* 채팅 메시지 리스트 (이전 .frc-chat-list 대응) */
 .frc-chat-messages {
-    flex: 3; /* 기존 1에서 3으로 변경 */
+    flex: 3;
     padding: 20px;
     overflow-y: auto;
     display: flex;
@@ -188,37 +188,33 @@
 
 /* 입력창 영역 (이전 .frc-chat-input 대응) */
 .frc-chat-input-area {
-    flex: 1; /* 새로 추가: 1만큼의 비율 차지 */
+    flex: 1;
     padding: 16px;
     border-top: 1px solid var(--border-color);
     background-color: #fff;
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    flex-direction: column;
     align-items: flex-end; /* 버튼은 바닥에 붙여서 정렬 */
     box-sizing: border-box;
+    position: relative;
 }
 
 .frc-chat-input-area textarea {
-    flex: 1;
+    width: 100%;
+    flex: 1; /* 남은 높이 채우기 */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
     font-size: 0.9rem;
     resize: none;
-    height: 100%; /* 부모 높이(1/4) 꽉 채우기 */
     outline: none;
     background-color: #f9fafb;
-    transition: all 0.2s;
     box-sizing: border-box;
-
-    /* [추가] 스크롤바 숨기기 (기능은 유지됨) */
-    -ms-overflow-style: none; /* 인터넷 익스플로러, 엣지 */
-    scrollbar-width: none;    /* 파이어폭스 */
-}
-
-/* [추가] 크롬, 사파리, 오페라 브라우저용 스크롤바 숨김 처리 */
-.frc-chat-input-area textarea::-webkit-scrollbar {
-    display: none;
+    
+    /* 스크롤바 숨김 */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .frc-chat-input-area textarea:focus {
@@ -227,21 +223,40 @@
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1);
 }
 
+
+.frc-chat-input-area textarea::-webkit-scrollbar {
+    display: none;
+}
+
 .frc-chat-input-area button {
-    height: 44px;
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    height: 36px;
     padding: 0 16px;
     background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
-    white-space: nowrap;
 }
 
 .frc-chat-input-area button:hover {
     background-color: #409eff;
+}
+
+.context-badge.active {
+    color: #4a90e2; /* 선택 시 파란색 강조 */
+    font-weight: 600;
+}
+
+.msg-context-icon {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-bottom: 4px;
+    font-weight: bold;
+    color: #eee;
 }
 
 /* 로딩 오버레이 스타일 */
@@ -273,4 +288,18 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.virtual-highlight {
+    position: fixed; /* 뷰포트 기준 절대 위치 */
+    background-color: rgba(255, 235, 59, 0.5); /* 노란색 반투명 */
+    z-index: 9999; /* 최상단 */
+    pointer-events: none; /* 클릭 통과 (뒤에 있는 에디터가 클릭되도록) */
+    border-radius: 2px;
+    animation: highlightFadeIn 0.2s ease-out;
+}
+
+@keyframes highlightFadeIn {
+    from { opacity: 0; transform: scale(1.05); }
+    to { opacity: 1; transform: scale(1); }
 }

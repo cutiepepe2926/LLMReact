@@ -3,12 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../../../../utils/api"; 
 import "./FinalReportCreatePage.css";
 
-// [변경 1] React Wrapper 대신 Core Library 직접 import
 import Editor from '@toast-ui/editor'; 
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/i18n/ko-kr';
 
-// 툴바 설정 상수
 const TOOLBAR_ITEMS = [
     ['heading', 'bold', 'italic', 'strike'],
     ['hr', 'quote'],
@@ -26,16 +24,21 @@ export default function FinalReportCreatePage() {
     const [currentReportId, setCurrentReportId] = useState(finalReportId || null);
     const [title, setTitle] = useState(initialTitle || "제목 없음");
     
-    // 에디터 초기값 관리 (초기 로딩 이후엔 사용 안 함)
     const [initialContent, setInitialContent] = useState(""); 
     const [loading, setLoading] = useState(true); 
     
-    // [변경 2] 에디터 인스턴스와 DOM 컨테이너를 위한 Ref 분리
-    const editorRef = useRef(null); // 에디터 인스턴스 (getMarkdown 등을 위해 사용)
-    const containerRef = useRef(null); // 에디터가 그려질 div 엘리먼트
+    // 에디터 및 DOM Refs
+    const editorRef = useRef(null); 
+    const containerRef = useRef(null); 
 
+    // [핵심] 하이라이트 및 선택 영역 관리
+    const [highlightStyle, setHighlightStyle] = useState(null); // 하이라이트 div 스타일 (좌표)
+    const lastRangeRef = useRef(null); // 마지막 선택 영역(Range 객체) 저장
+    const [hasSelection, setHasSelection] = useState(false); // UI 배지 표시용 상태
+
+    // 채팅 관련
     const [messages, setMessages] = useState([
-        { role: "assistant", text: "안녕하세요! 리포트 내용을 수정하거나 필요한 내용을 말씀해주세요." }
+        { role: "assistant", text: "안녕하세요! 수정하고 싶은 부분을 드래그하면 더 정확한 피드백을 드릴 수 있습니다." }
     ]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
@@ -66,23 +69,18 @@ export default function FinalReportCreatePage() {
                 if (projectId) {
                     if (mode === "VIEW" || finalReportId) {
                         const res = await api.get(`/api/projects/${projectId}/final-reports`);
-                        const data = Array.isArray(res) 
-                            ? res.find(r => r.finalReportId === finalReportId) 
-                            : res;
-
+                        const data = Array.isArray(res) ? res.find(r => r.finalReportId === finalReportId) : res;
                         if (data) {
                             reportContent = data.content || "";
                             reportTitle = data.title || initialTitle || "제목 없음";
                             fetchedId = data.finalReportId;
                         }
-                    } 
-                    else {
+                    } else {
                         const requestBody = {
                             reportType: mapTemplateToCode(template),
                             selectedSections: sections || [] 
                         };
                         const res = await api.post(`/api/projects/${projectId}/final-reports`, requestBody);
-                        
                         reportContent = res.content || "";
                         reportTitle = res.title || "AI 리포트 생성 결과";
                         fetchedId = res.finalReportId; 
@@ -103,27 +101,24 @@ export default function FinalReportCreatePage() {
                 setLoading(false);
             }
         };
-
         fetchReport();
     }, [projectId, template, sections, finalReportId, mode, navigate, initialTitle]);
 
-
-    // [핵심 변경 3] 에디터 수동 초기화 (데이터 로딩 완료 후 실행)
+    // 2. 에디터 초기화 및 이벤트 바인딩
     useEffect(() => {
-        if (loading) return; // 로딩 중엔 생성 안 함
-        if (!containerRef.current) return; // DOM 없으면 중단
+        if (loading) return; 
+        if (!containerRef.current) return; 
 
-        // 이미 인스턴스가 있다면 파괴 (재진입 시 안전장치)
         if (editorRef.current) {
             editorRef.current.destroy();
             editorRef.current = null;
         }
 
-        // 에디터 인스턴스 생성
+        // [변경] events 옵션 제거 (v3 호환성 문제 해결)
         const editorInstance = new Editor({
-            el: containerRef.current, // ref로 잡은 div에 주입
+            el: containerRef.current,
             initialValue: initialContent,
-            previewStyle: 'vertical', // 이제 vertical 모드도 안전하게 사용 가능!
+            previewStyle: 'vertical',
             height: '100%',
             initialEditType: 'wysiwyg',
             hideModeSwitch: true,
@@ -134,129 +129,136 @@ export default function FinalReportCreatePage() {
 
         editorRef.current = editorInstance;
 
-        // Cleanup: 컴포넌트 언마운트 시 에디터 제거
+        // [핵심 변경] DOM 요소 직접 접근하여 이벤트 바인딩
+        // v3에서는 getSquire 대신 getEditorElements() 사용
+        const { wwEditor } = editorInstance.getEditorElements(); // WYSIWYG DOM Element
+
+        const saveRange = () => {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                // 텍스트가 실제로 선택되었을 때만 저장
+                if (!range.collapsed && range.toString().trim().length > 0) {
+                    lastRangeRef.current = range.cloneRange();
+                    setHasSelection(true);
+                } else {
+                    lastRangeRef.current = null;
+                    setHasSelection(false);
+                }
+            }
+        };
+
+        // DOM 이벤트 리스너 등록
+        if (wwEditor) {
+            wwEditor.addEventListener('mouseup', saveRange);
+            wwEditor.addEventListener('keyup', saveRange);
+            
+            // 포커스 시 하이라이트 UI 제거
+            wwEditor.addEventListener('focus', () => {
+                setHighlightStyle(null);
+            });
+            
+            // 스크롤 시 하이라이트 제거 (캡처링으로 확실하게 잡기)
+            wwEditor.addEventListener('scroll', () => {
+                setHighlightStyle(null);
+            }, { capture: true });
+        }
+
         return () => {
+            // Cleanup: 이벤트 제거 및 에디터 파괴
+            if (wwEditor) {
+                wwEditor.removeEventListener('mouseup', saveRange);
+                wwEditor.removeEventListener('keyup', saveRange);
+            }
             if (editorRef.current) {
                 editorRef.current.destroy();
                 editorRef.current = null;
             }
         };
-    }, [loading, initialContent]); // loading이 끝나고 initialContent가 세팅되면 1회 실행
+    }, [loading, initialContent]);
 
+    // [핵심] 채팅창 포커스 시 가상 하이라이트 켜기
+    const handleChatFocus = () => {
+        const range = lastRangeRef.current;
+        if (range) {
+            // 선택된 영역의 화면상 좌표 계산
+            const rect = range.getBoundingClientRect();
+            
+            if (rect.width > 0) {
+                setHighlightStyle({
+                    top: rect.top,    // fixed 포지션이므로 viewport 기준 좌표 그대로 사용
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                });
+            }
+        }
+    };
 
     const handleSave = async () => {
-        // [변경 4] 인스턴스에서 직접 내용 가져오기
         const contentToSave = editorRef.current ? editorRef.current.getMarkdown() : initialContent;
-        
-        if (!title.trim()) {
-            alert("제목을 입력해주세요.");
-            return;
-        }
-
+        if (!title.trim()) { alert("제목을 입력해주세요."); return; }
         try {
             if (currentReportId) {
-                await api.put(`/api/projects/${projectId}/final-reports/${currentReportId}`, {
-                    title: title,
-                    content: contentToSave
-                });
+                await api.put(`/api/projects/${projectId}/final-reports/${currentReportId}`, { title, content: contentToSave });
                 alert("성공적으로 저장되었습니다.");
-            } else {
-                alert("오류: 리포트 ID를 찾을 수 없습니다.");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("저장 중 오류가 발생했습니다.");
-        }
+            } else { alert("오류: 리포트 ID를 찾을 수 없습니다."); }
+        } catch (e) { alert("저장 중 오류가 발생했습니다."); }
     };
 
     const handleSaveAs = async () => {
         const contentToSave = editorRef.current ? editorRef.current.getMarkdown() : initialContent;
-
-        if (!title.trim()) {
-            alert("제목을 입력해주세요.");
-            return;
-        }
-
+        if (!title.trim()) { alert("제목을 입력해주세요."); return; }
         if(!window.confirm(`'${title}'(으)로 새로 저장하시겠습니까?`)) return;
-
         try {
-            const res = await api.post(`/api/projects/${projectId}/final-reports/save-as`, {
-                title: title,
-                content: contentToSave
-            });
-
+            const res = await api.post(`/api/projects/${projectId}/final-reports/save-as`, { title, content: contentToSave });
             if (res && res.finalReportId) {
                 setCurrentReportId(res.finalReportId);
                 alert(`[새 파일 저장 완료]\n이제부터 '${res.title}' 파일을 편집합니다.`);
             }
-        } catch (e) {
-            console.error("다른 이름으로 저장 실패:", e);
-            const errorMessage = e.response?.data?.message || e.message || "저장 중 오류가 발생했습니다.";
-            alert(errorMessage);
-        }
+        } catch (e) { alert(e.response?.data?.message || "저장 중 오류가 발생했습니다."); }
     };
 
-    // ... (sendMessage, handleKeyDown 등 채팅 로직은 그대로 유지)
     const sendMessage = async () => {
         if (!input.trim()) return;
         
-        // 1. 에디터 인스턴스 확인
         const editorInstance = editorRef.current;
-        if (!editorInstance) {
-            alert("에디터가 로드되지 않았습니다.");
-            return;
-        }
+        if (!editorInstance) { alert("에디터가 로드되지 않았습니다."); return; }
 
-        // 2. 텍스트 추출 로직
-        const selectedText = editorInstance.getSelectedText(); // 드래그한 텍스트
-        const allText = editorInstance.getMarkdown();          // 전체 텍스트
-        
+        // [핵심] 전송할 컨텍스트 결정 (저장해둔 Range가 있으면 우선 사용)
         let contextText = "";
         let isSelection = false;
 
-        if (selectedText && selectedText.trim().length > 0) {
-            // Case A: 사용자가 특정 부분을 드래그함
-            contextText = selectedText;
+        if (lastRangeRef.current && lastRangeRef.current.toString().trim().length > 0) {
+            contextText = lastRangeRef.current.toString();
             isSelection = true;
         } else {
-            // Case B: 선택 안 함 -> 전체 텍스트 전송 (토큰 절약을 위한 압축 로직은 여기에 추가 가능)
-            contextText = allText;
+            contextText = editorInstance.getMarkdown();
             isSelection = false;
         }
 
-        // 3. UI에 내 말풍선 즉시 표시
-        const userMsg = { 
-            role: "user", 
-            text: input,
-            hasContext: isSelection // (선택: UI에 '부분 참조' 아이콘 등을 띄울 때 사용 가능)
-        };
+        // UI에 표시
+        const userMsg = { role: "user", text: input, hasContext: isSelection };
         setMessages(prev => [...prev, userMsg]);
-        setInput(""); // 입력창 초기화
+        setInput("");
 
-        // 4. 백엔드로 전송할 데이터 구성
         const requestPayload = {
-            message: input,        // 사용자 질문 (예: "이거 좀 더 공손하게 바꿔줘")
-            context: contextText,  // AI가 참고할 텍스트 (선택 영역 or 전체)
-            isSelection: isSelection, // 백엔드에서 범위를 알 수 있게 플래그 전송
-            projectId: projectId   // (필요 시) 프로젝트 정보
+            message: input,
+            context: contextText,
+            isSelection: isSelection,
+            projectId: projectId
         };
 
         try {
-            // 5. 실제 API 호출 (예시)
-            // const response = await api.post(`/api/projects/${projectId}/final-reports/ai-chat`, requestPayload);
-            
-            // [테스트용 가짜 응답] - 나중엔 response.data.reply 등으로 교체
+            // API 호출 시뮬레이션
             setTimeout(() => {
                 const mockReply = isSelection 
-                    ? `선택하신 "${contextText.substring(0, 10)}..." 부분에 대한 수정 제안입니다.` 
+                    ? `선택하신 "${contextText.substring(0, 15)}..." 부분에 대해 수정해드릴게요.` 
                     : "전체 문서를 바탕으로 답변 드립니다.";
-                
                 setMessages(prev => [...prev, { role: "assistant", text: mockReply }]);
             }, 800);
-
         } catch (error) {
-            console.error("AI 요청 실패:", error);
-            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다. 다시 시도해주세요." }]);
+            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다." }]);
         }
     };
 
@@ -267,26 +269,25 @@ export default function FinalReportCreatePage() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="loading-overlay">
-                <div className="loader"></div>
-                <p>리포트를 불러오는 중입니다...</p>
-            </div>
-        );
-    }
+    if (loading) return <div className="loading-overlay"><div className="loader"></div><p>로딩 중...</p></div>;
 
     return (
         <div className="final-report-create-container">
-            <div className="frc-header">
-                <input 
-                    type="text" 
-                    className="frc-title-input"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="리포트 제목을 입력하세요"
+            {/* 가상 하이라이트 오버레이 (fixed position) */}
+            {highlightStyle && (
+                <div 
+                    className="virtual-highlight"
+                    style={{
+                        top: highlightStyle.top,
+                        left: highlightStyle.left,
+                        width: highlightStyle.width,
+                        height: highlightStyle.height
+                    }}
                 />
-                
+            )}
+
+            <div className="frc-header">
+                <input type="text" className="frc-title-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="리포트 제목" />
                 <div className="frc-header-actions">
                     <button className="frc-btn secondary" onClick={() => navigate(-1)}>나가기</button>
                     <button className="frc-btn secondary save-as" onClick={handleSaveAs}>다른 이름으로 저장</button>
@@ -297,7 +298,6 @@ export default function FinalReportCreatePage() {
             <div className="frc-body">
                 <section className="frc-left">
                     <div className="editor-wrapper">
-                        {/* [변경 5] React Component 대신 순수 div 컨테이너 사용 */}
                         <div ref={containerRef} style={{ height: '100%' }} />
                     </div>
                 </section>
@@ -307,29 +307,34 @@ export default function FinalReportCreatePage() {
                         <div className="frc-chat-header">AI Assistant</div>
                         <div className="frc-chat-messages">
                             {messages.map((msg, idx) => (
-                                <div key={idx} className={`chat-bubble ${msg.role}`}>{msg.text}</div>
+                                <div key={idx} className={`chat-bubble ${msg.role}`}>
+                                    {/* 문맥 아이콘 표시 */}
+                                    {msg.role === 'user' && (
+                                        <div className="msg-context-icon">
+                                            {msg.hasContext ? '✂️ 부분 참조' : '📄 전체 참조'}
+                                        </div>
+                                    )}
+                                    {msg.text}
+                                </div>
                             ))}
                             <div ref={messagesEndRef} />
                         </div>
+                        
                         <div className="frc-chat-input-area">
-                            {/* 컨텍스트 상태 표시 (선택사항) */}
-                            <div className="context-indicator">
-                                {editorRef.current?.getSelectedText() ? (
-                                    <span className="badge-select">선택 영역 참조 중</span>
-                                ) : (
-                                    <span className="badge-all">전체 문서 참조 중</span>
-                                )}
+                            {/* [변경] 컨텍스트 상태 배지 (입력창 위) */}
+                            <div className={`context-badge ${hasSelection ? 'active' : ''}`}>
+                                {hasSelection 
+                                    ? "✂️ 수정할 부분을 참조 중입니다." 
+                                    : "📄 전체 문서를 참조 중입니다. (드래그하여 부분 선택 가능)"
+                                }
                             </div>
                             
                             <textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder={
-                                    editorRef.current?.getSelectedText() 
-                                    ? "선택한 내용을 어떻게 수정할까요?" 
-                                    : "전체 문서에 대해 질문하거나 수정할 부분을 드래그하세요."
-                                }
+                                onFocus={handleChatFocus} // [핵심] 포커스 시 하이라이트 켜기
+                                placeholder={hasSelection ? "선택한 내용을 어떻게 수정할까요?" : "AI에게 요청하세요..."}
                             />
                             <button onClick={sendMessage}>전송</button>
                         </div>
