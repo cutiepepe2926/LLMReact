@@ -20,9 +20,6 @@ function ProjectDashBoard() {
     const [searchParams] = useSearchParams();
     const queryIssueId = searchParams.get('issueId'); // 예: "15"
 
-    console.log("📍 [Dashboard] 현재 URL:", window.location.href);
-    console.log("📍 [Dashboard] 감지된 issueId:", queryIssueId);
-
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
     const projectId = params.projectId 

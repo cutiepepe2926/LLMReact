@@ -10,6 +10,7 @@ const ProjectListPage = ({ onEnterDashboard }) => {
   // 상태 값을 소문자로 백엔드와 맞게 통일 (active | done | trash)
   const [filterStatus, setFilterStatus] = useState('active');
   const navigate = useNavigate();
+  const [myUserName, setMyUserName] = useState('');
 
   // 날짜 가공 함수 (2026-01-29T12:38:17 -> 2026.01.29)
   const formatDate = (dateString) => {
@@ -17,9 +18,33 @@ const ProjectListPage = ({ onEnterDashboard }) => {
     return dateString.split('T')[0].replace(/-/g, '.');
   };
 
+  useEffect(() => {
+    const fetchMyInfo = async () => {
+      try {
+        // UserController.java에 정의된 /api/user/info 호출
+        const response = await api.get('/api/user/info');
+        if (response && response.name) {
+          setMyUserName(response.name);
+        }
+      } catch (error) {
+        console.error("내 정보 로드 실패:", error);
+        setMyUserName('나'); // 실패 시 기본값
+      }
+    };
+
+    fetchMyInfo();
+  }, []);
+
   // 참여자 수 표시 가공 함수
-  const formatMembers = (count) => {
-    return count <= 1 ? '홍길동' : `홍길동 님 외 ${count - 1}명`;
+  const renderMemberText = (count) => {
+    // 이름이 아직 로드 안 됐으면 로딩 중 표시 or 기본값
+    const name = myUserName || '...';
+
+    if (count <= 1) {
+      return `${name}`; // "홍길동"
+    } else {
+      return `${name} 님 외 ${count - 1}명`; // "홍길동 님 외 2명"
+    }
   };
 
   // 프로젝트 목록 가져오기 (filterStatus가 바뀔 때마다 실행됨)
@@ -194,7 +219,9 @@ const ProjectListPage = ({ onEnterDashboard }) => {
                         <div className="member-info">
                           <span className="label">참여자</span>
                           <span className="member-text" style={{fontSize: '0.9rem', color: '#6B7280', marginLeft: '8px'}}>
-                            {formatMembers(p.memberCount)}
+                            <span className="member-text">
+                                {renderMemberText(p.memberCount)}
+                            </span>
                           </span>
                         </div>
 

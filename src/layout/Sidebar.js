@@ -47,7 +47,7 @@ const Sidebar = () => {
     const [isAllProjOpen, setIsAllProjOpen] = useState(false);
     const [myTasks, setMyTasks] = useState([]);
     const [projectStatus, setProjectStatus] = useState("ACTIVE");
-    const [githubUrl, setGithubUrl] = useState(""); // GitHub URL 상태 추가
+    const [githubUrl, setGithubUrl] = useState(null); // GitHub URL 상태 추가
     const [isReportWritten, setIsReportWritten] = useState(false);
     const [reportTargetTime, setReportTargetTime] = useState(null);
     const [displayTime, setDisplayTime] = useState("00:00:00");
@@ -72,7 +72,7 @@ const Sidebar = () => {
                 setMyTasks(Array.isArray(res.myTasks) ? res.myTasks : []);
                 setMyIssues(Array.isArray(res.myIssues) ? res.myIssues : []);
                 setProjectStatus(res.projectStatus || "ACTIVE");
-                setGithubUrl(res.githubRepoUrl || ""); // URL 바인딩
+                setGithubUrl(res.githubUrl || null);
                 setIsReportWritten(res.reportWritten);
                 setReportTargetTime(res.dailyReportTime);
                 setDisplayTime(calculateTimeRemaining(res.dailyReportTime));
