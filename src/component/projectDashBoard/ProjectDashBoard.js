@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { api } from "../../utils/api";
 
 import ProjectHeader from "../projectHeader/ProjectHeader";
@@ -17,6 +17,7 @@ function ProjectDashBoard() {
     const location = useLocation();
     const params = useParams();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
@@ -148,6 +149,28 @@ function ProjectDashBoard() {
         // eslint-disable-next-line
     }, [location.state]);
 
+    // 알람 클릭 감지
+    useEffect(() => {
+        const taskIdFromUrl = searchParams.get('taskId');
+
+        if (taskIdFromUrl) {
+            setActiveTab("task");
+            setTimeout(() => {
+                setTargetTaskId(taskIdFromUrl); 
+            }, 100);
+        } 
+        else if (location.state?.initialTab) {
+            setActiveTab(location.state.initialTab);
+        }
+    }, [searchParams, location.state]);
+
+    // URL 파라미터 청소
+    const clearTargetTaskId = useCallback(() => {
+        searchParams.delete('taskId');
+        setSearchParams(searchParams);
+        setTargetTaskId(null);
+    }, [searchParams, setSearchParams]);
+
     const handleTabChange = (key) => {
         setTargetTaskId(null); // 다른 탭 누르면 상세 호출 신호 초기화
         setActiveTab(key);
@@ -180,7 +203,13 @@ function ProjectDashBoard() {
                                     }
                                 </div>
                             ) : activeTab === "task" ? (
-                                <TaskBoard projectId={projectId} project={projectData} initialTaskId={targetTaskId} />
+                                // [수정됨] TaskBoard에 clearTargetTaskId 전달
+                                <TaskBoard 
+                                    projectId={projectId} 
+                                    project={projectData} 
+                                    initialTaskId={targetTaskId} 
+                                    clearTargetTaskId={clearTargetTaskId} 
+                                />
                             ) : activeTab === "finalReport" ? (
                                 // [추가] 최종 리포트 탭 연결
                                 <FinalReportGrid projectId={projectId} project={projectData} />
