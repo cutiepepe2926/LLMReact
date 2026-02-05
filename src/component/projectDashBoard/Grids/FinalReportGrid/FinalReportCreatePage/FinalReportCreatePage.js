@@ -23,20 +23,21 @@ export default function FinalReportCreatePage() {
 
     const [currentReportId, setCurrentReportId] = useState(finalReportId || null);
     const [title, setTitle] = useState(initialTitle || "제목 없음");
-    
     const [initialContent, setInitialContent] = useState(""); 
     const [loading, setLoading] = useState(true); 
     
-    // 에디터 및 DOM Refs
     const editorRef = useRef(null); 
     const containerRef = useRef(null); 
 
-    // [핵심] 하이라이트 및 선택 영역 관리
-    const [highlightStyle, setHighlightStyle] = useState(null); // 하이라이트 div 스타일 (좌표)
-    const lastRangeRef = useRef(null); // 마지막 선택 영역(Range 객체) 저장
-    const [hasSelection, setHasSelection] = useState(false); // UI 배지 표시용 상태
+    const highlightRef = useRef(null);
+    const rafRef = useRef(null);
 
-    // 채팅 관련
+    // [상태 관리] 하이라이트 스타일 및 로직 제어
+    const [highlightStyle, setHighlightStyle] = useState(null);
+    const lastRangeRef = useRef(null); // 선택 영역(Range) 저장
+    const isHighlightingRef = useRef(false); // 현재 하이라이트가 켜져 있는지 추적 (스크롤 최적화용)
+    const [hasSelection, setHasSelection] = useState(false); // UI 배지용 상태
+
     const [messages, setMessages] = useState([
         { role: "assistant", text: "안녕하세요! 수정하고 싶은 부분을 드래그하면 더 정확한 피드백을 드릴 수 있습니다." }
     ]);
@@ -104,17 +105,17 @@ export default function FinalReportCreatePage() {
         fetchReport();
     }, [projectId, template, sections, finalReportId, mode, navigate, initialTitle]);
 
-    // 2. 에디터 초기화 및 이벤트 바인딩
+    // 2. 에디터 초기화 및 이벤트 바인딩 (핵심 수정)
     useEffect(() => {
         if (loading) return; 
         if (!containerRef.current) return; 
 
+        // ... (에디터 생성 부분 유지)
         if (editorRef.current) {
             editorRef.current.destroy();
             editorRef.current = null;
         }
 
-        // [변경] events 옵션 제거 (v3 호환성 문제 해결)
         const editorInstance = new Editor({
             el: containerRef.current,
             initialValue: initialContent,
@@ -129,15 +130,14 @@ export default function FinalReportCreatePage() {
 
         editorRef.current = editorInstance;
 
-        // [핵심 변경] DOM 요소 직접 접근하여 이벤트 바인딩
-        // v3에서는 getSquire 대신 getEditorElements() 사용
-        const { wwEditor } = editorInstance.getEditorElements(); // WYSIWYG DOM Element
+        // Toast UI v3 DOM 접근
+        const { wwEditor } = editorInstance.getEditorElements(); 
+        const scrollContainer = wwEditor ? wwEditor.parentElement : null;
 
         const saveRange = () => {
             const selection = window.getSelection();
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
-                // 텍스트가 실제로 선택되었을 때만 저장
                 if (!range.collapsed && range.toString().trim().length > 0) {
                     lastRangeRef.current = range.cloneRange();
                     setHasSelection(true);
@@ -148,27 +148,79 @@ export default function FinalReportCreatePage() {
             }
         };
 
-        // DOM 이벤트 리스너 등록
-        if (wwEditor) {
+        const clearHighlight = () => {
+            setHighlightStyle(null);
+            isHighlightingRef.current = false;
+        };
+
+        // [핵심 2] 좌표 제한(Clamping)이 적용된 위치 업데이트 함수
+        const updateHighlightPosition = () => {
+            // 조건 체크: 하이라이트 모드가 아니거나, DOM 요소들이 없으면 중단
+            if (!isHighlightingRef.current || !lastRangeRef.current || !scrollContainer || !highlightRef.current) {
+                return;
+            }
+
+            // 이전 프레임 요청 취소 (중복 실행 방지)
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+            // 다음 브라우저 리페인트 시점에 실행
+            rafRef.current = requestAnimationFrame(() => {
+                // 이 시점에 컴포넌트가 언마운트 되었거나 하이라이트가 꺼졌으면 중단
+                if (!highlightRef.current) return;
+
+                const range = lastRangeRef.current;
+                const textRect = range.getBoundingClientRect();
+                const containerRect = scrollContainer.getBoundingClientRect();
+
+                // 좌표 클램핑 (Clamping) 계산
+                const visibleTop = Math.max(textRect.top, containerRect.top);
+                const visibleBottom = Math.min(textRect.bottom, containerRect.bottom);
+                const visibleHeight = visibleBottom - visibleTop;
+
+                // DOM 스타일 직접 수정 (React State 건너뜀 -> 즉각 반응)
+                const el = highlightRef.current;
+
+                if (visibleHeight > 0 && textRect.width > 0) {
+                    // 화면에 보일 때
+                    el.style.display = 'block'; // 혹시 숨겨져 있었다면 보임
+                    el.style.top = `${visibleTop}px`;
+                    el.style.left = `${textRect.left}px`;
+                    el.style.width = `${textRect.width}px`;
+                    el.style.height = `${visibleHeight}px`;
+                } else {
+                    // 범위를 벗어났을 때 (숨김 처리만 하고 DOM은 유지)
+                    el.style.display = 'none'; 
+                }
+            });
+        };
+
+        if (wwEditor && scrollContainer) {
             wwEditor.addEventListener('mouseup', saveRange);
             wwEditor.addEventListener('keyup', saveRange);
             
-            // 포커스 시 하이라이트 UI 제거
-            wwEditor.addEventListener('focus', () => {
-                setHighlightStyle(null);
-            });
+            wwEditor.addEventListener('focus', clearHighlight);
+            wwEditor.addEventListener('mousedown', clearHighlight);
+            wwEditor.addEventListener('keydown', clearHighlight);
             
-            // 스크롤 시 하이라이트 제거 (캡처링으로 확실하게 잡기)
-            wwEditor.addEventListener('scroll', () => {
-                setHighlightStyle(null);
-            }, { capture: true });
+            // [중요] 스크롤 이벤트는 'scrollContainer'에 걸어야 가장 정확함
+            // 하지만 ToastUI 구조상 wwEditor에서 버블링되는 스크롤을 잡거나 
+            // 직접 scrollContainer에 리스너를 붙여야 함. capture: true로 잡는 것이 안전.
+            scrollContainer.addEventListener('scroll', updateHighlightPosition, { capture: true });
+            
+            // 윈도우 리사이즈 시에도 위치가 틀어질 수 있으므로 추가하면 좋음
+            window.addEventListener('resize', updateHighlightPosition);
         }
 
         return () => {
-            // Cleanup: 이벤트 제거 및 에디터 파괴
-            if (wwEditor) {
+            if (wwEditor && scrollContainer) {
                 wwEditor.removeEventListener('mouseup', saveRange);
                 wwEditor.removeEventListener('keyup', saveRange);
+                wwEditor.removeEventListener('focus', clearHighlight);
+                wwEditor.removeEventListener('mousedown', clearHighlight);
+                wwEditor.removeEventListener('keydown', clearHighlight);
+                
+                scrollContainer.removeEventListener('scroll', updateHighlightPosition, { capture: true });
+                window.removeEventListener('resize', updateHighlightPosition);
             }
             if (editorRef.current) {
                 editorRef.current.destroy();
@@ -177,20 +229,41 @@ export default function FinalReportCreatePage() {
         };
     }, [loading, initialContent]);
 
-    // [핵심] 채팅창 포커스 시 가상 하이라이트 켜기
+    // 3. 채팅창 포커스 핸들러 (하이라이트 켜기)
     const handleChatFocus = () => {
+        // [변경] 단순히 좌표를 가져오지 않고, 클램핑 로직이 있는 함수를 호출해서 안전하게 켬
         const range = lastRangeRef.current;
         if (range) {
-            // 선택된 영역의 화면상 좌표 계산
-            const rect = range.getBoundingClientRect();
+            isHighlightingRef.current = true;
+            // 여기서 직접 updateHighlightPosition 로직을 수행하거나,
+            // useEffect 밖으로 함수를 빼서 호출해야 하는데,
+            // 가장 쉬운 방법은 여기서도 똑같은 클램핑 로직을 한 번 실행해 주는 것입니다.
             
-            if (rect.width > 0) {
-                setHighlightStyle({
-                    top: rect.top,    // fixed 포지션이므로 viewport 기준 좌표 그대로 사용
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height
-                });
+            // (위의 useEffect 안의 로직과 동일하게 구현하거나, 
+            //  함수를 useCallback으로 빼서 공유하는 것이 베스트입니다.)
+            //  간단한 해결을 위해 여기서는 DOM 접근을 통해 직접 계산합니다.
+            
+            const editorInstance = editorRef.current;
+            if(!editorInstance) return;
+            const { wwEditor } = editorInstance.getEditorElements();
+            const scrollContainer = wwEditor ? wwEditor.parentElement : null;
+
+            if (scrollContainer) {
+                const textRect = range.getBoundingClientRect();
+                const containerRect = scrollContainer.getBoundingClientRect();
+
+                const visibleTop = Math.max(textRect.top, containerRect.top);
+                const visibleBottom = Math.min(textRect.bottom, containerRect.bottom);
+                const visibleHeight = visibleBottom - visibleTop;
+
+                if (visibleHeight > 0 && textRect.width > 0) {
+                    setHighlightStyle({
+                        top: visibleTop,
+                        left: textRect.left,
+                        width: textRect.width,
+                        height: visibleHeight
+                    });
+                }
             }
         }
     };
@@ -225,7 +298,6 @@ export default function FinalReportCreatePage() {
         const editorInstance = editorRef.current;
         if (!editorInstance) { alert("에디터가 로드되지 않았습니다."); return; }
 
-        // [핵심] 전송할 컨텍스트 결정 (저장해둔 Range가 있으면 우선 사용)
         let contextText = "";
         let isSelection = false;
 
@@ -237,7 +309,6 @@ export default function FinalReportCreatePage() {
             isSelection = false;
         }
 
-        // UI에 표시
         const userMsg = { role: "user", text: input, hasContext: isSelection };
         setMessages(prev => [...prev, userMsg]);
         setInput("");
@@ -253,7 +324,7 @@ export default function FinalReportCreatePage() {
             // API 호출 시뮬레이션
             setTimeout(() => {
                 const mockReply = isSelection 
-                    ? `선택하신 "${contextText.substring(0, 15)}..." 부분에 대해 수정해드릴게요.` 
+                    ? `선택하신 내용에 대한 답변입니다: ${contextText.substring(0, 10)}...` 
                     : "전체 문서를 바탕으로 답변 드립니다.";
                 setMessages(prev => [...prev, { role: "assistant", text: mockReply }]);
             }, 800);
@@ -273,9 +344,10 @@ export default function FinalReportCreatePage() {
 
     return (
         <div className="final-report-create-container">
-            {/* 가상 하이라이트 오버레이 (fixed position) */}
+            {/* 가상 하이라이트 오버레이 */}
             {highlightStyle && (
-                <div 
+                <div
+                    ref={highlightRef}
                     className="virtual-highlight"
                     style={{
                         top: highlightStyle.top,
@@ -308,7 +380,6 @@ export default function FinalReportCreatePage() {
                         <div className="frc-chat-messages">
                             {messages.map((msg, idx) => (
                                 <div key={idx} className={`chat-bubble ${msg.role}`}>
-                                    {/* 문맥 아이콘 표시 */}
                                     {msg.role === 'user' && (
                                         <div className="msg-context-icon">
                                             {msg.hasContext ? '✂️ 부분 참조' : '📄 전체 참조'}
@@ -321,19 +392,11 @@ export default function FinalReportCreatePage() {
                         </div>
                         
                         <div className="frc-chat-input-area">
-                            {/* [변경] 컨텍스트 상태 배지 (입력창 위) */}
-                            <div className={`context-badge ${hasSelection ? 'active' : ''}`}>
-                                {hasSelection 
-                                    ? "✂️ 수정할 부분을 참조 중입니다." 
-                                    : "📄 전체 문서를 참조 중입니다. (드래그하여 부분 선택 가능)"
-                                }
-                            </div>
-                            
                             <textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                onFocus={handleChatFocus} // [핵심] 포커스 시 하이라이트 켜기
+                                onFocus={handleChatFocus}
                                 placeholder={hasSelection ? "선택한 내용을 어떻게 수정할까요?" : "AI에게 요청하세요..."}
                             />
                             <button onClick={sendMessage}>전송</button>

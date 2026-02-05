@@ -15,9 +15,9 @@
 .final-report-create-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;  
     background-color: #f5f6f7;
-    overflow: hidden; /* 전체 스크롤 방지 */
+    overflow: hidden; 
 }
 
 /* 2. 헤더 영역 */
@@ -152,7 +152,7 @@
 
 /* 채팅 메시지 리스트 (이전 .frc-chat-list 대응) */
 .frc-chat-messages {
-    flex: 3;
+    flex: 3; 
     padding: 20px;
     overflow-y: auto;
     display: flex;
@@ -193,26 +193,24 @@
     border-top: 1px solid var(--border-color);
     background-color: #fff;
     display: flex;
-    gap: 8px;
     flex-direction: column;
-    align-items: flex-end; /* 버튼은 바닥에 붙여서 정렬 */
+    /* gap: 8px; <-- 배지가 사라졌으므로 간격 불필요 시 조정 가능하나 유지해도 무방 */
     box-sizing: border-box;
     position: relative;
 }
 
 .frc-chat-input-area textarea {
     width: 100%;
-    flex: 1; /* 남은 높이 채우기 */
+    flex: 1; 
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 10px;
-    font-size: 0.9rem;
+    padding: 12px; /* 패딩을 조금 더 넉넉하게 조정 */
+    font-size: 0.95rem; /* 폰트 사이즈 미세 조정 */
     resize: none;
     outline: none;
     background-color: #f9fafb;
     box-sizing: border-box;
     
-    /* 스크롤바 숨김 */
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -244,11 +242,6 @@
 
 .frc-chat-input-area button:hover {
     background-color: #409eff;
-}
-
-.context-badge.active {
-    color: #4a90e2; /* 선택 시 파란색 강조 */
-    font-weight: 600;
 }
 
 .msg-context-icon {
@@ -291,11 +284,12 @@
 }
 
 .virtual-highlight {
-    position: fixed; /* 뷰포트 기준 절대 위치 */
+    position: fixed;
     background-color: rgba(255, 235, 59, 0.5); /* 노란색 반투명 */
-    z-index: 9999; /* 최상단 */
-    pointer-events: none; /* 클릭 통과 (뒤에 있는 에디터가 클릭되도록) */
+    z-index: 9999;
+    pointer-events: none;
     border-radius: 2px;
+    will-change: top, left, height; 
     animation: highlightFadeIn 0.2s ease-out;
 }
 
