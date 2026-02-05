@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@toast-ui/editor": "^3.2.2",
     "event-source-polyfill": "^1.0.31",
+    "framer-motion": "^12.31.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.12.0",
