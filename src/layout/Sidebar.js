@@ -151,11 +151,21 @@ const Sidebar = () => {
                             <div className="timer-box">
                                 <Icons.Clock /><span className="timer-text">{isReportWritten ? "작성 완료" : displayTime}</span>
                             </div>
-                            <div className={`daily-report-box ${isReportWritten ? 'disabled' : ''}`} onClick={() => !isReportWritten && navigate(`/projects/${projectId}/daily-reports`, { state: { projectData: { projectId, name: projectName } } })}>
+                            <div 
+                                className={`daily-report-box ${isReportWritten ? 'disabled' : ''}`} 
+                                onClick={() => !isReportWritten && navigate(`/projects/${projectId}/daily-reports`, { 
+                                    state: { 
+                                        projectData: { projectId, name: projectName },
+                                        mode: 'create'
+                                    } 
+                                })}
+                            >
                                 <div className="report-icon-bg"><Icons.Edit /></div>
                                 <div className="report-text-group">
                                     <span className="report-title">Daily Report</span>
-                                    <span className={`report-action ${isReportWritten ? 'done' : 'write'}`}>{isReportWritten ? '작성 완료' : '작성하기'}</span>
+                                    <span className={`report-action ${isReportWritten ? 'done' : 'write'}`}>
+                                        {isReportWritten ? '작성 완료' : '작성하기'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
