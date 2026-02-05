@@ -21,6 +21,7 @@ export default function FinalReportCreatePage() {
     
     const { projectId, template, sections, finalReportId, mode, title: initialTitle } = state || {};
 
+    const [isAiThinking, setIsAiThinking] = useState(false);
     const [currentReportId, setCurrentReportId] = useState(finalReportId || null);
     const [title, setTitle] = useState(initialTitle || "제목 없음");
     const [initialContent, setInitialContent] = useState(""); 
@@ -303,6 +304,8 @@ export default function FinalReportCreatePage() {
         setMessages(prev => [...prev, userMsg]);
         setInput(""); // 입력창 초기화
 
+        setIsAiThinking(true);
+
         const requestPayload = {
             message: userMsg.text,
             context: contextText,
@@ -313,16 +316,20 @@ export default function FinalReportCreatePage() {
         try {
             const response = await api.post(`/api/projects/${projectId}/reports/chat`, requestPayload);
             
+            let replyText = "응답을 받을 수 없습니다.";
             if (response && response.reply) {
-                setMessages(prev => [...prev, { role: "assistant", text: response.reply }]);
-            } else {
-                 const replyText = response.data?.reply || response.reply || "응답을 받을 수 없습니다.";
-                 setMessages(prev => [...prev, { role: "assistant", text: replyText }]);
+                replyText = response.reply;
+            } else if (response.data && response.data.reply) {
+                replyText = response.data.reply;
             }
+            
+            setMessages(prev => [...prev, { role: "assistant", text: replyText }]);
 
         } catch (error) {
             console.error("AI 요청 실패:", error);
-            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다. 다시 시도해주세요." }]);
+            setMessages(prev => [...prev, { role: "assistant", text: "오류가 발생했습니다. 잠시 후 다시 시도해주세요." }]);
+        } finally {
+            setIsAiThinking(false);
         }
     };
 
@@ -375,12 +382,21 @@ export default function FinalReportCreatePage() {
                                 <div key={idx} className={`chat-bubble ${msg.role}`}>
                                     {msg.role === 'user' && (
                                         <div className="msg-context-icon">
-                                            {msg.hasContext ? '✂️ 부분 참조' : '📄 전체 참조'}
+                                            {msg.hasContext ? '부분 참조' : '전체 참조'}
                                         </div>
                                     )}
                                     {msg.text}
                                 </div>
                             ))}
+
+                            {isAiThinking && (
+                                <div className="chat-bubble assistant loading">
+                                    <span className="typing-dot"></span>
+                                    <span className="typing-dot"></span>
+                                    <span className="typing-dot"></span>
+                                </div>
+                            )}
+
                             <div ref={messagesEndRef} />
                         </div>
                         
