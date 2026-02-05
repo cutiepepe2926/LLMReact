@@ -40,7 +40,7 @@ export default function FinalReportCreatePage() {
     const [hasSelection, setHasSelection] = useState(false); // UI 배지용 상태
 
     const [messages, setMessages] = useState([
-        { role: "assistant", text: "안녕하세요! 수정하고 싶은 부분을 드래그하면 더 정확한 피드백을 드릴 수 있습니다." }
+        { role: "assistant", text: "안녕하세요! 수정하고 싶은 부분을 드래그하면\n 더 정확한 피드백을 드릴 수 있습니다." }
     ]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
