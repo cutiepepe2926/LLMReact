@@ -254,6 +254,43 @@
     color: #eee;
 }
 
+.msg-actions {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05); /* 구분선 살짝 */
+}
+
+.action-btn {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    background-color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #555;
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-1px);
+}
+
+.action-btn.apply {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: #f0f9ff;
+}
+
+.action-btn.apply:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
 /* 로딩 오버레이 스타일 */
 .loading-overlay {
     display: flex;

@@ -340,6 +340,48 @@ export default function FinalReportCreatePage() {
         }
     };
 
+    const handleCopy = async (text) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            alert("클립보드에 복사되었습니다");
+        } catch (err) {
+            console.error("복사 실패:", err);
+        }
+    };
+
+    const handleApply = (text) => {
+        const editor = editorRef.current;
+        if (!editor) {
+            alert("에디터를 찾을 수 없습니다.");
+            return;
+        }
+
+        // 현재 에디터 모드 확인
+        const isWysiwyg = editor.isWysiwygMode();
+
+        try {
+            // 1 강제로 Markdown 모드로 전환 (텍스트를 마크다운 문법으로 인식시키기 위함)
+            if (isWysiwyg) {
+                editor.changeMode('markdown');
+            }
+
+            // 2 텍스트 삽입 (현재 커서 위치 or 선택 영역을 대체함)
+            editor.insertText(text);
+
+            // 3 다시 원래 모드(WYSIWYG)로 복귀 -> 이때 마크다운이 렌더링됨
+            if (isWysiwyg) {
+                editor.changeMode('wysiwyg');
+            }
+            
+            // 에디터로 포커스 이동
+            editor.focus();
+
+        } catch (e) {
+            console.error("에디터 적용 실패:", e);
+            alert("적용 중 오류가 발생했습니다.");
+        }
+    };
+
     if (loading) return <div className="loading-overlay"><div className="loader"></div><p>로딩 중...</p></div>;
 
     return (
@@ -386,6 +428,17 @@ export default function FinalReportCreatePage() {
                                         </div>
                                     )}
                                     {msg.text}
+
+                                    {msg.role === 'assistant' && idx !== 0 && (
+                                        <div className="msg-actions">
+                                            <button className="action-btn copy" onClick={() => handleCopy(msg.text)}>
+                                                복사
+                                            </button>
+                                            <button className="action-btn apply" onClick={() => handleApply(msg.text)}>
+                                                에디터에 적용
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
 
