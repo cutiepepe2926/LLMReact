@@ -287,12 +287,21 @@ export default function FinalReportCreatePage() {
 
         let contextText = "";
         let isSelection = false;
+        let currentSelectionRange = null; // [추가] 선택 영역 좌표 저장용
 
-        // ... 기존 컨텍스트 추출 로직 ...
-        if (lastRangeRef.current && lastRangeRef.current.toString().trim().length > 0) {
-            contextText = lastRangeRef.current.toString();
+        // 1. Toast UI Editor API를 사용하여 '선택된 텍스트' 확인
+        // getSelectedText(): 선택된 영역의 마크다운 텍스트를 반환 (줄바꿈, 문법 포함)
+        const selectedMarkdown = editorInstance.getSelectedText();
+        
+        // 2. 선택된 텍스트가 있는지 확인
+        if (selectedMarkdown && selectedMarkdown.trim().length > 0) {
+            contextText = selectedMarkdown; // 마크다운 문법이 살아있는 텍스트
             isSelection = true;
+            
+            // [중요] 현재 선택된 좌표(시작, 끝)를 저장 (나중에 복구하기 위해)
+            currentSelectionRange = editorInstance.getSelection(); 
         } else {
+            // 선택 안 했으면 전체 문서 가져오기
             contextText = editorInstance.getMarkdown();
             isSelection = false;
         }
@@ -300,16 +309,17 @@ export default function FinalReportCreatePage() {
         const userMsg = { 
             role: "user", 
             text: input,
-            hasContext: isSelection 
+            hasContext: isSelection,
+            selection: currentSelectionRange // [추가] 메시지에 좌표 정보 포함
         };
+        
         setMessages(prev => [...prev, userMsg]);
         setInput(""); 
-
         setIsAiThinking(true);
 
         const requestPayload = {
             message: userMsg.text,
-            context: contextText,
+            context: contextText, // 이제 줄바꿈과 MD 문법이 포함됨
             isSelection: isSelection,
             reportType: "FINAL" 
         };
@@ -324,11 +334,11 @@ export default function FinalReportCreatePage() {
                 replyText = response.data.reply;
             }
             
-            // [수정 1] AI 메시지에도 hasContext 정보(전체/부분 여부)를 함께 저장
             setMessages(prev => [...prev, { 
                 role: "assistant", 
                 text: replyText,
-                hasContext: isSelection 
+                hasContext: isSelection,
+                selection: currentSelectionRange // [추가] 응답 메시지에도 좌표 전달
             }]);
 
         } catch (error) {
@@ -355,30 +365,34 @@ export default function FinalReportCreatePage() {
         }
     };
 
-    const handleApply = (text, hasContext) => {
+    // [수정] selection(좌표) 인자 추가
+    const handleApply = (text, hasContext, selection) => {
         const editor = editorRef.current;
         if (!editor) {
             alert("에디터를 찾을 수 없습니다.");
             return;
         }
 
-        // Case A: 드래그 없이 전체 문맥을 보낸 경우 -> 문서 전체 교체
-        if (!hasContext) {
-
-            editor.setMarkdown(text); // 전체 덮어쓰기
-
-            return;
-        }
-
-        // Case B: 드래그하여 부분 문맥을 보낸 경우 -> 커서 위치/선택 영역에 삽입 (기존 로직)
-        const isWysiwyg = editor.isWysiwygMode();
         try {
-            if (isWysiwyg) editor.changeMode('markdown');
-            
-            editor.insertText(text); // 부분 삽입
-            
-            if (isWysiwyg) editor.changeMode('wysiwyg');
-            editor.focus();
+            // Case A: 전체 문서 모드일 때 (드래그 없이 질문)
+            if (!hasContext) {
+                 // 전체 문서를 AI 응답으로 교체
+                 editor.setMarkdown(text);
+                 return;
+            }
+
+            // Case B: 부분 선택 모드일 때 (드래그 후 질문)
+            if (hasContext && selection) {
+                // 1. 에디터에 포커스
+                editor.focus();
+                
+                // 2. 아까 저장해둔 좌표로 선택 영역 다시 잡기 (좌표 복구)
+                editor.setSelection(selection[0], selection[1]);
+                
+                // 3. 선택된 영역을 AI 응답 텍스트로 '교체' (Insert가 덮어쓰기 역할)
+                editor.insertText(text);
+            }
+
         } catch (e) {
             console.error("에디터 적용 실패:", e);
             alert("적용 중 오류가 발생했습니다.");
@@ -437,8 +451,11 @@ export default function FinalReportCreatePage() {
                                             <button className="action-btn copy" onClick={() => handleCopy(msg.text)}>
                                                 복사
                                             </button>
-                                            {/* [수정 3] onClick 핸들러에 msg.hasContext 전달 */}
-                                            <button className="action-btn apply" onClick={() => handleApply(msg.text, msg.hasContext)}>
+                                            {/* [수정] selection 정보도 함께 전달 */}
+                                            <button 
+                                                className="action-btn apply" 
+                                                onClick={() => handleApply(msg.text, msg.hasContext, msg.selection)}
+                                            >
                                                 에디터에 적용
                                             </button>
                                         </div>
