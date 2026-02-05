@@ -4,6 +4,56 @@ import { useNavigate } from 'react-router-dom';
 import CreateProjectModal from "../modal/CreateProjectModal";
 import './ProjectListPage.css';
 
+const LatestCommitLabel = ({ projectId }) => {
+  const [commit, setCommit] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        // 아까 만든 API 호출
+        const res = await api.get(`/api/github/${projectId}/latest-commit`);
+        if (res && res.message) {
+          setCommit(res);
+        }
+      } catch (err) {
+        // 에러 무시 (데이터 없으면 빈칸)
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLatest();
+  }, [projectId]);
+
+  if (loading) return <span style={{fontSize: '0.8rem', color: '#9ca3af'}}>로딩중...</span>;
+  if (!commit) return <span style={{fontSize: '0.8rem', color: '#9ca3af'}}>최신 활동 없음</span>;
+
+  // 날짜 포맷팅 (예: 2시간 전)
+  const timeAgo = (dateStr) => {
+    const diff = new Date() - new Date(dateStr);
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}분 전`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    return `${Math.floor(hours / 24)}일 전`;
+  };
+
+  return (
+      <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#4b5563' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+          <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{commit.branch}</span>
+          <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>• {timeAgo(commit.date)}</span>
+        </div>
+        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
+          "{commit.message}"
+        </div>
+        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+          by {commit.author}
+        </div>
+      </div>
+  );
+};
+
 const ProjectListPage = ({ onEnterDashboard }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projects, setProjects] = useState([]);
@@ -233,10 +283,9 @@ const ProjectListPage = ({ onEnterDashboard }) => {
                       </div>
                     </div>
 
-                    <div className="card-footer">
-                      <span className="branch-name">main:</span>
-                      <span className="commit-msg">{p.lastCommit}</span>
-                      <span className="commit-time">({p.lastCommitTime})</span>
+                    <div className="card-footer" style={{ borderTop: '1px solid #f3f4f6', paddingTop: '10px', marginTop: 'auto' }}>
+                      {/* 새로 만든 컴포넌트 삽입 */}
+                      <LatestCommitLabel projectId={p.projectId} />
                     </div>
 
                   </div>
