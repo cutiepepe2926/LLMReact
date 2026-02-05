@@ -54,6 +54,8 @@ export default function FinalReportCreatePage() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    const HIGHLIGHT_PADDING = 6;
+
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
@@ -105,12 +107,10 @@ export default function FinalReportCreatePage() {
         fetchReport();
     }, [projectId, template, sections, finalReportId, mode, navigate, initialTitle]);
 
-    // 2. 에디터 초기화 및 이벤트 바인딩 (핵심 수정)
+    // 2. 에디터 초기화 및 이벤트 바인딩 
     useEffect(() => {
         if (loading) return; 
         if (!containerRef.current) return; 
-
-        // ... (에디터 생성 부분 유지)
         if (editorRef.current) {
             editorRef.current.destroy();
             editorRef.current = null;
@@ -153,7 +153,7 @@ export default function FinalReportCreatePage() {
             isHighlightingRef.current = false;
         };
 
-        // [핵심 2] 좌표 제한(Clamping)이 적용된 위치 업데이트 함수
+        //좌표 제한(Clamping)이 적용된 위치 업데이트 함수
         const updateHighlightPosition = () => {
             // 조건 체크: 하이라이트 모드가 아니거나, DOM 요소들이 없으면 중단
             if (!isHighlightingRef.current || !lastRangeRef.current || !scrollContainer || !highlightRef.current) {
@@ -181,14 +181,18 @@ export default function FinalReportCreatePage() {
                 const el = highlightRef.current;
 
                 if (visibleHeight > 0 && textRect.width > 0) {
-                    // 화면에 보일 때
-                    el.style.display = 'block'; // 혹시 숨겨져 있었다면 보임
-                    el.style.top = `${visibleTop}px`;
-                    el.style.left = `${textRect.left}px`;
-                    el.style.width = `${textRect.width}px`;
-                    el.style.height = `${visibleHeight}px`;
+                    el.style.display = 'block'; 
+                    
+                    // 여백(PADDING)을 적용하여 박스 확장
+                    // 위/왼쪽은 빼주고(-), 너비/높이는 양쪽 여백만큼 더해줌(+)
+                    el.style.top = `${visibleTop - HIGHLIGHT_PADDING}px`;
+                    el.style.left = `${textRect.left - HIGHLIGHT_PADDING}px`;
+                    el.style.width = `${textRect.width + (HIGHLIGHT_PADDING * 2)}px`;
+                    
+                    // 높이는 클램핑된 높이에 여백을 더함
+                    el.style.height = `${visibleHeight + (HIGHLIGHT_PADDING * 2)}px`;
                 } else {
-                    // 범위를 벗어났을 때 (숨김 처리만 하고 DOM은 유지)
+                    // 범위를 벗어났을 때
                     el.style.display = 'none'; 
                 }
             });
@@ -231,40 +235,19 @@ export default function FinalReportCreatePage() {
 
     // 3. 채팅창 포커스 핸들러 (하이라이트 켜기)
     const handleChatFocus = () => {
-        // [변경] 단순히 좌표를 가져오지 않고, 클램핑 로직이 있는 함수를 호출해서 안전하게 켬
         const range = lastRangeRef.current;
         if (range) {
-            isHighlightingRef.current = true;
-            // 여기서 직접 updateHighlightPosition 로직을 수행하거나,
-            // useEffect 밖으로 함수를 빼서 호출해야 하는데,
-            // 가장 쉬운 방법은 여기서도 똑같은 클램핑 로직을 한 번 실행해 주는 것입니다.
-            
-            // (위의 useEffect 안의 로직과 동일하게 구현하거나, 
-            //  함수를 useCallback으로 빼서 공유하는 것이 베스트입니다.)
-            //  간단한 해결을 위해 여기서는 DOM 접근을 통해 직접 계산합니다.
-            
-            const editorInstance = editorRef.current;
-            if(!editorInstance) return;
-            const { wwEditor } = editorInstance.getEditorElements();
-            const scrollContainer = wwEditor ? wwEditor.parentElement : null;
-
-            if (scrollContainer) {
-                const textRect = range.getBoundingClientRect();
-                const containerRect = scrollContainer.getBoundingClientRect();
-
-                const visibleTop = Math.max(textRect.top, containerRect.top);
-                const visibleBottom = Math.min(textRect.bottom, containerRect.bottom);
-                const visibleHeight = visibleBottom - visibleTop;
-
-                if (visibleHeight > 0 && textRect.width > 0) {
-                    setHighlightStyle({
-                        top: visibleTop,
-                        left: textRect.left,
-                        width: textRect.width,
-                        height: visibleHeight
-                    });
-                }
-            }
+             const rect = range.getBoundingClientRect();
+             if (rect.width > 0) {
+                 isHighlightingRef.current = true;
+                 
+                 setHighlightStyle({
+                     top: rect.top - HIGHLIGHT_PADDING,
+                     left: rect.left - HIGHLIGHT_PADDING,
+                     width: rect.width + (HIGHLIGHT_PADDING * 2),
+                     height: rect.height + (HIGHLIGHT_PADDING * 2)
+                 });
+             }
         }
     };
 
