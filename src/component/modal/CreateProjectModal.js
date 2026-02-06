@@ -156,7 +156,10 @@ const CreateProjectModal = ({ open, onClose, onCreate }) => {
     onCreate(requestData);
   };
 
-  const isFormValid = formData.name.trim() !== '' && formData.repoUrl.trim() !== '';
+  const isFormValid = 
+      formData.name.trim() !== '' && 
+      formData.repoUrl.trim() !== '' && 
+      endDate !== '';
   return (
     <div className="modal-overlay">
       <div className="modal-content fade-in-up">
