@@ -172,8 +172,6 @@ function MyPage() {
                     >
                         계정 설정
                     </li>
-                    <li onClick={() => alert('준비 중입니다.')}>내 프로젝트</li>
-                    <li onClick={() => alert('로그아웃 되었습니다.')}>로그아웃</li>
                 </ul>
             </div>
             

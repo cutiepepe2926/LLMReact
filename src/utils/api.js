@@ -68,7 +68,7 @@ const request = async (endpoint, options = {}) => {
             // 2. 새로운 토큰 저장 (백엔드 응답 필드명에 맞춰 수정 필요, 예: accessToken)
             localStorage.setItem("accessToken", data.accessToken); 
             // 만약 리프레시 토큰도 갱신된다면 아래 주석 해제
-            // localStorage.setItem("refreshToken", data.refreshToken);
+            localStorage.setItem("refreshToken", data.refreshToken);
 
             console.log("토큰 재발급 성공. 기존 요청 재시도.");
 
