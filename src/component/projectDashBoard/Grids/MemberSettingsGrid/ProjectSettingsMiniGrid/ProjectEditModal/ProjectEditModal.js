@@ -10,7 +10,8 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
         description: project.description || "",
         startDate: project.startDate || "",
         endDate: project.endDate || "",
-        repoUrl: project.githubRepoUrl || "", // DB 필드명에 맞춰 초기값 설정
+        reportTime: "09:00", // 초기값
+        repoUrl: project.githubRepoUrl || "",
     });
 
     // 깃허브 저장소 목록 및 미니 모달 상태
@@ -33,13 +34,19 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
                 // 날짜 포맷 (YYYY-MM-DD)
                 const formatDate = (dateStr) => dateStr ? dateStr.split('T')[0] : '';
 
+                const formatTime = (timeStr) => {
+                    if (!timeStr) return "09:00";
+                    // "09:00:00" 처럼 초가 붙어있을 경우 앞의 5자리만 추출
+                    return timeStr.length > 5 ? timeStr.substring(0, 5) : timeStr;
+                };
+
                 // 2. 폼 데이터 초기화
                 setFormData({
                     name: data.name || '',
                     description: data.description || '',
                     startDate: formatDate(data.startDate),
-                    endDate: formData.endDate ? `${formData.endDate}T23:59:59` : null,
-                    reportTime: data.dailyReportTime ? data.dailyReportTime.substring(0, 5) : '09:00', // 서버 필드명: dailyReportTime
+                    endDate: formatDate(data.endDate), // 날짜 포맷팅 적용하여 초기화
+                    reportTime: formatTime(data.dailyReportTime),
                     repoUrl: data.githubRepoUrl || ''             // 서버 필드명: githubRepoUrl
                 });
             } catch (error) {
@@ -198,16 +205,19 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
                         </div>
                         <div className="form-group flex-1">
                             <label>리포트 생성 시간</label>
-                            <select
+                            <input
+                                type="time"
                                 name="reportTime"
                                 value={formData.reportTime}
                                 onChange={handleChange}
-                            >
-                                <option value="09:00">09:00 AM</option>
-                                <option value="12:00">12:00 PM</option>
-                                <option value="18:00">06:00 PM</option>
-                                <option value="21:00">09:00 PM</option>
-                            </select>
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
                         </div>
                     </div>
 
