@@ -1,225 +1,383 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './AiReportPage.css';
-import ProjectHeader from "../projectHeader/ProjectHeader";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { api } from '../../utils/api'; 
+import ProjectHeader from '../projectHeader/ProjectHeader';
+import './AiReportPage.css'; 
 
-const AiReportPage = () => {
-  const [view, setView] = useState('list');
-  const navigate = useNavigate();
+import Editor from '@toast-ui/editor';
+import '@toast-ui/editor/dist/toastui-editor.css';
+import '@toast-ui/editor/dist/i18n/ko-kr';
 
-  // 날짜 상태
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+const TOOLBAR_ITEMS = [['heading', 'bold', 'italic', 'strike'], ['hr', 'quote'], ['ul', 'ol', 'task', 'indent', 'outdent'], ['table', 'image', 'link'], ['code', 'codeblock']];
 
-  // 채팅 관련 상태
-  const [chatInput, setChatInput] = useState('');
-  const [messages, setMessages] = useState([
-    { id: 1, type: 'ai', text: '리포트 초안입니다. 수정할 내용이 있다면 말씀해주세요.' }
-  ]);
-  const chatEndRef = useRef(null);
-  const [isRegenerating, setIsRegenerating] = useState(false);
+export default function AiReportPage() {
+    const { projectId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  useEffect(() => {
-    if (view === 'editor') {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, view]);
+    // 1. 상태 정의
+    const today = new Date().toISOString().split('T')[0];
+    const [projectData, setProjectData] = useState(location.state?.projectData || null);
+    const [view, setView] = useState(location.state?.mode === 'create' ? 'editor' : 'list');
+    const [selectedDate, setSelectedDate] = useState(today);
+    const [dailyReports, setDailyReports] = useState([]); 
+    const [currentReportId, setCurrentReportId] = useState(null);
+    
+    // 에디터 및 리포트 데이터 상태
+    const [editorContent, setEditorContent] = useState("");
+    const [summary, setSummary] = useState("");         // 요약 내용 상태
+    const [commitCount, setCommitCount] = useState(0);   // 커밋 건수 상태
 
-  // 목업 데이터
-  const members = [
-    { id: 1, name: '홍길동', role: 'OWNER', status: 'AI_DRAFT', commits: 5, summary: '로그인 기능 보완, CSS 수정', isMe: true },
-    { id: 2, name: '김철수', role: 'MANAGER', status: 'COMPLETED', commits: 5, summary: 'DB 스키마 설계', isMe: false },
-    { id: 3, name: '이영희', role: 'MEMBER', status: 'NO_ACTIVITY', commits: 0, summary: '없음', isMe: false },
-  ];
+    const [isAiThinking, setIsAiThinking] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isReadOnly, setIsReadOnly] = useState(false); 
+    
+    const dateInputRef = useRef(null);
+    const editorRef = useRef(null);
+    const containerRef = useRef(null);
+    const highlightRef = useRef(null);
+    const lastSelectionRef = useRef(null);
+    const lastRangeRef = useRef(null);
+    const messagesEndRef = useRef(null);
+    const [hasSelection, setHasSelection] = useState(false);
+    const [messages, setMessages] = useState([{ role: "assistant", text: "오늘 수행한 업무를 작성해주세요.", isNotification: true }]);
+    const [input, setInput] = useState("");
 
-  const renderBadge = (status) => {
-    switch (status) {
-        case 'AI_DRAFT': return <span className="badge badge-blue">AI 초안</span>;
-        case 'COMPLETED': return <span className="badge badge-green">작성 완료</span>;
-        case 'NO_ACTIVITY': return <span className="badge badge-gray">활동 없음</span>;
-        default: return null;
-      }
-  };
+    // 2. 기본 정보 조회
+    const [myInfo, setMyInfo] = useState(null);
+    useEffect(() => {
+        const fetchEssential = async () => {
+            try {
+                const [proj, user] = await Promise.all([
+                    api.get(`/api/projects/${projectId}`),
+                    api.get(`/api/user/info`)
+                ]);
+                setProjectData(proj);
+                setMyInfo(user);
+            } catch (e) { console.error("기본 정보 로드 실패:", e); }
+        };
+        fetchEssential();
+    }, [projectId]);
 
-  const handleSendMessage = () => {
-    if (!chatInput.trim()) return;
-    const newMsg = { id: Date.now(), type: 'user', text: chatInput };
-    setMessages(prev => [...prev, newMsg]);
-    setChatInput('');
-    setTimeout(() => {
-      setMessages(prev => [...prev, { id: Date.now() + 1, type: 'ai', text: '반영했습니다.' }]);
-    }, 1000);
-  };
+    // 3. 리포트 목록 조회
+    const fetchDailyReports = useCallback(async () => {
+        try {
+            const res = await api.get(`/api/projects/${projectId}/daily-reports?date=${selectedDate}`);
+            setDailyReports(Array.isArray(res) ? res : []);
+        } catch (e) { setDailyReports([]); }
+    }, [projectId, selectedDate]);
 
-  // 날짜 변경 핸들러
-  const dateInputRef = useRef(null);
-  const handleDateClick = () => {
-    // 버튼 클릭 시 숨겨진 input 창 열기
-    dateInputRef.current?.showPicker();
-  };
+    // 목록 뷰거나 날짜가 바뀌면 리포트 다시 조회
+    useEffect(() => { if (view === 'list') fetchDailyReports(); }, [view, selectedDate, fetchDailyReports]);
 
-  // 공통 헤더 렌더링
-  const renderHeader = (isDetailView = false) => (
-    <div className="header-wrapper">
-      <ProjectHeader 
-        title="프로젝트 제목입니다"
-        dDay={10}
-        periodText="기간: 2026.01.01 ~ 2026.02.02"
-      />
-      {/* 닫기 버튼 */}
-      <button 
-        className="close-btn-overlay" 
-        onClick={() => isDetailView ? setView('list') : navigate(-1)} 
-        title="닫기"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
-    </div>
-  );
+    // 4. 에디터 데이터 로드
+    useEffect(() => {
+        if (view !== 'editor') return;
+        const loadEditorData = async () => {
+            if (currentReportId) {
+                // [기존 리포트 수정]
+                try {
+                    const res = await api.get(`/api/projects/${projectId}/${currentReportId}`);
+                    setEditorContent(res.content || "");
+                    setSummary(res.summary || "");           // 요약 복원
+                    setCommitCount(res.commitCount || 0);    // 커밋 수 복원
+                    setIsReadOnly(res.status === 'PUBLISHED'); 
+                } catch (e) { console.error(e); }
+            } else {
+                // [새 리포트 작성]
+                setEditorContent("# 오늘의 업무\n\n(우측 상단의 'Git 분석' 버튼을 눌러보세요!)");
+                setSummary("");
+                setCommitCount(0);
+                setIsReadOnly(false);
+            }
+        };
+        loadEditorData();
+    }, [view, currentReportId, projectId]);
 
-  // --- [1] 목록 화면 ---
-  if (view === 'list') {
-    return (
-      <div className="report-container fade-in">
-        {renderHeader(false)}
+    // 5. 에디터 생성 로직
+    useEffect(() => {
+        if (view !== 'editor' || !containerRef.current) return;
+        const targetEl = containerRef.current;
+        targetEl.innerHTML = ''; 
 
-        <div className="date-nav">
-          <button className="nav-arrow">«</button>
-          <h2>{selectedDate}</h2>
-          <button className="nav-arrow">»</button>
-          
-          {/* [복구] 원래 버튼 디자인 + 기능 연결 */}
-          <button className="calendar-btn" onClick={handleDateClick}>
-            📅 {selectedDate} ▾
-          </button>
-          <input 
-            type="date" 
-            ref={dateInputRef}
-            className="hidden-date-input"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-        </div>
+        const editorInstance = new Editor({
+            el: targetEl,
+            initialValue: editorContent,
+            previewStyle: 'tab',
+            height: '100%',
+            initialEditType: 'markdown',
+            hideModeSwitch: true,
+            language: 'ko-KR',
+            toolbarItems: isReadOnly ? [] : TOOLBAR_ITEMS, 
+            viewer: isReadOnly 
+        });
+        
+        editorRef.current = editorInstance;
 
-        <div className="card-grid">
-          {members.map((m) => (
-            <div 
-              key={m.id} 
-              className={`member-card ${m.status === 'NONE' ? 'empty' : ''}`}
-              onClick={() => {
-                if (m.isMe && m.status === 'AI_DRAFT') setView('editor');
-                else if (m.status === 'COMPLETED') setView('read');
-              }}
-            >
-              <div className="card-top">
-                <span className="name">{m.name} {m.isMe && '(나)'}</span>
-                <span className="role">{m.role}</span>
-              </div>
-              {m.status !== 'NONE' && (
-                <div className="card-content">
-                  <div className="info-row">상태: {renderBadge(m.status)}</div>
-                  <div className="info-row">커밋: <b>{m.commits}건</b></div>
-                  <div className="info-row summary">주요 작업: {m.summary}</div>
+        // 하이라이트 로직
+        const updateHighlight = () => {
+            const range = lastRangeRef.current;
+            const highlightEl = highlightRef.current;
+            if (!range || !highlightEl || isReadOnly) return;
+            const rect = range.getBoundingClientRect();
+            const containerRect = targetEl.getBoundingClientRect();
+            const isOutside = (rect.bottom < containerRect.top + 45 || rect.top > containerRect.bottom);
+            if (isOutside) { highlightEl.style.display = 'none'; } 
+            else {
+                highlightEl.style.display = 'block';
+                highlightEl.style.top = `${rect.top}px`;
+                highlightEl.style.left = `${rect.left}px`;
+                highlightEl.style.width = `${rect.width}px`;
+                highlightEl.style.height = `${rect.height}px`;
+            }
+        };
+
+        const handleSelectionChange = () => {
+            if (isReadOnly) return;
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed && targetEl.contains(range.commonAncestorContainer)) {
+                    lastRangeRef.current = range.cloneRange();
+                    lastSelectionRef.current = editorInstance.getSelection();
+                    setHasSelection(true);
+                    updateHighlight();
+                } else if (range.collapsed) {
+                    setHasSelection(false);
+                    if (highlightRef.current) highlightRef.current.style.display = 'none';
+                }
+            }
+        };
+
+        const mdEditorEl = editorInstance.getEditorElements().mdEditor;
+        if (mdEditorEl) {
+            mdEditorEl.addEventListener('mouseup', handleSelectionChange);
+            mdEditorEl.addEventListener('scroll', updateHighlight, { capture: true });
+        }
+
+        return () => {
+            if (editorRef.current) {
+                editorRef.current = null;
+            }
+            targetEl.innerHTML = '';
+        };
+    }, [view, editorContent, isReadOnly]);
+
+    // 6. [수정됨] Git 분석 핸들러 (UI 피드백 추가)
+    const handleGitAnalysis = async () => {
+        if (isAiThinking || isReadOnly) return;
+        setIsAiThinking(true);
+        
+        // [추가] 분석 시작 알림 메시지 추가
+        setMessages(prev => [...prev, { role: "assistant", text: "🔍 Git 이력과 완료된 업무를 분석하고 있습니다. 잠시만 기다려주세요...", isNotification: true }]);
+        
+        try {
+            const res = await api.post(`/api/projects/${projectId}/daily-reports/analyze`, { date: selectedDate });
+            
+            if (res && typeof res === 'object') {
+                if (editorRef.current) editorRef.current.setMarkdown(res.content || "");
+                setSummary(res.summary || "");
+                setCommitCount(res.commitCount || 0);
+                
+                // [추가] 완료 알림
+                setMessages(prev => [...prev, { role: "assistant", text: `✅ 분석이 완료되었습니다. (커밋 ${res.commitCount || 0}건 반영)`, isNotification: true }]);
+            } else {
+                if (editorRef.current) editorRef.current.setMarkdown(res || "");
+            }
+        } catch (e) { 
+            alert("분석 실패");
+            setMessages(prev => [...prev, { role: "assistant", text: "❌ 분석 중 오류가 발생했습니다.", isNotification: true }]);
+        } finally { 
+            setIsAiThinking(false); 
+        }
+    };
+
+    // 7. 리포트 저장 핸들러
+    const handleSave = async () => {
+        if (isSaving || isAiThinking || isReadOnly) return;
+        
+        setIsSaving(true);
+        const content = editorRef.current.getMarkdown();
+        
+        let finalSummary = summary;
+        if (!finalSummary || finalSummary.trim() === "") {
+            const plainText = content.replace(/[#*`\[\]]/g, '').replace(/\n/g, ' ').trim();
+            finalSummary = plainText.substring(0, 100) + (plainText.length > 100 ? "..." : "");
+        }
+
+        const saveData = { 
+            reportDate: selectedDate, 
+            content, 
+            title: `${selectedDate} 리포트`,
+            summary: finalSummary,
+            commitCount: commitCount
+        };
+
+        try {
+            if (currentReportId) {
+                await api.put(`/api/projects/${projectId}/daily-reports/${currentReportId}`, saveData);
+            } else {
+                await api.post(`/api/projects/${projectId}/daily-reports`, saveData);
+            }
+            
+            alert("저장되었습니다.");
+            await fetchDailyReports(); 
+            setView('list'); 
+
+        } catch (e) { alert("저장 실패"); } 
+        finally { setIsSaving(false); }
+    };
+
+    // 8. 메시지 전송 핸들러
+    const sendMessage = async () => {
+        if (!input.trim() || isAiThinking || isReadOnly) return;
+        const savedSelection = lastSelectionRef.current;
+        let contextText = editorRef.current.getMarkdown();
+        let isSelection = false;
+
+        if (hasSelection && savedSelection) {
+            isSelection = true;
+            editorRef.current.setSelection(savedSelection[0], savedSelection[1]);
+            contextText = editorRef.current.getSelectedText();
+        }
+
+        const userMsg = { role: "user", text: input, hasContext: isSelection, selection: isSelection ? savedSelection : null };
+        setMessages(prev => [...prev, userMsg]);
+        setInput("");
+        setIsAiThinking(true);
+        setHasSelection(false);
+        if (highlightRef.current) highlightRef.current.style.display = 'none';
+
+        try {
+            const res = await api.post(`/api/projects/${projectId}/reports/chat`, { message: userMsg.text, context: contextText, isSelection, reportType: "DAILY" });
+            setMessages(prev => [...prev, { role: "assistant", text: res.reply || res.data?.reply }]);
+        } catch (e) { setMessages(prev => [...prev, { role: "assistant", text: "오류 발생" }]); } 
+        finally { setIsAiThinking(false); }
+    };
+
+    // 9. 에디터 적용 핸들러
+    const handleApply = (text, hasContext, selection, idx) => {
+        if (!editorRef.current || isReadOnly) return;
+        if (hasContext && selection) {
+            editorRef.current.setSelection(selection[0], selection[1]);
+            setTimeout(() => { 
+                editorRef.current.replaceSelection(text);
+                setHasSelection(false);
+                if (highlightRef.current) highlightRef.current.style.display = 'none';
+            }, 10);
+        } else {
+            editorRef.current.insertText(text);
+        }
+        setMessages(prev => prev.map((msg, i) => i === idx ? { ...msg, isApplied: true } : msg));
+    };
+
+    const hasMyReport = dailyReports.some(r => String(r.userId) === String(myInfo?.userId));
+    const showCreateButton = (selectedDate === today) && !hasMyReport;
+
+    const getDisplayRole = (report) => {
+        if (report.role) return report.role; 
+        return 'MEMBER';
+    };
+
+    // 10. 목록 뷰 렌더링
+    if (view === 'list') {
+        return (
+            <div className="ai-report-container fade-in">
+                <div className="ai-header-wrapper">
+                    {projectData ? <ProjectHeader project={projectData} showAiButton={false} /> : null}
+                    <button className="close-btn-overlay" onClick={() => navigate(-1)}>✕</button>
                 </div>
-              )}
+                <div className="date-nav-section">
+                    <button className="nav-arrow" onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d.toISOString().split('T')[0]); }}>«</button>
+                    <div className="date-display" onClick={() => dateInputRef.current?.showPicker()}><h2>{selectedDate}</h2><span>📅</span></div>
+                    <input type="date" ref={dateInputRef} className="hidden-date-input" max={today} value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+                    <button className="nav-arrow" disabled={selectedDate >= today} onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d.toISOString().split('T')[0]); }}>»</button>
+                </div>
+                <div className="report-list-grid">
+                    {showCreateButton && (
+                        <div className="report-card create-card" onClick={() => { setCurrentReportId(null); setView('editor'); }}>
+                            <div className="create-icon">+</div><p>오늘의 리포트 작성하기</p>
+                        </div>
+                    )}
+                    {dailyReports.map(report => {
+                        const isMyReport = String(report.userId) === String(myInfo?.userId);
+                        
+                        return (
+                            <div key={report.reportId} className={`report-card ${isMyReport ? 'my-report' : ''}`} onClick={() => { setCurrentReportId(report.reportId); setView('editor'); }}>
+                                <div className="card-top">
+                                    <span className="writer-info">
+                                        <strong>{report.writerName}</strong> | <small>{getDisplayRole(report)}</small>
+                                    </span>
+                                    <span className={`status-badge ${report.status}`}>{report.status === 'PUBLISHED' ? '작성 완료' : '작성 중'}</span>
+                                </div>
+                                <div className="card-mid">
+                                    <p className="commit-info">커밋: <strong>{report.commitCount !== undefined ? report.commitCount : 0}건</strong></p>
+                                    <p className="card-summary">{report.summary || "주요 작업 내용이 없습니다."}</p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+        );
+    }
 
-  // --- [2] 작성 화면 ---
-  if (view === 'editor') {
+    // 11. 에디터 뷰 렌더링
     return (
-      <div className="report-container fade-in">
-        {renderHeader(true)}
-
-        <div className="split-view">
-          <div className="panel left-panel">
-            <div className="panel-header-row">
-                <h3>{selectedDate} 리포트 초안</h3>
-                <button className="btn-regenerate" onClick={() => setIsRegenerating(true)}>
-                    {isRegenerating ? '분석 중...' : 'Git 다시 분석'}
-                </button>
+        <div className="final-report-create-container">
+            <div className="frc-header">
+                <div className="frc-title-area"><span>{selectedDate}</span><span className="page-title">일일 리포트 작성</span></div>
+                <div className="frc-header-actions">
+                    <button className="frc-btn secondary" onClick={() => setView('list')}>목록으로</button>
+                    {!isReadOnly && (
+                        <>
+                            {/* [수정] 버튼에 로딩 상태 표시 */}
+                            <button className={`frc-btn secondary magic-btn ${isAiThinking ? 'loading' : ''}`} onClick={handleGitAnalysis} disabled={isAiThinking}>
+                                {isAiThinking ? "🤖 분석 중..." : "Git 분석"}
+                            </button>
+                            <button className="frc-btn primary" onClick={handleSave} disabled={isSaving}>
+                                {isSaving ? "저장 중..." : "저장"}
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
-            <div className="editor-box">
-              <h4>상세 분석 및 요약</h4>
-              <textarea defaultValue={`금일 프론트엔드 로그인 기능 구현...`} />
-              
-              <h4>활동 내역 타임라인</h4>
-              <ul className="timeline">
-                <li><span className="time">10:00</span> [Commit] feat: 로그인 UI</li>
-                <li><span className="time blue">12:00</span> [Task Done] 로그인 구현</li>
-              </ul>
-              
-              <h4>완료 업무 리스트</h4>
-              <div className="todo-check">
-                <input type="checkbox" checked readOnly /> <span>로그인 화면 구현</span>
-              </div>
+            <div className="frc-body">
+                <section className="frc-left">
+                    <div className="editor-wrapper" style={{ height: '100%', position: 'relative' }}>
+                        <div ref={highlightRef} className="virtual-highlight" style={{ display: 'none' }} />
+                        <div style={{ height: '100%' }}><div ref={containerRef} style={{ height: '100%' }} /></div>
+                    </div>
+                </section>
+                <section className="frc-right">
+                    <div className="frc-chat-container">
+                        <div className="frc-chat-header">AI Assistant {isReadOnly && "(읽기 전용)"}</div>
+                        <div className="frc-chat-messages">
+                            {messages.map((msg, idx) => (
+                                <div key={`msg-${idx}`} className={`chat-bubble ${msg.role}`}>
+                                    {msg.hasContext && <div className="msg-context-icon">부분 참조</div>}
+                                    <div>{msg.text}</div>
+                                    {!isReadOnly && idx === messages.length - 1 && !msg.isNotification && msg.role === 'assistant' && (
+                                        <div className="msg-actions">
+                                            <button className={`action-btn apply ${msg.isApplied ? 'applied' : ''}`} onClick={() => handleApply(msg.text, msg.hasContext, msg.selection, idx)} disabled={msg.isApplied}>적용</button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </div>
+                        {!isReadOnly && (
+                            <div className="frc-chat-input-wrapper">
+                                {hasSelection && <div className="reference-indicator">🎯 선택된 텍스트 참조 중</div>}
+                                <div className="input-row">
+                                    <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())} placeholder="질문 입력..." disabled={isAiThinking} />
+                                    <button onClick={sendMessage} disabled={isAiThinking || !input.trim()}>전송</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </section>
             </div>
-          </div>
-
-          <div className="panel right-panel">
-            <h3>AI 수정 요청</h3>
-            <div className="chat-area">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`bubble ${msg.type}`}>{msg.text}</div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-            <div className="chat-input-wrapper">
-              <input 
-                className="chat-input-field" 
-                value={chatInput} 
-                onChange={(e) => setChatInput(e.target.value)} 
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="수정 요청..."
-              />
-              <button className="chat-send-btn" onClick={handleSendMessage}>➤</button>
-            </div>
-            <div className="button-group">
-                <button className="btn-temp-save">임시 저장</button>
-                <button className="btn-publish" onClick={() => setView('list')}>발행</button>
-            </div>
-          </div>
         </div>
-      </div>
     );
-  }
-
-  // --- [3] 읽기 화면 ---
-  if (view === 'read') {
-    return (
-      <div className="report-container fade-in">
-        {renderHeader(true)}
-        <div className="split-view">
-          <div className="panel left-panel">
-            <div className="panel-header-row">
-                <h3>{selectedDate} 리포트</h3>
-                <span className="badge badge-green">발행됨</span>
-            </div>
-            <div className="editor-box">
-              <h4>상세 분석 및 요약</h4>
-              <div className="read-content">
-                금일 프론트엔드 작업을 완료했습니다.
-              </div>
-              <h4>완료 업무 리스트</h4>
-              <div className="todo-check">
-                <input type="checkbox" checked readOnly /> <span>로그인 화면 구현</span>
-              </div>
-            </div>
-          </div>
-          <div className="panel right-panel">
-            <h3>리포트 정보</h3>
-            <div className="info-meta">
-                <p><b>작성자:</b> 홍길동</p>
-                <p><b>발행 일시:</b> {selectedDate} 18:00</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-};
-
-export default AiReportPage;
+}

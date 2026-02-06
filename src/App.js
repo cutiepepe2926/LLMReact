@@ -25,7 +25,7 @@ function App() {
         <Route path={'/projectList'} element={<ProjectList/>}/>
         <Route path={'/projectDetail'} element={<ProjectDashBoard/>}/>
         <Route path={'/project/:projectId/dashboard'} element={<ProjectDashBoard/>}/>
-        <Route path={'/aiReport'} element={<AiReport/>}/>
+        <Route path={'/projects/:projectId/daily-reports'} element={<AiReport/>}/>
         <Route path={'/final-report/create'} element={<FinalReportCreatePage/>}/>
       </Route>
     </Routes>

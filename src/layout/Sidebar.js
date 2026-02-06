@@ -219,7 +219,9 @@ const Sidebar = () => {
                                 <div className="report-icon-bg"><Icons.Edit /></div>
                                 <div className="report-text-group">
                                     <span className="report-title">Daily Report</span>
-                                    <span className={`report-action ${isReportWritten ? 'done' : 'write'}`}>{isReportWritten ? '작성 완료' : '작성하기'}</span>
+                                    <span className={`report-action ${isReportWritten ? 'done' : 'write'}`}>
+                                        {isReportWritten ? '작성 완료' : '작성하기'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
