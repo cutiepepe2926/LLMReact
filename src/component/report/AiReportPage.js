@@ -11,11 +11,14 @@ import '@toast-ui/editor/dist/i18n/ko-kr';
 const TOOLBAR_ITEMS = [['heading', 'bold', 'italic', 'strike'], ['hr', 'quote'], ['ul', 'ol', 'task', 'indent', 'outdent'], ['table', 'image', 'link'], ['code', 'codeblock']];
 
 export default function AiReportPage() {
-    const { projectId } = useParams();
+    const params = useParams();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // 1. 상태 정의
+    // 1. projectId 결정 (URL 파라미터가 없으면 state에서 가져옴)
+    const projectId = params.projectId || location.state?.projectData?.projectId;
+
+    // 1-1. 상태 정의
     const today = new Date().toISOString().split('T')[0];
     const [projectData, setProjectData] = useState(location.state?.projectData || null);
     const [view, setView] = useState(location.state?.mode === 'create' ? 'editor' : 'list');
@@ -25,8 +28,8 @@ export default function AiReportPage() {
     
     // 에디터 및 리포트 데이터 상태
     const [editorContent, setEditorContent] = useState("");
-    const [summary, setSummary] = useState("");         // 요약 내용 상태
-    const [commitCount, setCommitCount] = useState(0);   // 커밋 건수 상태
+    const [summary, setSummary] = useState("");         
+    const [commitCount, setCommitCount] = useState(0);   
 
     const [isAiThinking, setIsAiThinking] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -47,6 +50,7 @@ export default function AiReportPage() {
     const [myInfo, setMyInfo] = useState(null);
     useEffect(() => {
         const fetchEssential = async () => {
+            if (!projectId) return;
             try {
                 const [proj, user] = await Promise.all([
                     api.get(`/api/projects/${projectId}`),
@@ -61,6 +65,7 @@ export default function AiReportPage() {
 
     // 3. 리포트 목록 조회
     const fetchDailyReports = useCallback(async () => {
+        if (!projectId) return;
         try {
             const res = await api.get(`/api/projects/${projectId}/daily-reports?date=${selectedDate}`);
             setDailyReports(Array.isArray(res) ? res : []);
@@ -72,15 +77,15 @@ export default function AiReportPage() {
 
     // 4. 에디터 데이터 로드
     useEffect(() => {
-        if (view !== 'editor') return;
+        if (view !== 'editor' || !projectId) return;
         const loadEditorData = async () => {
             if (currentReportId) {
                 // [기존 리포트 수정]
                 try {
                     const res = await api.get(`/api/projects/${projectId}/${currentReportId}`);
                     setEditorContent(res.content || "");
-                    setSummary(res.summary || "");           // 요약 복원
-                    setCommitCount(res.commitCount || 0);    // 커밋 수 복원
+                    setSummary(res.summary || "");           
+                    setCommitCount(res.commitCount || 0);    
                     setIsReadOnly(res.status === 'PUBLISHED'); 
                 } catch (e) { console.error(e); }
             } else {
@@ -163,29 +168,34 @@ export default function AiReportPage() {
         };
     }, [view, editorContent, isReadOnly]);
 
-    // 6. [수정됨] Git 분석 핸들러 (UI 피드백 추가)
+    // 6. Git 분석 핸들러 (UI 피드백 및 projectId 검사)
     const handleGitAnalysis = async () => {
         if (isAiThinking || isReadOnly) return;
-        setIsAiThinking(true);
         
-        // [추가] 분석 시작 알림 메시지 추가
+        // projectId가 유효한지 확인
+        if (!projectId) {
+            alert("프로젝트 정보를 찾을 수 없습니다. 다시 시도해주세요.");
+            return;
+        }
+
+        setIsAiThinking(true);
         setMessages(prev => [...prev, { role: "assistant", text: "🔍 Git 이력과 완료된 업무를 분석하고 있습니다. 잠시만 기다려주세요...", isNotification: true }]);
         
         try {
+            console.log("Analyzing for Project ID:", projectId); // 디버깅용
             const res = await api.post(`/api/projects/${projectId}/daily-reports/analyze`, { date: selectedDate });
             
             if (res && typeof res === 'object') {
                 if (editorRef.current) editorRef.current.setMarkdown(res.content || "");
                 setSummary(res.summary || "");
                 setCommitCount(res.commitCount || 0);
-                
-                // [추가] 완료 알림
                 setMessages(prev => [...prev, { role: "assistant", text: `✅ 분석이 완료되었습니다. (커밋 ${res.commitCount || 0}건 반영)`, isNotification: true }]);
             } else {
                 if (editorRef.current) editorRef.current.setMarkdown(res || "");
             }
         } catch (e) { 
-            alert("분석 실패");
+            console.error(e);
+            alert("분석 실패: " + (e.message || "오류가 발생했습니다."));
             setMessages(prev => [...prev, { role: "assistant", text: "❌ 분석 중 오류가 발생했습니다.", isNotification: true }]);
         } finally { 
             setIsAiThinking(false); 
@@ -195,6 +205,7 @@ export default function AiReportPage() {
     // 7. 리포트 저장 핸들러
     const handleSave = async () => {
         if (isSaving || isAiThinking || isReadOnly) return;
+        if (!projectId) return;
         
         setIsSaving(true);
         const content = editorRef.current.getMarkdown();
@@ -231,6 +242,8 @@ export default function AiReportPage() {
     // 8. 메시지 전송 핸들러
     const sendMessage = async () => {
         if (!input.trim() || isAiThinking || isReadOnly) return;
+        if (!projectId) return;
+
         const savedSelection = lastSelectionRef.current;
         let contextText = editorRef.current.getMarkdown();
         let isSelection = false;
@@ -331,7 +344,6 @@ export default function AiReportPage() {
                     <button className="frc-btn secondary" onClick={() => setView('list')}>목록으로</button>
                     {!isReadOnly && (
                         <>
-                            {/* [수정] 버튼에 로딩 상태 표시 */}
                             <button className={`frc-btn secondary magic-btn ${isAiThinking ? 'loading' : ''}`} onClick={handleGitAnalysis} disabled={isAiThinking}>
                                 {isAiThinking ? "🤖 분석 중..." : "Git 분석"}
                             </button>

@@ -8,7 +8,7 @@ export default function ProjectHeader({ project, showAiButton = true }) {
 
     const onClickAiReport = () => {
         if (project && project.projectId) {
-            navigate(`/projects/${project.projectId}/daily-reports`, {
+            navigate(`/aiReport`, {
                 state: {
                     projectData: project
                 }
