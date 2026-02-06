@@ -49,8 +49,8 @@ const Sidebar = () => {
 
     const stateProjectId = location.state?.projectData?.projectId;
     const isProjectContext = (stateProjectId !== undefined) || (params.projectId !== undefined) || location.pathname.startsWith('/projectDetail') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/daily-reports');
-    const projectId = stateProjectId || params.projectId || 1;
-    const projectName = location.state?.projectData?.name || `Project #${projectId}`;
+    const projectId = params.projectId ? Number(params.projectId) : (stateProjectId ? Number(stateProjectId) : null);
+    const [projectName, setProjectName] = useState(location.state?.projectData?.name || "");
 
     const [favorites, setFavorites] = useState([]);
     const [allProjects, setAllProjects] = useState([]);
@@ -76,9 +76,13 @@ const Sidebar = () => {
     };
 
     const fetchSidebarData = useCallback(async () => {
+        if (!projectId) return;
+
         try {
             if (isProjectContext) {
+
                 const res = await api.get(`/api/projects/${projectId}/sidebar`);
+
 
                 setMyTasks(Array.isArray(res.myTasks) ? res.myTasks : []);
                 setMyIssues(Array.isArray(res.myIssues) ? res.myIssues : []);
@@ -95,7 +99,12 @@ const Sidebar = () => {
                 const res = await api.get(`/api/sidebar`);
                 setFavorites(res.favorites || []);
                 setAllProjects(res.projects || []);
+                if (res.projectName) {
+                    setProjectName(res.projectName);
+                }
             }
+
+
         } catch (error) { console.error("사이드바 로딩 실패:", error); }
     }, [isProjectContext, projectId]);
 
@@ -111,9 +120,24 @@ const Sidebar = () => {
     }, [fetchSidebarData]);
 
     useEffect(() => {
-        if (!isProjectContext || !reportTargetTime || isReportWritten) return;
-        const intervalId = setInterval(() => setDisplayTime(calculateTimeRemaining(reportTargetTime)), 1000);
+        const isActive = String(projectStatus || '').toUpperCase() === 'ACTIVE';
+        if (!isProjectContext || !reportTargetTime || isReportWritten || !isActive) {
+
+            // 만약 ACTIVE 상태가 아니라서 멈춘 거라면, 시간을 0으로 초기화
+            if (!isActive && isProjectContext) {
+                setDisplayTime("00:00:00");
+            }
+            return; // 여기서 함수 종료 (setInterval 실행 안 함)
+        }
+        setDisplayTime(calculateTimeRemaining(reportTargetTime));
+
+        const intervalId = setInterval(() => {
+            setDisplayTime(calculateTimeRemaining(reportTargetTime));
+        }, 1000);
+
+        // 뒷정리 (언마운트 시 타이머 해제)
         return () => clearInterval(intervalId);
+        // eslint-disable-next-line
     }, [isProjectContext, reportTargetTime, isReportWritten]);
 
     const getStatusColor = (task) => {
@@ -230,15 +254,30 @@ const Sidebar = () => {
                                 const badge = getPriorityBadge(task.priority);
                                 return (
                                     <div
-                                        key={task.taskId || idx} 
-                                        className="sidebar-task-item" 
-                                        onClick={() => navigate('/projectDetail', { 
-                                            state: { 
-                                                activeTab: 'task', 
-                                                projectData: { projectId },
+                                        key={task.taskId || idx}
+                                        className="sidebar-task-item"
+                                        onClick={() =>  {
+                                            console.log("🖱 Task 클릭됨, 이동 시도:", task.title);
+                                            console.log("📤 전달할 state:", {
+                                                activeTab: 'task',
+                                                projectData: {
+                                                    ...(location.state?.projectData || {}),
+                                                    projectId,
+                                                    name: projectName
+                                                },
+                                                targetTaskId: task.taskId
+                                            });
+                                            navigate('/projectDetail', {
+                                            state: {
+                                                activeTab: 'task',
+                                                projectData: {
+                                                    ...(location.state?.projectData || {}), // 1. 기존 데이터를 먼저 펼치고
+                                                    projectId,                              // 2. 현재 유효한 ID로 덮어씀 (필수)
+                                                    name: projectName                       // 3. 현재 유효한 이름으로 덮어씀 (필수)
+                                                },
                                                 targetTaskId: task.taskId
                                             }
-                                        })}
+                                        })}}
                                     >
                                         <span className="task-dot" style={{ backgroundColor: dotColor, boxShadow: `0 0 0 2px ${dotColor}33` }}></span>
                                         <span className={`task-title ${dotColor === '#f59e0b' ? 'highlight-text' : ''}`}>{task.title}</span>

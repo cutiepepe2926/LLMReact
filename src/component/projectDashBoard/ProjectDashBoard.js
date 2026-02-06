@@ -159,21 +159,63 @@ function ProjectDashBoard() {
     //     // eslint-disable-next-line
     // }, [location.state]);
     useEffect(() => {
-        const requestedTab = location.state?.activeTab || location.state?.initialTab;
-        const requestedTaskId = location.state?.targetTaskId;
+        const state = location.state || {};
+        const requestedTab = state.activeTab || state.initialTab;
+        const requestedTaskId = state.targetTaskId;
 
+        console.log("🧩 [ProjectDashBoard] Effect Run - State:", state);
+
+        // 1. 탭 전환 로직
         if (requestedTab && TABS.some(tab => tab.key === requestedTab)) {
-            setActiveTab(requestedTab);
-            if (requestedTaskId) {
-                setTargetTaskId(requestedTaskId);
-                window.history.replaceState(
-                    { ...window.history.state, usr: { ...location.state, targetTaskId: null } },
-                    document.title
-                );
+            if (activeTab !== requestedTab) {
+                console.log(`🔀 탭 변경: ${activeTab} -> ${requestedTab}`);
+                setActiveTab(requestedTab);
             }
         }
+
+        // 2. 태스크 ID 처리 및 상태 클리어 (가장 중요)
+        // requestedTaskId가 존재할 때만 실행
+        if (requestedTaskId) {
+            console.log("🎯 타겟 태스크 감지됨:", requestedTaskId);
+            setTargetTaskId(requestedTaskId);
+
+            // [핵심 방어 코드]
+            // 상태를 지울 때, 기존의 'projectData'가 확실히 있는지 확인하고 복사합니다.
+            // 만약 projectData가 없다면 현재 상태를 그대로 유지하거나 경고를 띄웁니다.
+            const nextState = {
+                ...state,
+                targetTaskId: null // ID만 제거
+            };
+
+            console.log("🚚 상태 업데이트(네비게이션) 실행:", nextState);
+
+            // navigate를 통해 URL은 유지하되 내부 state만 갱신
+            navigate(location.pathname + location.search, { // searchParams(쿼리스트링) 유지
+                replace: true,
+                state: nextState
+            });
+        }
+
+        // [추가] 만약 location.state가 아예 null인데 projectId가 params에 있다면?
+        // (새로고침 등으로 인한 유실 방지 - API 호출로 복구하는 로직은 별도 필요)
         // eslint-disable-next-line
-    }, [location.state]);
+    }, [location.state, location.pathname, location.search, navigate]); // 의존성 배열 수정
+    // useEffect(() => {
+    //     const requestedTab = location.state?.activeTab || location.state?.initialTab;
+    //     const requestedTaskId = location.state?.targetTaskId;
+    //
+    //     if (requestedTab && TABS.some(tab => tab.key === requestedTab)) {
+    //         setActiveTab(requestedTab);
+    //         if (requestedTaskId) {
+    //             setTargetTaskId(requestedTaskId);
+    //             window.history.replaceState(
+    //                 { ...window.history.state, usr: { ...location.state, targetTaskId: null } },
+    //                 document.title
+    //             );
+    //         }
+    //     }
+    //     // eslint-disable-next-line
+    // }, [location.state]);
 
     useEffect(() => {
         if (queryIssueId) {
