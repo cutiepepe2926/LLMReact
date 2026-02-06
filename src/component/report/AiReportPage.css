@@ -294,8 +294,8 @@
     color: #1f2937;
     line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    box-orient: vertical;
     overflow: hidden;
 }
 

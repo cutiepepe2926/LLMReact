@@ -22,10 +22,15 @@ export default function AiReportPage() {
     const [selectedDate, setSelectedDate] = useState(today);
     const [dailyReports, setDailyReports] = useState([]); 
     const [currentReportId, setCurrentReportId] = useState(null);
+    
+    // 에디터 및 리포트 데이터 상태
     const [editorContent, setEditorContent] = useState("");
+    const [summary, setSummary] = useState("");         // 요약 내용 상태
+    const [commitCount, setCommitCount] = useState(0);   // 커밋 건수 상태
+
     const [isAiThinking, setIsAiThinking] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [isReadOnly, setIsReadOnly] = useState(false); // 마감된 리포트 체크
+    const [isReadOnly, setIsReadOnly] = useState(false); 
     
     const dateInputRef = useRef(null);
     const editorRef = useRef(null);
@@ -35,10 +40,10 @@ export default function AiReportPage() {
     const lastRangeRef = useRef(null);
     const messagesEndRef = useRef(null);
     const [hasSelection, setHasSelection] = useState(false);
-    const [messages, setMessages] = useState([{ role: "assistant", text: "업무 내용을 작성하고 '발행'하면 마감됩니다.", isNotification: true }]);
+    const [messages, setMessages] = useState([{ role: "assistant", text: "오늘 수행한 업무를 작성해주세요.", isNotification: true }]);
     const [input, setInput] = useState("");
 
-    // 2. 프로젝트 정보 및 내 정보 조회
+    // 2. 기본 정보 조회
     const [myInfo, setMyInfo] = useState(null);
     useEffect(() => {
         const fetchEssential = async () => {
@@ -49,7 +54,7 @@ export default function AiReportPage() {
                 ]);
                 setProjectData(proj);
                 setMyInfo(user);
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("기본 정보 로드 실패:", e); }
         };
         fetchEssential();
     }, [projectId]);
@@ -62,27 +67,34 @@ export default function AiReportPage() {
         } catch (e) { setDailyReports([]); }
     }, [projectId, selectedDate]);
 
+    // 목록 뷰거나 날짜가 바뀌면 리포트 다시 조회
     useEffect(() => { if (view === 'list') fetchDailyReports(); }, [view, selectedDate, fetchDailyReports]);
 
-    // 4. 에디터 데이터 로드 및 마감 상태 확인
+    // 4. 에디터 데이터 로드
     useEffect(() => {
         if (view !== 'editor') return;
         const loadEditorData = async () => {
             if (currentReportId) {
+                // [기존 리포트 수정]
                 try {
                     const res = await api.get(`/api/projects/${projectId}/${currentReportId}`);
                     setEditorContent(res.content || "");
-                    setIsReadOnly(res.status === 'PUBLISHED'); // 발행 상태면 읽기 전용
+                    setSummary(res.summary || "");           // 요약 복원
+                    setCommitCount(res.commitCount || 0);    // 커밋 수 복원
+                    setIsReadOnly(res.status === 'PUBLISHED'); 
                 } catch (e) { console.error(e); }
             } else {
+                // [새 리포트 작성]
                 setEditorContent("# 오늘의 업무\n\n(우측 상단의 'Git 분석' 버튼을 눌러보세요!)");
+                setSummary("");
+                setCommitCount(0);
                 setIsReadOnly(false);
             }
         };
         loadEditorData();
     }, [view, currentReportId, projectId]);
 
-    // 5. 에디터 생성 로직 (방어 코드 포함)
+    // 5. 에디터 생성 로직
     useEffect(() => {
         if (view !== 'editor' || !containerRef.current) return;
         const targetEl = containerRef.current;
@@ -96,8 +108,8 @@ export default function AiReportPage() {
             initialEditType: 'markdown',
             hideModeSwitch: true,
             language: 'ko-KR',
-            toolbarItems: isReadOnly ? [] : TOOLBAR_ITEMS, // 마감 시 툴바 제거
-            viewer: isReadOnly // 마감 시 뷰어 모드
+            toolbarItems: isReadOnly ? [] : TOOLBAR_ITEMS, 
+            viewer: isReadOnly 
         });
         
         editorRef.current = editorInstance;
@@ -145,53 +157,78 @@ export default function AiReportPage() {
 
         return () => {
             if (editorRef.current) {
-                try { editorRef.current.destroy(); editorRef.current = null; } catch (e) {}
+                editorRef.current = null;
             }
             targetEl.innerHTML = '';
         };
     }, [view, editorContent, isReadOnly]);
 
-    // 6. Git 분석 핸들러
+    // 6. [수정됨] Git 분석 핸들러 (UI 피드백 추가)
     const handleGitAnalysis = async () => {
         if (isAiThinking || isReadOnly) return;
         setIsAiThinking(true);
+        
+        // [추가] 분석 시작 알림 메시지 추가
+        setMessages(prev => [...prev, { role: "assistant", text: "🔍 Git 이력과 완료된 업무를 분석하고 있습니다. 잠시만 기다려주세요...", isNotification: true }]);
+        
         try {
             const res = await api.post(`/api/projects/${projectId}/daily-reports/analyze`, { date: selectedDate });
-            if (editorRef.current) editorRef.current.setMarkdown(res.content || "");
-        } catch (e) { alert("분석 실패"); } 
-        finally { setIsAiThinking(false); }
+            
+            if (res && typeof res === 'object') {
+                if (editorRef.current) editorRef.current.setMarkdown(res.content || "");
+                setSummary(res.summary || "");
+                setCommitCount(res.commitCount || 0);
+                
+                // [추가] 완료 알림
+                setMessages(prev => [...prev, { role: "assistant", text: `✅ 분석이 완료되었습니다. (커밋 ${res.commitCount || 0}건 반영)`, isNotification: true }]);
+            } else {
+                if (editorRef.current) editorRef.current.setMarkdown(res || "");
+            }
+        } catch (e) { 
+            alert("분석 실패");
+            setMessages(prev => [...prev, { role: "assistant", text: "❌ 분석 중 오류가 발생했습니다.", isNotification: true }]);
+        } finally { 
+            setIsAiThinking(false); 
+        }
     };
 
-    // 7. 리포트 저장(임시) 및 발행(마감) 핸들러
-    const handleSave = async (isPublish = false) => {
+    // 7. 리포트 저장 핸들러
+    const handleSave = async () => {
         if (isSaving || isAiThinking || isReadOnly) return;
-        if (isPublish && !window.confirm("발행 후에는 수정할 수 없습니다. 정말 마감하시겠습니까?")) return;
-
+        
         setIsSaving(true);
         const content = editorRef.current.getMarkdown();
-        const saveData = { reportDate: selectedDate, content, title: `${selectedDate} 리포트` };
+        
+        let finalSummary = summary;
+        if (!finalSummary || finalSummary.trim() === "") {
+            const plainText = content.replace(/[#*`\[\]]/g, '').replace(/\n/g, ' ').trim();
+            finalSummary = plainText.substring(0, 100) + (plainText.length > 100 ? "..." : "");
+        }
+
+        const saveData = { 
+            reportDate: selectedDate, 
+            content, 
+            title: `${selectedDate} 리포트`,
+            summary: finalSummary,
+            commitCount: commitCount
+        };
 
         try {
-            let reportId = currentReportId;
             if (currentReportId) {
                 await api.put(`/api/projects/${projectId}/daily-reports/${currentReportId}`, saveData);
             } else {
-                const res = await api.post(`/api/projects/${projectId}/daily-reports`, saveData);
-                reportId = res.reportId || res.data?.reportId;
+                await api.post(`/api/projects/${projectId}/daily-reports`, saveData);
             }
-
-            // [마감 처리] 발행 버튼 클릭 시
-            if (isPublish && reportId) {
-                await api.patch(`/api/projects/${projectId}/daily-reports/${reportId}/publish`);
-            }
-
-            alert(isPublish ? "발행 완료되었습니다." : "임시 저장되었습니다.");
+            
+            alert("저장되었습니다.");
+            await fetchDailyReports(); 
             setView('list'); 
-        } catch (e) { alert("처리 실패"); } 
+
+        } catch (e) { alert("저장 실패"); } 
         finally { setIsSaving(false); }
     };
 
-    // 8. 메시지 전송 핸들러 (동일)
+    // 8. 메시지 전송 핸들러
     const sendMessage = async () => {
         if (!input.trim() || isAiThinking || isReadOnly) return;
         const savedSelection = lastSelectionRef.current;
@@ -218,7 +255,7 @@ export default function AiReportPage() {
         finally { setIsAiThinking(false); }
     };
 
-    // 9. 에디터 적용 핸들러 (동일)
+    // 9. 에디터 적용 핸들러
     const handleApply = (text, hasContext, selection, idx) => {
         if (!editorRef.current || isReadOnly) return;
         if (hasContext && selection) {
@@ -234,8 +271,13 @@ export default function AiReportPage() {
         setMessages(prev => prev.map((msg, i) => i === idx ? { ...msg, isApplied: true } : msg));
     };
 
-    // [로직] 내 리포트가 있는지 확인
-    const hasMyReport = dailyReports.some(r => r.userId === myInfo?.userId);
+    const hasMyReport = dailyReports.some(r => String(r.userId) === String(myInfo?.userId));
+    const showCreateButton = (selectedDate === today) && !hasMyReport;
+
+    const getDisplayRole = (report) => {
+        if (report.role) return report.role; 
+        return 'MEMBER';
+    };
 
     // 10. 목록 뷰 렌더링
     if (view === 'list') {
@@ -252,26 +294,29 @@ export default function AiReportPage() {
                     <button className="nav-arrow" disabled={selectedDate >= today} onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d.toISOString().split('T')[0]); }}>»</button>
                 </div>
                 <div className="report-list-grid">
-                    {/* [수정] 내 리포트가 없을 때만 작성 카드 노출 */}
-                    {!hasMyReport && (
+                    {showCreateButton && (
                         <div className="report-card create-card" onClick={() => { setCurrentReportId(null); setView('editor'); }}>
                             <div className="create-icon">+</div><p>오늘의 리포트 작성하기</p>
                         </div>
                     )}
-                    {dailyReports.map(report => (
-                        <div key={report.reportId} className={`report-card ${report.userId === myInfo?.userId ? 'my-report' : ''}`} onClick={() => { setCurrentReportId(report.reportId); setView('editor'); }}>
-                            <div className="card-top">
-                                <span className="writer-info">
-                                    <strong>{report.writerName}</strong> | <small>{report.role || 'MEMBER'}</small>
-                                </span>
-                                <span className={`status-badge ${report.status}`}>{report.status === 'PUBLISHED' ? '작성 완료' : 'AI 초안'}</span>
+                    {dailyReports.map(report => {
+                        const isMyReport = String(report.userId) === String(myInfo?.userId);
+                        
+                        return (
+                            <div key={report.reportId} className={`report-card ${isMyReport ? 'my-report' : ''}`} onClick={() => { setCurrentReportId(report.reportId); setView('editor'); }}>
+                                <div className="card-top">
+                                    <span className="writer-info">
+                                        <strong>{report.writerName}</strong> | <small>{getDisplayRole(report)}</small>
+                                    </span>
+                                    <span className={`status-badge ${report.status}`}>{report.status === 'PUBLISHED' ? '작성 완료' : '작성 중'}</span>
+                                </div>
+                                <div className="card-mid">
+                                    <p className="commit-info">커밋: <strong>{report.commitCount !== undefined ? report.commitCount : 0}건</strong></p>
+                                    <p className="card-summary">{report.summary || "주요 작업 내용이 없습니다."}</p>
+                                </div>
                             </div>
-                            <div className="card-mid">
-                                <p className="commit-info">커밋: <strong>{report.commitCount || 0}건</strong></p>
-                                <p className="card-summary">{report.summary || "주요 작업: 없음"}</p>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         );
@@ -286,9 +331,13 @@ export default function AiReportPage() {
                     <button className="frc-btn secondary" onClick={() => setView('list')}>목록으로</button>
                     {!isReadOnly && (
                         <>
-                            <button className="frc-btn secondary magic-btn" onClick={handleGitAnalysis} disabled={isAiThinking}>Git 분석</button>
-                            <button className="frc-btn secondary" onClick={() => handleSave(false)} disabled={isSaving}>임시 저장</button>
-                            <button className="frc-btn primary" onClick={() => handleSave(true)} disabled={isSaving}>발행</button>
+                            {/* [수정] 버튼에 로딩 상태 표시 */}
+                            <button className={`frc-btn secondary magic-btn ${isAiThinking ? 'loading' : ''}`} onClick={handleGitAnalysis} disabled={isAiThinking}>
+                                {isAiThinking ? "🤖 분석 중..." : "Git 분석"}
+                            </button>
+                            <button className="frc-btn primary" onClick={handleSave} disabled={isSaving}>
+                                {isSaving ? "저장 중..." : "저장"}
+                            </button>
                         </>
                     )}
                 </div>
