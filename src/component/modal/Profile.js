@@ -46,6 +46,8 @@ const Profile = ({onClose}) => {
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("nickname");
     localStorage.removeItem("userId");
     alert("로그아웃 되었습니다.");
     onClose();

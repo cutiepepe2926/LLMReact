@@ -47,54 +47,81 @@ const request = async (endpoint, options = {}) => {
   try {
     const response = await fetch(url, config);
 
-    // 6. HTTP 상태 코드가 성공(200~299)인 경우
-    // if (response.ok) {
-    //     const text = await response.text();
-    //     // 비어있으면 빈 객체, 아니면 파싱
-    //     return text ? JSON.parse(text) : {};
-    // }
-    if (response.ok) {
-      const text = await response.text();
+    if (response.status === 401) {
+      const refreshToken = localStorage.getItem("refreshToken");
 
-      // 내용이 없으면 빈 객체 반환
-      if (!text) return {};
+      // 리프레시 토큰이 있고, 현재 요청이 '재발급 요청' 자체가 아닐 때만 실행
+      if (refreshToken && !endpoint.includes("/api/auth/reissue")) {
+        try {
+          console.log("Access Token 만료됨. 재발급 시도...");
+          
+          // 1. 토큰 재발급 요청
+          const refreshResponse = await fetch(`${BASE_URL}/api/auth/reissue`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken }),
+          });
 
-      try {
-        // JSON 파싱 시도
-        return JSON.parse(text);
-      } catch (e) {
-        // [핵심] JSON 파싱 실패 시(단순 문자열인 경우), 텍스트 그대로 반환
-        return text;
+          if (refreshResponse.ok) {
+            const data = await refreshResponse.json();
+            
+            // 2. 새로운 토큰 저장 (백엔드 응답 필드명에 맞춰 수정 필요, 예: accessToken)
+            localStorage.setItem("accessToken", data.accessToken); 
+            // 만약 리프레시 토큰도 갱신된다면 아래 주석 해제
+            // localStorage.setItem("refreshToken", data.refreshToken);
+
+            console.log("토큰 재발급 성공. 기존 요청 재시도.");
+
+            // 3. 실패했던 원래 요청 재시도 (새 토큰으로 헤더 교체)
+            config.headers["Authorization"] = `Bearer ${data.accessToken}`;
+            const retryResponse = await fetch(url, config);
+
+            // 재시도한 응답 처리
+            return handleResponse(retryResponse);
+          } else {
+            // 재발급 실패 (리프레시 토큰도 만료됨) -> 로그아웃 처리
+            throw new Error("Session expired");
+          }
+        } catch (refreshError) {
+          // 재발급 과정 중 에러 발생 시 로그아웃
+          console.error("토큰 재발급 실패:", refreshError);
+          localStorage.clear();
+          window.location.href = "/login"; // 로그인 페이지로 강제 이동
+          return Promise.reject(refreshError);
+        }
       }
     }
 
-    // 7. HTTP 상태 코드가 에러(4xx, 5xx)인 경우
-    // 비록 Java 코드는 DTO를 리턴하지만, 혹시 모를 Spring Security 필터 에러 등을 대비
-    // const errorText = await response.text();
-    //
-    // try{
-    //   return errorText ? JSON.parse(errorText) : {};
-    // }catch(e){
-    //   throw new Error(errorText || `HTTP Error ${response.status}`);
-    // }
-
-    const errorText = await response.text();
-    try {
-      const jsonError = JSON.parse(errorText);
-      // 서버가 보낸 에러 메시지가 있다면 사용 (예: { message: "권한이 없습니다" })
-      throw new Error(jsonError.message || jsonError.error || errorText);
-    } catch (e) {
-      // JSON 파싱 실패 시, 에러 텍스트 자체를 메시지로 사용하거나 상태 코드 반환
-      // (단, 위에서 던진 Error는 잡지 않고 그대로 던짐)
-      if (e.message !== errorText && e instanceof SyntaxError) {
-        throw new Error(errorText || `HTTP Error ${response.status}`);
-      }
-      throw e;
-    }
-  } catch (error) {
+    // 정상 응답 처리 (401이 아니거나 재발급 로직을 타지 않은 경우)
+    return handleResponse(response);
+  } catch (error){
     throw error;
   }
 }
+
+const handleResponse = async (response) => {
+  if (response.ok) {
+    const text = await response.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      return text;
+    }
+  }
+
+  // 에러 응답 처리
+  const errorText = await response.text();
+  try {
+    const jsonError = JSON.parse(errorText);
+    throw new Error(jsonError.message || jsonError.error || errorText);
+  } catch (e) {
+    if (e.message !== errorText && e instanceof SyntaxError) {
+      throw new Error(errorText || `HTTP Error ${response.status}`);
+    }
+    throw e;
+  }
+};
 
 export const api = {
   get: (endpoint, params) => request(endpoint, {method: "GET", params}),
