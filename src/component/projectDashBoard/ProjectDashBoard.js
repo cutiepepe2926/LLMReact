@@ -20,10 +20,6 @@ function ProjectDashBoard() {
     const navigate = useNavigate();
     const queryIssueId = searchParams.get('issueId'); // 예: "15"
 
-    console.log("📍 [Dashboard] 현재 URL:", window.location.href);
-    console.log("📍 [Dashboard] 감지된 issueId:", queryIssueId);
-
-
     // 1. projectId 결정 (Invite 코드의 로직 유지 - 안전성 확보)
     const stateProjectData = location.state?.projectData;
     const projectId = params.projectId 
@@ -191,9 +187,9 @@ function ProjectDashBoard() {
         if (taskIdFromUrl) {
             setActiveTab("task");
             setTimeout(() => {
-                setTargetTaskId(taskIdFromUrl); 
+                setTargetTaskId(taskIdFromUrl);
             }, 100);
-        } 
+        }
         else if (location.state?.initialTab) {
             setActiveTab(location.state.initialTab);
         }
@@ -216,7 +212,6 @@ function ProjectDashBoard() {
 
     return (
         <div className="dashboard-container">
-            <button onClick={() => navigate(-1)} style={{ marginRight: '10px', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.2rem' }}>←</button>
 
             {/* 블러 처리를 위한 Wrapper */}
             <div className={`dashboard-content-wrapper ${isInvited ? 'blurred-locked' : ''}`}>
@@ -243,11 +238,11 @@ function ProjectDashBoard() {
                                 </div>
                             ) : activeTab === "task" ? (
                                 // [수정됨] TaskBoard에 clearTargetTaskId 전달
-                                <TaskBoard 
-                                    projectId={projectId} 
-                                    project={projectData} 
-                                    initialTaskId={targetTaskId} 
-                                    clearTargetTaskId={clearTargetTaskId} 
+                                <TaskBoard
+                                    projectId={projectId}
+                                    project={projectData}
+                                    initialTaskId={targetTaskId}
+                                    clearTargetTaskId={clearTargetTaskId}
                                 />
                             ) : activeTab === "finalReport" ? (
                                 // [추가] 최종 리포트 탭 연결

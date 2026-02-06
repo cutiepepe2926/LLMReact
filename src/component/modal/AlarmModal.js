@@ -52,14 +52,28 @@ const AlarmModal = ({ onClose, onUpdate }) => {
             }
         }
 
-        // 페이지 이동 로직
-        // 백엔드에서 준 URL이 있으면 그걸로 이동 (쿼리 파라미터 포함됨)
+        if (alarm.url && alarm.url.includes('invite')) {
+            if (alarm.projectId) {
+                navigate('/projectDetail', {
+                    state: {
+                        projectData: {
+                            projectId: alarm.projectId
+                        }
+                    }
+                });
+                if (onClose) onClose();
+                return; // 여기서 함수 종료
+            }
+        }
+
+        // Case B: 'invite'가 포함되지 않은 일반 URL인 경우 -> 해당 URL로 바로 이동
         if (alarm.url) {
             navigate(alarm.url);
             if (onClose) onClose();
-            return; // 여기서 종료
+            return; // 여기서 함수 종료
         }
 
+        // Case C: URL은 없지만 projectId만 있는 일반 알림인 경우 (기존 로직 보존)
         if (alarm.projectId) {
             navigate('/projectDetail', {
                 state: {
@@ -68,8 +82,7 @@ const AlarmModal = ({ onClose, onUpdate }) => {
                     }
                 }
             });
-            // 페이지 이동 후 모달을 닫고 싶다면 아래 주석 해제
-            if (onClose) onClose(); 
+            if (onClose) onClose();
         }
     };
 

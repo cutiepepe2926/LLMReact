@@ -10,9 +10,14 @@
 }
 
 .dashboard-container {
-  min-height: 100vh;
-  background-color: var(--bg-gray);
-  padding: 24px;
-  font-family: 'Pretendard', sans-serif;
-  color: var(--text-main);
+    /* min-height: 100vh;  <-- 이거 때문에 스크롤이 계속 생겼던 겁니다. 삭제! */
+    height: 100%;       /* 부모 영역에 딱 맞춤 */
+    box-sizing: border-box; /* 패딩(24px)을 높이 100% 안에 포함시킴 (필수) */
+
+    background-color: var(--bg-gray);
+    padding: 24px;
+    font-family: 'Pretendard', sans-serif;
+    color: var(--text-main);
+
+    overflow: hidden; /* 내부 콘텐츠가 넘쳐도 스크롤 안 생기게 막음 (필요하면 auto로 변경) */
 }

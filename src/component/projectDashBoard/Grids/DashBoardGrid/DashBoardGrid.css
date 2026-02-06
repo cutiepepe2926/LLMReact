@@ -315,3 +315,170 @@
     background: #F3F4F6;
     color: var(--text-primary);
 }
+
+/* 커밋 박스 레이아웃 조정 */
+.commit-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stat-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* 브랜치 선택 드롭다운 스타일 */
+.branch-select {
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    color: #4b5563;
+    background-color: white;
+    cursor: pointer;
+    outline: none;
+    max-width: 100px; /* 너무 길어지지 않게 제한 */
+}
+
+.branch-select:hover {
+    border-color: #d1d5db;
+}
+
+.branch-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.commit-link {
+    color: #2563eb; /* 파란색 */
+    text-decoration: none;
+    margin: 0 4px;
+    font-weight: 500;
+}
+
+.commit-link:hover {
+    text-decoration: underline;
+}
+
+.empty-log {
+    padding: 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.branch-selection-bar {
+    display: flex;
+    justify-content: space-between; /* 양끝 정렬 (라벨 왼쪽, 선택창 오른쪽) */
+    align-items: center;
+    margin-bottom: 12px; /* 아래 로그 카드와 간격 벌리기 */
+    padding: 0 4px;
+}
+
+.branch-label-group {
+    display: flex;
+    align-items: center;
+}
+
+.selection-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+/* 드롭다운 스타일 개선 */
+.branch-select-custom {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: white;
+    color: #1f2937;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    min-width: 140px; /* 너무 작아지지 않게 */
+}
+
+.branch-select-custom:hover {
+    border-color: #9ca3af;
+}
+
+.branch-select-custom:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* 기여도 카드 스타일 */
+.contributor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.contributor-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contributor-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contributor-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.contributor-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #4b5563;
+    font-size: 0.8rem;
+}
+
+.contributor-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 50%; /* 바 길이 조절 */
+}
+
+.commit-badge {
+    font-size: 0.8rem;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.contribution-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    /* 기존 card 클래스 스타일 상속받음 */
+}
+
+/* 차트 내부 텍스트 폰트 조절 (Recharts Legend 등) */
+.recharts-legend-item-text {
+    font-size: 0.85rem !important;
+    color: #4b5563 !important;
+}
+
+/* 툴팁 커스텀 (Recharts 기본 툴팁이 못생겼을 경우) */
+.recharts-tooltip-wrapper {
+    outline: none;
+}

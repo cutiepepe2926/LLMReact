@@ -4,12 +4,63 @@ import { useNavigate } from 'react-router-dom';
 import CreateProjectModal from "../modal/CreateProjectModal";
 import './ProjectListPage.css';
 
+const LatestCommitLabel = ({ projectId }) => {
+  const [commit, setCommit] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        // 아까 만든 API 호출
+        const res = await api.get(`/api/github/${projectId}/latest-commit`);
+        if (res && res.message) {
+          setCommit(res);
+        }
+      } catch (err) {
+        // 에러 무시 (데이터 없으면 빈칸)
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLatest();
+  }, [projectId]);
+
+  if (loading) return <span style={{fontSize: '0.8rem', color: '#9ca3af'}}>로딩중...</span>;
+  if (!commit) return <span style={{fontSize: '0.8rem', color: '#9ca3af'}}>최신 활동 없음</span>;
+
+  // 날짜 포맷팅 (예: 2시간 전)
+  const timeAgo = (dateStr) => {
+    const diff = new Date() - new Date(dateStr);
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}분 전`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    return `${Math.floor(hours / 24)}일 전`;
+  };
+
+  return (
+      <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#4b5563' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+          <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{commit.branch}</span>
+          <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>• {timeAgo(commit.date)}</span>
+        </div>
+        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
+          "{commit.message}"
+        </div>
+        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+          by {commit.author}
+        </div>
+      </div>
+  );
+};
+
 const ProjectListPage = ({ onEnterDashboard }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projects, setProjects] = useState([]);
   // 상태 값을 소문자로 백엔드와 맞게 통일 (active | done | trash)
   const [filterStatus, setFilterStatus] = useState('active');
   const navigate = useNavigate();
+  const [myUserName, setMyUserName] = useState('');
 
   // 날짜 가공 함수 (2026-01-29T12:38:17 -> 2026.01.29)
   const formatDate = (dateString) => {
@@ -17,9 +68,33 @@ const ProjectListPage = ({ onEnterDashboard }) => {
     return dateString.split('T')[0].replace(/-/g, '.');
   };
 
+  useEffect(() => {
+    const fetchMyInfo = async () => {
+      try {
+        // UserController.java에 정의된 /api/user/info 호출
+        const response = await api.get('/api/user/info');
+        if (response && response.name) {
+          setMyUserName(response.name);
+        }
+      } catch (error) {
+        console.error("내 정보 로드 실패:", error);
+        setMyUserName('나'); // 실패 시 기본값
+      }
+    };
+
+    fetchMyInfo();
+  }, []);
+
   // 참여자 수 표시 가공 함수
-  const formatMembers = (count) => {
-    return count <= 1 ? '홍길동' : `홍길동 님 외 ${count - 1}명`;
+  const renderMemberText = (count) => {
+    // 이름이 아직 로드 안 됐으면 로딩 중 표시 or 기본값
+    const name = myUserName || '...';
+
+    if (count <= 1) {
+      return `${name}`; // "홍길동"
+    } else {
+      return `${name} 님 외 ${count - 1}명`; // "홍길동 님 외 2명"
+    }
   };
 
   // 프로젝트 목록 가져오기 (filterStatus가 바뀔 때마다 실행됨)
@@ -194,7 +269,9 @@ const ProjectListPage = ({ onEnterDashboard }) => {
                         <div className="member-info">
                           <span className="label">참여자</span>
                           <span className="member-text" style={{fontSize: '0.9rem', color: '#6B7280', marginLeft: '8px'}}>
-                            {formatMembers(p.memberCount)}
+                            <span className="member-text">
+                                {renderMemberText(p.memberCount)}
+                            </span>
                           </span>
                         </div>
 
@@ -206,10 +283,9 @@ const ProjectListPage = ({ onEnterDashboard }) => {
                       </div>
                     </div>
 
-                    <div className="card-footer">
-                      <span className="branch-name">main:</span>
-                      <span className="commit-msg">{p.lastCommit}</span>
-                      <span className="commit-time">({p.lastCommitTime})</span>
+                    <div className="card-footer" style={{ borderTop: '1px solid #f3f4f6', paddingTop: '10px', marginTop: 'auto' }}>
+                      {/* 새로 만든 컴포넌트 삽입 */}
+                      <LatestCommitLabel projectId={p.projectId} />
                     </div>
 
                   </div>
