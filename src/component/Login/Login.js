@@ -20,7 +20,8 @@ function Login() {
       
 
       if (data.success) {
-        localStorage.setItem("accessToken", data.token);
+        localStorage.setItem("accessToken", data.accessToken); 
+        localStorage.setItem("refreshToken", data.refreshToken); 
         localStorage.setItem("userId", data.userId);
         alert(data.message);
         navigate('/projectList');

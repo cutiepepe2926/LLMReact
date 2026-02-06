@@ -193,8 +193,10 @@
     flex-direction: column;
     gap: 15px;
     width: 100%;
+    
     flex: 1; 
     overflow: hidden;
+    min-height: 0;
 }
 
 .final-report-list-section h4 {
@@ -202,6 +204,7 @@
     font-size: 1.1rem;
     color: #444;
     font-weight: 600;
+    flex-shrink: 0;
 }
 
 /* 목록 컨테이너 */
@@ -209,13 +212,23 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    
     overflow-y: auto;
-    height: 100%;
+    flex: 1;
+    
     padding-right: 8px;
     width: 100%;
+    
+    padding-bottom: 0; 
 }
 
-/* 스크롤바 커스텀 */
+.fr-list-container::after {
+    content: "";
+    display: block;
+    min-height: 20px;
+    flex-shrink: 0; 
+}
+
 .fr-list-container::-webkit-scrollbar {
     width: 8px;
 }
