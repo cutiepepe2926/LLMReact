@@ -202,12 +202,14 @@ const CreateProjectModal = ({ open, onClose, onCreate }) => {
             </div>
             <div className="form-group flex-1">
               <label>리포트 생성 시간</label>
-              <select name="reportTime" value={formData.reportTime} onChange={handleChange}>
-                <option value="09:00">09:00 AM</option>
-                <option value="12:00">12:00 PM</option>
-                <option value="18:00">06:00 PM</option>
-                <option value="21:00">09:00 PM</option>
-              </select>
+              <input 
+                type="time" 
+                name="reportTime" 
+                value={formData.reportTime} 
+                onChange={handleChange}
+                className="field-input" // 기존 CSS 클래스 활용 (필요 시 스타일 조정)
+                style={{ width: '100%', boxSizing: 'border-box' }} // 레이아웃 깨짐 방지
+              />
             </div>
           </div>
 
