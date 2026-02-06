@@ -53,7 +53,13 @@ const ToastNotification = ({ id, alarm, onClose }) => {
     const handleClick = () => {
         console.log("알람 클릭됨! 데이터:", alarm); // [확인용 로그]
         if (alarm.url) {
-            navigate(alarm.url);
+            navigate('/projectDetail', {
+                state: {
+                    activeTab: 'task',
+                    projectData: { projectId: alarm.projectId }, // 알림 객체에 포함된 projectId
+                    targetTaskId: alarm.referenceId // 알림 객체의 참조 ID (TaskId)
+                }
+            });
             onClose(id);
         } else {
             console.warn("이동할 URL이 없습니다. (DB 매핑 확인 필요)");

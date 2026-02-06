@@ -45,8 +45,8 @@ const LandingPage = () => {
                         LinkLogMate와 함께 개발에만 집중하세요. 나머지는 우리가 처리할게요.
                     </p>
                     <div className="hero-cta">
-                        <button className="btn-large" onClick={() => navigate('/signup')}>지금 시작하기</button>
-                        <button className="btn-outline" onClick={() => navigate('/login')}>대시보드 체험하기</button>
+                        <button className="btn-large" onClick={() => navigate('/login')}>로그인</button>
+                        <button className="btn-outline" onClick={() => navigate('/signup')}>무료로 시작하기</button>
                     </div>
                 </motion.div>
 

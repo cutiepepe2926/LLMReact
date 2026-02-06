@@ -66,6 +66,18 @@ const AlarmModal = ({ onClose, onUpdate }) => {
             }
         }
 
+        if (alarm.url && alarm.url.includes('task')) {
+            navigate('/projectDetail', {
+                state: {
+                    activeTab: 'task',
+                    projectData: { projectId: alarm.projectId }, // alarm에서 projectId 추출
+                    targetTaskId: alarm.referenceId // 알림의 참조 ID를 태스크 ID로 사용
+                }
+            });
+            if (onClose) onClose();
+            return; // 여기서 함수 종료
+        }
+
         // Case B: 'invite'가 포함되지 않은 일반 URL인 경우 -> 해당 URL로 바로 이동
         if (alarm.url) {
             navigate(alarm.url);

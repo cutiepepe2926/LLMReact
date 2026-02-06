@@ -39,7 +39,7 @@ const ProjectEditModal = ({ project, onClose, onEditSuccess }) => {
                     description: data.description || '',
                     startDate: formatDate(data.startDate),
                     endDate: formData.endDate ? `${formData.endDate}T23:59:59` : null,
-                    reportTime: formData.reportTime, // 서버 필드명: dailyReportTime
+                    reportTime: data.dailyReportTime ? data.dailyReportTime.substring(0, 5) : '09:00', // 서버 필드명: dailyReportTime
                     repoUrl: data.githubRepoUrl || ''             // 서버 필드명: githubRepoUrl
                 });
             } catch (error) {

@@ -16,7 +16,6 @@ const Icons = {
     ExternalLink: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>,
 };
 
-// 기존 함수를 지우고 이 코드로 덮어씌워주세요.
 const calculateTimeRemaining = (targetTimeStr) => {
     if (!targetTimeStr) return "00:00:00";
     try {
@@ -47,7 +46,7 @@ const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const params = useParams();
-    
+
     const stateProjectId = location.state?.projectData?.projectId;
     const isProjectContext = (stateProjectId !== undefined) || (params.projectId !== undefined) || location.pathname.startsWith('/projectDetail') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/daily-reports');
     const projectId = stateProjectId || params.projectId || 1;
@@ -80,9 +79,14 @@ const Sidebar = () => {
         try {
             if (isProjectContext) {
                 const res = await api.get(`/api/projects/${projectId}/sidebar`);
+
                 setMyTasks(Array.isArray(res.myTasks) ? res.myTasks : []);
                 setMyIssues(Array.isArray(res.myIssues) ? res.myIssues : []);
-                setProjectStatus(res.projectStatus || "ACTIVE");
+                if (res.projectStatus) {
+                    setProjectStatus(res.projectStatus);
+                } else {
+                    setProjectStatus("ACTIVE");
+                }
                 setGithubUrl(res.githubUrl || null);
                 setIsReportWritten(res.reportWritten);
                 setReportTargetTime(res.dailyReportTime);
@@ -133,6 +137,29 @@ const Sidebar = () => {
         return (b.priority || 0) - (a.priority || 0);
     });
 
+    const getStatusUI = (status) => {
+        // 1. 값이 없으면 기본값 ACTIVE
+        if (!status) return { text: 'ACTIVE', cls: 'status-active' };
+
+        // 2. 대소문자 구분 없이 비교하기 위해 대문자로 변환 및 공백 제거
+        const normalizedStatus = String(status).toUpperCase().trim();
+
+        switch (normalizedStatus) {
+            case 'ACTIVE':
+                return { text: 'ACTIVE', cls: 'status-active' };
+            case 'DONE':
+                return { text: 'DONE', cls: 'status-done' };
+            case 'DELETE':
+                return { text: 'DELETE', cls: 'status-delete' };
+            default:
+                // 정의되지 않은 상태라도 일단 그대로 보여줌 (디버깅 용이)
+                return { text: normalizedStatus, cls: 'status-active' };
+        }
+    };
+
+    const statusInfo = getStatusUI(projectStatus);
+
+
     return (
         <aside className="sidebar-container">
             <div className="sidebar-brand" onClick={() => {
@@ -157,10 +184,12 @@ const Sidebar = () => {
                         <div className="menu-status-card">
                             <div className="status-header">
                                 <span className="status-label">Status</span>
-                                <span className={`status-badge ${projectStatus === 'ACTIVE' ? 'active' : 'done'}`}>{projectStatus}</span>
+                                <span className={`status-badge ${statusInfo.cls}`}>
+                            {statusInfo.text}
+                        </span>
                             </div>
                             <div className="timer-box">
-                                <Icons.Clock /><span className="timer-text">{isReportWritten ? "작성 완료" : displayTime}</span>
+                                <Icons.Clock /><span className="timer-text">{displayTime}</span>
                             </div>
                             <div className={`daily-report-box ${isReportWritten ? 'disabled' : ''}`} onClick={() => !isReportWritten && navigate(`/aiReport`, { state: { projectData: { projectId, name: projectName } } })}>
                                 <div className="report-icon-bg"><Icons.Edit /></div>
