@@ -17,7 +17,7 @@ function ProjectDashBoard() {
     const location = useLocation();
     const params = useParams();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const queryIssueId = searchParams.get('issueId'); // 예: "15"
 
     console.log("📍 [Dashboard] 현재 URL:", window.location.href);
