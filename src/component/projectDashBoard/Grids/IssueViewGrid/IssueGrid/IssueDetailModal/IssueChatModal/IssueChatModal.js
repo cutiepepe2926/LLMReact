@@ -28,6 +28,12 @@ export default function IssueChatModal({ open, onClose, issue, projectId, curren
             // SockJS 연결 함수를 factory로 제공
             webSocketFactory: () => new SockJS("http://localhost:8080/ws-stomp"),
 
+            connectHeaders: {
+                // localStorage 등에 저장된 토큰을 가져와야 함 (예시 코드)
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                projectId: projectId,
+            },
+
             // 연결 성공 시 실행될 콜백
             onConnect: () => {
                 // 구독 (Subscribe)
