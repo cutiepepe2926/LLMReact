@@ -102,6 +102,12 @@ const AlarmModal = ({ onClose, onUpdate }) => {
             return; // 여기서 함수 종료
         }
 
+        if (alarm.type === 'ISSUE_ASSIGN' || alarm.type === 'ISSUE_UNASSIGN' || alarm.type === 'ISSUE_CHAT') {
+            navigate(alarm.url);
+            if (onClose) onClose();
+            return; // 여기서 함수 종료
+        }
+
         // Case B: 'invite'가 포함되지 않은 일반 URL인 경우 -> 해당 URL로 바로 이동
         if (alarm.url) {
             navigate(alarm.url);

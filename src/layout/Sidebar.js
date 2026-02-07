@@ -47,9 +47,14 @@ const Sidebar = () => {
     const navigate = useNavigate();
     const params = useParams();
 
+    const queryParams = new URLSearchParams(location.search);
+    const queryProjectId = queryParams.get('projectId');
+
     const stateProjectId = location.state?.projectData?.projectId;
+
     const isProjectContext = (stateProjectId !== undefined) || (params.projectId !== undefined) || location.pathname.startsWith('/projectDetail') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/daily-reports');
-    const projectId = params.projectId ? Number(params.projectId) : (stateProjectId ? Number(stateProjectId) : null);
+    const projectId = params.projectId ? Number(params.projectId) : (stateProjectId ? Number(stateProjectId) : (queryProjectId ? Number(queryProjectId) : null));
+
     const [projectName, setProjectName] = useState(location.state?.projectData?.name || "");
 
     const [favorites, setFavorites] = useState([]);
@@ -64,6 +69,7 @@ const Sidebar = () => {
     const [myIssues, setMyIssues] = useState([]);
 
 
+
     const fetchSidebarData = useCallback(async () => {
         if (!projectId) return;
 
@@ -72,6 +78,9 @@ const Sidebar = () => {
                 const res = await api.get(`/api/projects/${projectId}/sidebar`);
                 setMyTasks(Array.isArray(res.myTasks) ? res.myTasks : []);
                 setMyIssues(Array.isArray(res.myIssues) ? res.myIssues : []);
+                if (res.projectName) {
+                    setProjectName(res.projectName);
+                }
                 if (res.projectStatus) {
                     setProjectStatus(res.projectStatus);
                 } else {
