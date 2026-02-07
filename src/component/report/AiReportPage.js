@@ -210,12 +210,16 @@ export default function AiReportPage() {
         
         setIsSaving(true);
         const content = editorRef.current.getMarkdown();
+
+        const lines = content.split('\n');
+        const topLines = lines.slice(0, 3);
+
+        const summaryFromContent = topLines
+            .map(line => line.replace(/[#*`\[\]]/g, '').trim())
+            .filter(line => line.length > 0)
+            .join(' ')
         
-        let finalSummary = summary;
-        if (!finalSummary || finalSummary.trim() === "") {
-            const plainText = content.replace(/[#*`\[\]]/g, '').replace(/\n/g, ' ').trim();
-            finalSummary = plainText.substring(0, 100) + (plainText.length > 100 ? "..." : "");
-        }
+        let finalSummary = summaryFromContent || "내용 없음";
 
         const saveData = { 
             reportDate: selectedDate, 
