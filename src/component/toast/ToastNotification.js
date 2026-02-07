@@ -52,6 +52,45 @@ const ToastNotification = ({ id, alarm, onClose }) => {
     // 4. 클릭 핸들러
     const handleClick = () => {
         console.log("알람 클릭됨! 데이터:", alarm); // [확인용 로그]
+
+        if (alarm.type === 'PROJECT_DUE_SOON' ||
+            alarm.type === 'PROJECT_FINISHED' ||
+            alarm.type === 'PROJECT_HARD_DELETE_SOON' ||
+            alarm.type === 'PROJECT_REACTIVATED' ||
+            alarm.type === 'PROJECT_DELETED' ||
+            alarm.type === 'PROJECT_RESTORED'
+
+        ) {
+            // 백엔드에서 준 URL 무시하고, 올바른 상세 페이지 경로로 이동
+            navigate('/projectDetail', {
+                state: {
+                    projectData: {
+                        projectId: alarm.projectId
+                    }
+                }
+            });
+            if (onClose) onClose();
+            return;
+        }
+
+        if (alarm.type === 'PROJECT_PERMANENTLY_DELETED') {
+            return;
+        }
+
+        if (alarm.url && alarm.url.includes('invite')) {
+            if (alarm.projectId) {
+                navigate('/projectDetail', {
+                    state: {
+                        projectData: {
+                            projectId: alarm.projectId
+                        }
+                    }
+                });
+                if (onClose) onClose();
+                return; // 여기서 함수 종료
+            }
+        }
+
         if (alarm.url) {
             navigate('/projectDetail', {
                 state: {
