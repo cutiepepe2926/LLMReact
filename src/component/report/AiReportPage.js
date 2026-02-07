@@ -15,15 +15,23 @@ export default function AiReportPage() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // 1. projectId 결정 (URL 파라미터가 없으면 state에서 가져옴)
+    // 1. projectId 결정
     const projectId = params.projectId || location.state?.projectData?.projectId;
 
-    // 1-1. 상태 정의
+    // 1-1. 날짜 관련 유틸 및 상태 정의
     const offset = new Date().getTimezoneOffset() * 60000;
     const today = new Date(Date.now() - offset).toISOString().split('T')[0];
+
     const [projectData, setProjectData] = useState(location.state?.projectData || null);
     const [view, setView] = useState(location.state?.mode === 'create' ? 'editor' : 'list');
+    
+    // 날짜 범위 제한 상태
+    const [minDate, setMinDate] = useState("1900-01-01");
+    const [maxDate, setMaxDate] = useState(today);
+
+    // 초기 선택 날짜
     const [selectedDate, setSelectedDate] = useState(today);
+    
     const [dailyReports, setDailyReports] = useState([]); 
     const [currentReportId, setCurrentReportId] = useState(null);
     
@@ -49,6 +57,7 @@ export default function AiReportPage() {
 
     // 2. 기본 정보 조회
     const [myInfo, setMyInfo] = useState(null);
+
     useEffect(() => {
         const fetchEssential = async () => {
             if (!projectId) return;
@@ -57,12 +66,30 @@ export default function AiReportPage() {
                     api.get(`/api/projects/${projectId}`),
                     api.get(`/api/user/info`)
                 ]);
+                
                 setProjectData(proj);
                 setMyInfo(user);
+
+                if (proj) {
+                    const pStart = proj.startDate ? proj.startDate.split('T')[0] : "1900-01-01";
+                    setMinDate(pStart);
+
+                    const pEnd = proj.endDate ? proj.endDate.split('T')[0] : "9999-12-31";
+                    // 리포트는 미래에 쓸 수 없으므로, 오늘 날짜와 프로젝트 종료일 중 빠른 것을 Max로 잡음
+                    const effectiveMax = pEnd < today ? pEnd : today;
+                    setMaxDate(effectiveMax);
+
+                    setSelectedDate(prev => {
+                        if (prev < pStart) return pStart;
+                        if (prev > effectiveMax) return effectiveMax;
+                        return prev;
+                    });
+                }
+
             } catch (e) { console.error("기본 정보 로드 실패:", e); }
         };
         fetchEssential();
-    }, [projectId]);
+    }, [projectId, today]);
 
     // 3. 리포트 목록 조회
     const fetchDailyReports = useCallback(async () => {
@@ -172,40 +199,29 @@ export default function AiReportPage() {
     // 6. Git 분석 핸들러 (UI 피드백 및 projectId 검사)
     const handleGitAnalysis = async () => {
         if (isAiThinking || isReadOnly) return;
-        
-        // projectId가 유효한지 확인
-        if (!projectId) {
-            alert("프로젝트 정보를 찾을 수 없습니다. 다시 시도해주세요.");
-            return;
-        }
+        if (!projectId) { alert("프로젝트 정보를 찾을 수 없습니다."); return; }
 
         setIsAiThinking(true);
-        setMessages(prev => [...prev, { role: "assistant", text: "🔍 Git 이력과 완료된 업무를 분석하고 있습니다. 잠시만 기다려주세요...", isNotification: true }]);
+        setMessages(prev => [...prev, { role: "assistant", text: "🔍 Git 이력과 완료된 업무를 분석하고 있습니다...", isNotification: true }]);
         
         try {
-            console.log("Analyzing for Project ID:", projectId); // 디버깅용
             const res = await api.post(`/api/projects/${projectId}/daily-reports/analyze`, { date: selectedDate });
-            
             if (res && typeof res === 'object') {
                 if (editorRef.current) editorRef.current.setMarkdown(res.content || "");
                 setSummary(res.summary || "");
                 setCommitCount(res.commitCount || 0);
-                setMessages(prev => [...prev, { role: "assistant", text: `✅ 분석이 완료되었습니다. (커밋 ${res.commitCount || 0}건 반영)`, isNotification: true }]);
-            } else {
-                if (editorRef.current) editorRef.current.setMarkdown(res || "");
+                setMessages(prev => [...prev, { role: "assistant", text: `✅ 분석 완료 (커밋 ${res.commitCount || 0}건 반영)`, isNotification: true }]);
             }
         } catch (e) { 
             console.error(e);
-            alert("분석 실패: " + (e.message || "오류가 발생했습니다."));
-            setMessages(prev => [...prev, { role: "assistant", text: "❌ 분석 중 오류가 발생했습니다.", isNotification: true }]);
-        } finally { 
-            setIsAiThinking(false); 
-        }
+            alert(e.response?.data?.content || "분석 중 오류가 발생했습니다."); // 백엔드 에러 메시지 표시
+            setMessages(prev => [...prev, { role: "assistant", text: "❌ 분석 실패", isNotification: true }]);
+        } finally { setIsAiThinking(false); }
     };
 
     // 7. 리포트 저장 핸들러
     const handleSave = async () => {
-        if (isSaving || isAiThinking || isReadOnly) return;
+         if (isSaving || isAiThinking || isReadOnly) return;
         if (!projectId) return;
         
         setIsSaving(true);
@@ -246,7 +262,7 @@ export default function AiReportPage() {
 
     // 8. 메시지 전송 핸들러
     const sendMessage = async () => {
-        if (!input.trim() || isAiThinking || isReadOnly) return;
+         if (!input.trim() || isAiThinking || isReadOnly) return;
         if (!projectId) return;
 
         const savedSelection = lastSelectionRef.current;
@@ -272,8 +288,8 @@ export default function AiReportPage() {
         } catch (e) { setMessages(prev => [...prev, { role: "assistant", text: "오류 발생" }]); } 
         finally { setIsAiThinking(false); }
     };
-
-    // 9. 에디터 적용 핸들러
+    
+    // 9. 메시지 적용 핸들러
     const handleApply = (text, hasContext, selection, idx) => {
         if (!editorRef.current || isReadOnly) return;
         if (hasContext && selection) {
@@ -292,10 +308,7 @@ export default function AiReportPage() {
     const hasMyReport = dailyReports.some(r => String(r.userId) === String(myInfo?.userId));
     const showCreateButton = (selectedDate === today) && !hasMyReport;
 
-    const getDisplayRole = (report) => {
-        if (report.role) return report.role; 
-        return 'MEMBER';
-    };
+    const getDisplayRole = (report) => report.role || 'MEMBER';
 
     // 10. 목록 뷰 렌더링
     if (view === 'list') {
@@ -305,21 +318,75 @@ export default function AiReportPage() {
                     {projectData ? <ProjectHeader project={projectData} showAiButton={false} /> : null}
                     <button className="close-btn-overlay" onClick={() => navigate(-1)}>✕</button>
                 </div>
+
                 <div className="date-nav-section">
-                    <button className="nav-arrow" onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d.toISOString().split('T')[0]); }}>«</button>
-                    <div className="date-display" onClick={() => dateInputRef.current?.showPicker()}><h2>{selectedDate}</h2><span>📅</span></div>
-                    <input type="date" ref={dateInputRef} className="hidden-date-input" max={today} value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
-                    <button className="nav-arrow" disabled={selectedDate >= today} onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d.toISOString().split('T')[0]); }}>»</button>
+                    <button 
+                        className="nav-arrow" 
+                        // 왼쪽 버튼 비활성화 조건: 선택된 날짜가 프로젝트 시작일 이하거나 같으면 불가
+                        disabled={selectedDate <= minDate}
+                        onClick={() => { 
+                            const d = new Date(selectedDate); 
+                            d.setDate(d.getDate() - 1); 
+                            const newDate = d.toISOString().split('T')[0];
+                            // 안전장치: minDate보다 작아지면 minDate로 고정
+                            setSelectedDate(newDate < minDate ? minDate : newDate); 
+                        }}
+                    >
+                        «
+                    </button>
+                    
+                    <div className="date-display" onClick={() => dateInputRef.current?.showPicker()}>
+                        <h2>{selectedDate}</h2>
+                        <span>📅</span>
+                    </div>
+
+                    <input 
+                        type="date" 
+                        ref={dateInputRef} 
+                        className="hidden-date-input" 
+                        min={minDate}
+                        max={maxDate}
+                        value={selectedDate} 
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            // 입력값 유효성 검사 (범위 밖이면 무시)
+                            if (val >= minDate && val <= maxDate) {
+                                setSelectedDate(val);
+                            } else {
+                                alert(`이 프로젝트의 리포트는 ${minDate} ~ ${maxDate} 기간만 조회 가능합니다.`);
+                            }
+                        }} 
+                    />
+                    
+                    <button 
+                        className="nav-arrow" 
+                        // 오른쪽 버튼 비활성화 조건: 선택된 날짜가 maxDate(오늘 or 종료일) 이상이면 불가
+                        disabled={selectedDate >= maxDate}
+                        onClick={() => { 
+                            const d = new Date(selectedDate); 
+                            d.setDate(d.getDate() + 1); 
+                            const newDate = d.toISOString().split('T')[0];
+                            setSelectedDate(newDate > maxDate ? maxDate : newDate); 
+                        }}
+                    >
+                        »
+                    </button>
                 </div>
+
                 <div className="report-list-grid">
                     {showCreateButton && (
                         <div className="report-card create-card" onClick={() => { setCurrentReportId(null); setView('editor'); }}>
                             <div className="create-icon">+</div><p>오늘의 리포트 작성하기</p>
                         </div>
                     )}
+                    {dailyReports.length === 0 && !showCreateButton && (
+                        <div className="no-report-message" style={{gridColumn: "1 / -1", textAlign: "center", padding: "40px", color: "#6b7280"}}>
+                            <p>작성된 리포트가 없습니다.</p>
+                        </div>
+                    )}
+
                     {dailyReports.map(report => {
                         const isMyReport = String(report.userId) === String(myInfo?.userId);
-                        
                         return (
                             <div key={report.reportId} className={`report-card ${isMyReport ? 'my-report' : ''}`} onClick={() => { setCurrentReportId(report.reportId); setView('editor'); }}>
                                 <div className="card-top">

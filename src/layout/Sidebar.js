@@ -33,7 +33,7 @@ const calculateTimeRemaining = (targetTimeStr) => {
         let diff = target - now;
         if (diff < 0) return "00:00:00";
 
-        // 전체 남은 시간 계산 (24시간 넘지 않으므로 % 24는 그대로 둬도 무방하나 제거해도 됨)
+        // 전체 남은 시간 계산
         const rh = Math.floor(diff / (1000 * 60 * 60));
         const rm = Math.floor((diff / (1000 * 60)) % 60);
         const rs = Math.floor((diff / 1000) % 60);
@@ -57,33 +57,19 @@ const Sidebar = () => {
     const [isAllProjOpen, setIsAllProjOpen] = useState(false);
     const [myTasks, setMyTasks] = useState([]);
     const [projectStatus, setProjectStatus] = useState("ACTIVE");
-    const [githubUrl, setGithubUrl] = useState(null); // GitHub URL 상태 추가
+    const [githubUrl, setGithubUrl] = useState(null);
     const [isReportWritten, setIsReportWritten] = useState(false);
     const [reportTargetTime, setReportTargetTime] = useState(null);
     const [displayTime, setDisplayTime] = useState("00:00:00");
     const [myIssues, setMyIssues] = useState([]);
 
-    // Sidebar.js 로고 클릭
-    // eslint-disable-next-line
-    const goToHome = () => {
-        navigate('/projectList', { replace: true, state: {} }); // state를 비움
-    };
-
-    // ProjectHeader.js 뒤로가기
-    // eslint-disable-next-line
-    const goBackToList = () => {
-        navigate('/projectList', { state: {} });
-    };
 
     const fetchSidebarData = useCallback(async () => {
         if (!projectId) return;
 
         try {
             if (isProjectContext) {
-
                 const res = await api.get(`/api/projects/${projectId}/sidebar`);
-
-
                 setMyTasks(Array.isArray(res.myTasks) ? res.myTasks : []);
                 setMyIssues(Array.isArray(res.myIssues) ? res.myIssues : []);
                 if (res.projectStatus) {
@@ -103,8 +89,6 @@ const Sidebar = () => {
                     setProjectName(res.projectName);
                 }
             }
-
-
         } catch (error) { console.error("사이드바 로딩 실패:", error); }
     }, [isProjectContext, projectId]);
 
@@ -121,24 +105,41 @@ const Sidebar = () => {
 
     useEffect(() => {
         const isActive = String(projectStatus || '').toUpperCase() === 'ACTIVE';
-        if (!isProjectContext || !reportTargetTime || isReportWritten || !isActive) {
 
-            // 만약 ACTIVE 상태가 아니라서 멈춘 거라면, 시간을 0으로 초기화
-            if (!isActive && isProjectContext) {
+        // 1. 오늘 기준 마감 시간 계산
+        let isPastDeadline = false;
+        if (reportTargetTime) {
+            try {
+                const now = new Date();
+                const [h, m, s] = reportTargetTime.split(':').map(Number);
+                
+                const targetToday = new Date();
+                targetToday.setHours(h, m, s || 0, 0);
+                
+                if (now >= targetToday) {
+                    isPastDeadline = true;
+                }
+            } catch (e) {
+            }
+        }
+
+        const shouldStopTimer = !isProjectContext || !reportTargetTime || !isActive || (isReportWritten && !isPastDeadline);
+
+        if (shouldStopTimer) {
+            if (isProjectContext) {
                 setDisplayTime("00:00:00");
             }
-            return; // 여기서 함수 종료 (setInterval 실행 안 함)
+            return;
         }
+
         setDisplayTime(calculateTimeRemaining(reportTargetTime));
 
         const intervalId = setInterval(() => {
             setDisplayTime(calculateTimeRemaining(reportTargetTime));
         }, 1000);
 
-        // 뒷정리 (언마운트 시 타이머 해제)
         return () => clearInterval(intervalId);
-        // eslint-disable-next-line
-    }, [isProjectContext, reportTargetTime, isReportWritten]);
+    }, [isProjectContext, reportTargetTime, isReportWritten, projectStatus]);
 
     const getStatusColor = (task) => {
         if (!task || !task.status) return '#3b82f6';
@@ -162,33 +163,21 @@ const Sidebar = () => {
     });
 
     const getStatusUI = (status) => {
-        // 1. 값이 없으면 기본값 ACTIVE
         if (!status) return { text: 'ACTIVE', cls: 'status-active' };
-
-        // 2. 대소문자 구분 없이 비교하기 위해 대문자로 변환 및 공백 제거
         const normalizedStatus = String(status).toUpperCase().trim();
-
         switch (normalizedStatus) {
-            case 'ACTIVE':
-                return { text: 'ACTIVE', cls: 'status-active' };
-            case 'DONE':
-                return { text: 'DONE', cls: 'status-done' };
-            case 'DELETE':
-                return { text: 'DELETE', cls: 'status-delete' };
-            default:
-                // 정의되지 않은 상태라도 일단 그대로 보여줌 (디버깅 용이)
-                return { text: normalizedStatus, cls: 'status-active' };
+            case 'ACTIVE': return { text: 'ACTIVE', cls: 'status-active' };
+            case 'DONE': return { text: 'DONE', cls: 'status-done' };
+            case 'DELETE': return { text: 'DELETE', cls: 'status-delete' };
+            default: return { text: normalizedStatus, cls: 'status-active' };
         }
     };
 
     const statusInfo = getStatusUI(projectStatus);
 
-
     return (
         <aside className="sidebar-container">
-            <div className="sidebar-brand" onClick={() => {
-                navigate('/projectList', { state: {} }); 
-            }}>
+            <div className="sidebar-brand" onClick={() => navigate('/projectList', { state: {} })}>
                 <Icons.LinkLogo /><span className="brand-name">LinkLogMate</span>
             </div>
 
@@ -208,9 +197,7 @@ const Sidebar = () => {
                         <div className="menu-status-card">
                             <div className="status-header">
                                 <span className="status-label">Status</span>
-                                <span className={`status-badge ${statusInfo.cls}`}>
-                            {statusInfo.text}
-                        </span>
+                                <span className={`status-badge ${statusInfo.cls}`}>{statusInfo.text}</span>
                             </div>
                             <div className="timer-box">
                                 <Icons.Clock /><span className="timer-text">{displayTime}</span>
@@ -225,17 +212,9 @@ const Sidebar = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="menu-section-label">PROJECT TOOLS</div>
-                        
-                        {/* ★ GitHub 바로가기 (테이블 없이 구현) */}
                         {githubUrl && githubUrl.trim() !== "" ? (
-                            <a
-                                href={githubUrl.startsWith('http') ? githubUrl : `https://${githubUrl}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="menu-item github-link"
-                            >
+                            <a href={githubUrl.startsWith('http') ? githubUrl : `https://${githubUrl}`} target="_blank" rel="noreferrer" className="menu-item github-link">
                                 <span className="menu-icon-box"><Icons.Github /></span>
                                 <span className="menu-text">GitHub 저장소</span>
                                 <Icons.ExternalLink style={{ marginLeft: 'auto', opacity: 0.6 }} />
@@ -246,41 +225,14 @@ const Sidebar = () => {
                                 <span className="menu-text">GitHub (주소 없음)</span>
                             </div>
                         )}
-
                         <div className="menu-divider" />
-
                         <div className="menu-section-label">MY TASKS ({myTasks.length})</div>
                         <div className="task-scroll-area">
                             {sortedTasks.length > 0 ? sortedTasks.map((task, idx) => {
                                 const dotColor = getStatusColor(task);
                                 const badge = getPriorityBadge(task.priority);
                                 return (
-                                    <div
-                                        key={task.taskId || idx}
-                                        className="sidebar-task-item"
-                                        onClick={() =>  {
-                                            console.log("🖱 Task 클릭됨, 이동 시도:", task.title);
-                                            console.log("📤 전달할 state:", {
-                                                activeTab: 'task',
-                                                projectData: {
-                                                    ...(location.state?.projectData || {}),
-                                                    projectId,
-                                                    name: projectName
-                                                },
-                                                targetTaskId: task.taskId
-                                            });
-                                            navigate('/projectDetail', {
-                                            state: {
-                                                activeTab: 'task',
-                                                projectData: {
-                                                    ...(location.state?.projectData || {}), // 1. 기존 데이터를 먼저 펼치고
-                                                    projectId,                              // 2. 현재 유효한 ID로 덮어씀 (필수)
-                                                    name: projectName                       // 3. 현재 유효한 이름으로 덮어씀 (필수)
-                                                },
-                                                targetTaskId: task.taskId
-                                            }
-                                        })}}
-                                    >
+                                    <div key={task.taskId || idx} className="sidebar-task-item" onClick={() => navigate('/projectDetail', { state: { activeTab: 'task', projectData: { ...(location.state?.projectData || {}), projectId, name: projectName }, targetTaskId: task.taskId } })}>
                                         <span className="task-dot" style={{ backgroundColor: dotColor, boxShadow: `0 0 0 2px ${dotColor}33` }}></span>
                                         <span className={`task-title ${dotColor === '#f59e0b' ? 'highlight-text' : ''}`}>{task.title}</span>
                                         {badge && <span className={`mini-badge ${badge.className}`}>{badge.label}</span>}
@@ -288,51 +240,23 @@ const Sidebar = () => {
                                 );
                             }) : <div className="no-tasks">남은 업무가 없습니다.</div>}
                         </div>
-
-                        {/* MY ISSUES 섹션 (업무 목록 바로 아래에 추가) */}
                         <div className="menu-divider" />
                         <div className="menu-section-label">MY ISSUES ({myIssues.length})</div>
-
-                        <div className="task-scroll-area" style={{ maxHeight: '150px' }}> {/* 필요시 높이 조절 */}
+                        <div className="task-scroll-area" style={{ maxHeight: '150px' }}>
                             {myIssues.length > 0 ? myIssues.map((issue, idx) => (
-                                <div
-                                    key={issue.issueId || idx}
-                                    className="sidebar-task-item"
-                                    onClick={() => {
-                                        // state 대신 search(쿼리 스트링) 사용
-                                        navigate({
-                                            pathname: '/projectDetail', // 또는 `/project/${projectId}/dashboard`
-                                            search: `?issueId=${issue.issueId}`,
-                                        }, {
-                                            // state도 같이 보내주면 안전장치 역할 (프로젝트 정보 유지)
-                                            state: {
-                                                projectData: { projectId, name: projectName }
-                                            }
-                                        });
-                                    }}
-                                >
-                                    {/* 이슈 구분용 보라색 점 (색상은 추후 논의) */}
+                                <div key={issue.issueId || idx} className="sidebar-task-item" onClick={() => navigate({ pathname: '/projectDetail', search: `?issueId=${issue.issueId}` }, { state: { projectData: { projectId, name: projectName } } })}>
                                     <span className="task-dot" style={{ backgroundColor: '#A855F7', boxShadow: '0 0 0 2px rgba(168, 85, 247, 0.2)' }}></span>
-
                                     <span className="task-title">{issue.title}</span>
-
-                                    {/* 우선순위 뱃지 (P0 ~ P5) */}
-                                    {issue.priority !== undefined && (
-                                        <span className="mini-badge badge-high" style={{ backgroundColor: '#F3F4F6', color: '#4B5563', border: '1px solid #E5E7EB' }}>
-                                            P{issue.priority}
-                                        </span>
-                                    )}
+                                    {issue.priority !== undefined && <span className="mini-badge badge-high" style={{ backgroundColor: '#F3F4F6', color: '#4B5563', border: '1px solid #E5E7EB' }}>P{issue.priority}</span>}
                                 </div>
                             )) : <div className="no-tasks">할당된 이슈가 없습니다.</div>}
                         </div>
-
                         <div style={{ flex: 1 }} />
                         <div className="menu-item back-btn" onClick={() => navigate('/projectList')}>
                             <span className="menu-icon-box"><Icons.Back /></span><span className="menu-text">프로젝트 나가기</span>
                         </div>
                     </>
                 ) : (
-                    /* 메인 화면 (변경 없음) */
                     <>
                         <div className={`menu-item ${location.pathname === '/projectList' ? 'active' : ''}`} onClick={() => navigate('/projectList')}>
                             <span className="menu-icon-box"><Icons.Home /></span><span className="menu-text">홈</span>
