@@ -19,7 +19,8 @@ export default function AiReportPage() {
     const projectId = params.projectId || location.state?.projectData?.projectId;
 
     // 1-1. 상태 정의
-    const today = new Date().toISOString().split('T')[0];
+    const offset = new Date().getTimezoneOffset() * 60000;
+    const today = new Date(Date.now() - offset).toISOString().split('T')[0];
     const [projectData, setProjectData] = useState(location.state?.projectData || null);
     const [view, setView] = useState(location.state?.mode === 'create' ? 'editor' : 'list');
     const [selectedDate, setSelectedDate] = useState(today);
