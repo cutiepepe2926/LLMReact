@@ -52,6 +52,30 @@ const AlarmModal = ({ onClose, onUpdate }) => {
             }
         }
 
+        if (alarm.type === 'PROJECT_DUE_SOON' ||
+            alarm.type === 'PROJECT_FINISHED' ||
+            alarm.type === 'PROJECT_HARD_DELETE_SOON' ||
+            alarm.type === 'PROJECT_REACTIVATED' ||
+            alarm.type === 'PROJECT_DELETED' ||
+            alarm.type === 'PROJECT_RESTORED'
+
+        ) {
+            // 백엔드에서 준 URL 무시하고, 올바른 상세 페이지 경로로 이동
+            navigate('/projectDetail', {
+                state: {
+                    projectData: {
+                        projectId: alarm.projectId
+                    }
+                }
+            });
+            if (onClose) onClose();
+            return;
+        }
+
+        if (alarm.type === 'PROJECT_PERMANENTLY_DELETED') {
+            return;
+        }
+
         if (alarm.url && alarm.url.includes('invite')) {
             if (alarm.projectId) {
                 navigate('/projectDetail', {
