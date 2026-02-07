@@ -360,10 +360,27 @@ export default function FinalReportCreatePage() {
                 setCurrentReportId(res.finalReportId);
                 alert(`[새 파일 저장 완료]\n이제부터 '${res.title}' 파일을 편집합니다.`);
             }
-
+            
         } catch (e) { 
-            console.error(e);
-            alert(e.response?.data?.message || "저장 중 오류가 발생했습니다."); 
+            console.error("저장 에러 상세:", e);
+
+            // [수정 포인트] 에러 객체(e)의 형태에 따라 메시지 추출 순서 변경
+            let errorMessage = "저장 중 오류가 발생했습니다.";
+
+            // 1. (가장 유력) api 유틸이 이미 에러 메시지를 가공해서 e.message에 넣은 경우
+            if (e.message && e.message !== "Network Error") {
+                errorMessage = e.message;
+            }
+            // 2. (혹시 모를) Axios 원본 에러 객체가 그대로 넘어온 경우
+            else if (e.response?.data?.message) {
+                errorMessage = e.response.data.message;
+            }
+            // 3. 서버가 문자열만 보낸 경우
+            else if (typeof e.response?.data === 'string') {
+                errorMessage = e.response.data;
+            }
+
+            alert(errorMessage);
         }
     };
     
