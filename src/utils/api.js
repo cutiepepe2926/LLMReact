@@ -36,7 +36,6 @@ const request = async (endpoint, options = {}) => {
   const config = {
     method: options.method || "GET",
     headers,
-    credentials: 'omit',
     ...options,
   };
 
@@ -48,16 +47,18 @@ const request = async (endpoint, options = {}) => {
   try {
     const response = await fetch(url, config);
 
-    if (response.status === 401 || response.status === 403) {
+    if ((response.status === 401 || response.status === 403) &&
+        !endpoint.includes("/logIn") &&
+        !endpoint.includes("/signUp")){
       const refreshToken = localStorage.getItem("refreshToken");
       console.log("리프레시 토큰: ", refreshToken);
-      
+
 
       // 리프레시 토큰이 있고, 현재 요청이 '재발급 요청' 자체가 아닐 때만 실행
       if (refreshToken && !endpoint.includes("/api/auth/reissue")) {
         try {
           console.log("Access Token 만료됨. 재발급 시도...");
-          
+
           // 1. 토큰 재발급 요청
           const refreshResponse = await fetch(`${BASE_URL}/api/auth/reissue`, {
             method: "POST",
@@ -67,9 +68,9 @@ const request = async (endpoint, options = {}) => {
 
           if (refreshResponse.ok) {
             const data = await refreshResponse.json();
-            
+
             // 2. 새로운 토큰 저장 (백엔드 응답 필드명에 맞춰 수정 필요, 예: accessToken)
-            localStorage.setItem("accessToken", data.accessToken); 
+            localStorage.setItem("accessToken", data.accessToken);
 
             console.log("토큰 재발급 성공. 기존 요청 재시도.");
 

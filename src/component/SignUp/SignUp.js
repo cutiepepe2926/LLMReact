@@ -70,11 +70,10 @@ function SignUp() {
         navigate('/login');
       }else{
         alert(data.message);
-        console.log("실패 코드:", data.code); // DUP_EMAIL 등 확인 가능
       }
-    }catch(error){
+    }catch(error) {
       console.error("네트워크 오류 발생: ", error);
-      alert("서버 연결에 실패했습니다.");
+      alert(error.message || "서버 연결에 실패했습니다.");
     }
   };
 

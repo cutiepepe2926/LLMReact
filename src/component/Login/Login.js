@@ -25,12 +25,12 @@ function Login() {
         localStorage.setItem("userId", data.userId);
         alert(data.message);
         navigate('/projectList');
-      } else {
+      }else{
         alert(data.message);
       }
-
-    }catch{
-
+    }catch(error) {
+      console.error("로그인 실패:", error);
+      alert(error.message || "아이디나 비밀번호가 틀립니다.");
     }
   };
 
