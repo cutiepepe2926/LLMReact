@@ -36,6 +36,7 @@ const request = async (endpoint, options = {}) => {
   const config = {
     method: options.method || "GET",
     headers,
+    credentials: 'omit',
     ...options,
   };
 
