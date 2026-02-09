@@ -221,25 +221,39 @@ export default function AiReportPage() {
 
     // 7. 리포트 저장 핸들러
     const handleSave = async () => {
-         if (isSaving || isAiThinking || isReadOnly) return;
+        // [1] 저장 중이거나, AI가 생각 중이거나, 읽기 전용이면 중단
+        if (isSaving || isAiThinking || isReadOnly) return;
         if (!projectId) return;
-        
-        setIsSaving(true);
-        const content = editorRef.current.getMarkdown();
 
+        // [2] 본인 확인 로직 (타입 변환 추가로 안전성 확보)
+        const currentUserId = localStorage.getItem("userId");
+
+        // currentReportId가 있다는 것은 "수정" 상태라는 뜻입니다.
+        if (currentReportId) {
+            // 목록에서 현재 리포트 정보를 찾습니다.
+            const targetReport = dailyReports.find(r => r.reportId === currentReportId);
+
+            // [수정 핵심] String()으로 감싸서 숫자/문자 타입 차이로 인한 오류 방지
+            if (targetReport && String(targetReport.userId) !== String(currentUserId)) {
+                alert("타인의 리포트는 수정할 수 없습니다.");
+                return; // 함수 강제 종료
+            }
+        }
+
+        setIsSaving(true);
+
+        const content = editorRef.current.getMarkdown();
         const lines = content.split('\n');
         const topLines = lines.slice(0, 3);
-
         const summaryFromContent = topLines
             .map(line => line.replace(/[#*`\[\]]/g, '').trim())
             .filter(line => line.length > 0)
-            .join(' ')
-        
-        let finalSummary = summaryFromContent || "내용 없음";
+            .join(' ');
+        const finalSummary = summaryFromContent || "내용 없음";
 
-        const saveData = { 
-            reportDate: selectedDate, 
-            content, 
+        const saveData = {
+            reportDate: selectedDate,
+            content,
             title: `${selectedDate} 리포트`,
             summary: finalSummary,
             commitCount: commitCount
@@ -251,13 +265,18 @@ export default function AiReportPage() {
             } else {
                 await api.post(`/api/projects/${projectId}/daily-reports`, saveData);
             }
-            
-            alert("저장되었습니다.");
-            await fetchDailyReports(); 
-            setView('list'); 
 
-        } catch (e) { alert("저장 실패"); } 
-        finally { setIsSaving(false); }
+            alert("저장되었습니다.");
+            await fetchDailyReports();
+            setView('list');
+
+        } catch (e) {
+            console.error(e);
+            // 백엔드 에러 메시지 우선 표시
+            alert(e.message || "저장 실패");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // 8. 메시지 전송 핸들러
