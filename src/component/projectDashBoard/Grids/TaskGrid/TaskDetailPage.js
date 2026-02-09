@@ -50,7 +50,7 @@ const TaskDetailPage = ({ projectId, task, myRole, onBack, onEdit, onDelete, onS
 
     // 웹소켓 연결
     useEffect(() => {
-        const socket = new SockJS('http://localhost:8080/ws-stomp'); 
+        const socket = new SockJS('/ws-stomp');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, () => {
             stompClient.current.subscribe(`/sub/tasks/${task.taskId}`, (frame) => {

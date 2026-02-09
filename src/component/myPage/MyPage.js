@@ -64,7 +64,7 @@ function MyPage() {
         setCookie("link_user_id", userFullInfo.userId, 0.0035); // 약 5분
 
         // 백엔드 OAuth URL로 이동
-        window.location.href = "http://localhost:8080/oauth2/authorization/github";
+        window.location.href = "/oauth2/authorization/github";
     };
 
     const formatDate = (dateString) => {

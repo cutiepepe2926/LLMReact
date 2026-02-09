@@ -111,11 +111,10 @@ export default function TopNav() {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
 
-        const eventSource = new EventSourcePolyfill('http://localhost:8080/api/alarms/subscribe', {
+        const eventSource = new EventSourcePolyfill('/api/alarms/subscribe', {
             headers: { Authorization: `Bearer ${token}` },
             heartbeatTimeout: 86400000,
         });
-
         eventSource.onopen = () => console.log("SSE Connected!");
 
         eventSource.addEventListener('alarm', (e) => {
