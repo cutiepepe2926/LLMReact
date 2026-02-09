@@ -52,6 +52,17 @@ const Sidebar = () => {
 
     const stateProjectId = location.state?.projectData?.projectId;
 
+    const handleStarClick = async (e, targetProjectId) => {
+        e.stopPropagation();
+        try {
+            await api.post(`/api/projects/${targetProjectId}/favorite`);
+            // 목록 새로고침
+            fetchSidebarData(); 
+        } catch (error) {
+            console.error("즐겨찾기 변경 실패", error);
+        }
+    };
+
     const isProjectContext = (stateProjectId !== undefined) || (params.projectId !== undefined) || location.pathname.startsWith('/projectDetail') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/daily-reports');
     const projectId = params.projectId ? Number(params.projectId) : (stateProjectId ? Number(stateProjectId) : (queryProjectId ? Number(queryProjectId) : null));
 
@@ -266,26 +277,54 @@ const Sidebar = () => {
                         </div>
                     </>
                 ) : (
+                    /* 메인 사이드바 메뉴 */
                     <>
                         <div className={`menu-item ${location.pathname === '/projectList' ? 'active' : ''}`} onClick={() => navigate('/projectList')}>
                             <span className="menu-icon-box"><Icons.Home /></span><span className="menu-text">홈</span>
                         </div>
+
+                        {/* 전체 프로젝트 토글 */}
                         <div className={`menu-item ${isAllProjOpen ? 'active-light' : ''}`} onClick={() => setIsAllProjOpen(!isAllProjOpen)}>
                             <span className="menu-icon-box"><Icons.Folder /></span><span className="menu-text">전체 프로젝트</span>
-                            <span className={`toggle-arrow ${isAllProjOpen ? 'open' : ''}`}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+                            <span className={`toggle-arrow ${isAllProjOpen ? 'open' : ''}`}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </span>
                         </div>
+                        
+                        {/* 전체 프로젝트 목록 */}
                         <div className={`sub-menu-container ${isAllProjOpen ? 'open' : ''}`}>
                             {allProjects.map(proj => (
                                 <div key={proj.projectId} className="sub-menu-item" onClick={() => navigate(`/projectDetail`, { state: { projectData: proj } })}>
-                                    <span className="sub-menu-dot">•</span><span className="sub-menu-text">{proj.name}</span>
+                                    <span 
+                                        className="sub-menu-dot" 
+                                        onClick={(e) => handleStarClick(e, proj.projectId)}
+                                        style={{ cursor: 'pointer', marginRight: '8px' }}
+                                    >
+                                        {proj.favorite ? (
+                                            <Icons.Star />
+                                        ) : (
+                                            <span style={{ opacity: 0.3 }}><Icons.Star /></span>
+                                        )}
+                                    </span>
+                                    <span className="sub-menu-text">{proj.name}</span>
                                 </div>
                             ))}
+                            {allProjects.length === 0 && <div className="no-tasks" style={{paddingLeft: '20px'}}>프로젝트가 없습니다.</div>}
                         </div>
+
                         <div className="menu-divider" />
+
+                        {/* 즐겨찾기 목록 */}
                         <div className="menu-section-label">FAVORITES</div>
                         {favorites.map(fav => (
                             <div key={fav.projectId} className="menu-item" onClick={() => navigate(`/projectDetail`, { state: { projectData: fav } })}>
-                                <span className="menu-icon-box"><Icons.Star /></span><span className="menu-text">{fav.name}</span>
+                                <span 
+                                    className="menu-icon-box"
+                                    onClick={(e) => handleStarClick(e, fav.projectId)}
+                                >
+                                    <Icons.Star />
+                                </span>
+                                <span className="menu-text">{fav.name}</span>
                             </div>
                         ))}
                     </>
