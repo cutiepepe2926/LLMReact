@@ -230,9 +230,11 @@ export default function AiReportPage() {
 
         // currentReportId가 있다는 것은 "수정" 상태라는 뜻입니다.
         if (currentReportId) {
+
             // 목록에서 현재 리포트 정보를 찾습니다.
             const targetReport = dailyReports.find(r => r.reportId === currentReportId);
 
+            console.log("현재 userId: ", currentUserId, "/targetReport의 userId: ", targetReport.userId)
             // [수정 핵심] String()으로 감싸서 숫자/문자 타입 차이로 인한 오류 방지
             if (targetReport && String(targetReport.userId) !== String(currentUserId)) {
                 alert("타인의 리포트는 수정할 수 없습니다.");
