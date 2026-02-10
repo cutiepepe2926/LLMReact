@@ -7,6 +7,7 @@ import './TaskDetailPage.css';
 const formatTimeAgo = (dateString) => {
     if (!dateString) return '방금 전';
     
+    // DB의 UTC 시간에 'Z'를 붙여 브라우저가 로컬 시간으로 계산하도록 함
     const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
     const date = new Date(utcDateString);
     
@@ -52,58 +53,97 @@ const TaskDetailPage = ({ projectId, task, myRole, onBack, onEdit, onDelete, onS
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    // 웹소켓 연결
+    // [웹소켓 연결 및 구독 로직 개선]
     useEffect(() => {
         const socket = new SockJS('/ws-stomp');
         stompClient.current = Stomp.over(socket);
+        
         stompClient.current.connect({}, () => {
+            // 태스크 ID 기반 구독
             stompClient.current.subscribe(`/sub/tasks/${task.taskId}`, (frame) => {
-                const newChatMessage = JSON.parse(frame.body);
-                const formattedChat = { ...newChatMessage, user_id: newChatMessage.userId, date: new Date().toISOString() };
-                setChats(prev => [...prev, formattedChat]);
+                const message = JSON.parse(frame.body);
+
+                // message 구조: { type: "...", data: ... }
+                switch (message.type) {
+                    case 'CHAT':
+                        const newChat = message.data;
+                        const formattedChat = { 
+                            ...newChat, 
+                            user_id: newChat.userId, 
+                            date: new Date().toISOString() // 받은 시점 시간 사용
+                        };
+                        setChats(prev => [...prev, formattedChat]);
+                        break;
+
+                    case 'CHECKLIST':
+                        // 체크리스트 전체 목록 교체
+                        setChecklist(message.data || []);
+                        break;
+
+                    case 'LOG':
+                        // 로그 전체 목록 교체 (순서 보장 등을 위해 전체 갱신이 안전)
+                        setLogs(message.data || []);
+                        break;
+
+                    case 'STATUS':
+                        // 상태값만 갱신
+                        const newStatus = message.data;
+                        setLocalTask(prev => ({ ...prev, status: newStatus }));
+                        // 상위 컴포넌트(보드)에도 알림 (선택 사항)
+                        if (onStatusChange) onStatusChange(task.taskId, newStatus);
+                        break;
+                        
+                    case 'TASK_UPDATE':
+                        // 태스크 정보 전체 갱신 (제목, 내용 등 수정 시)
+                        setLocalTask(message.data);
+                        break;
+
+                    default:
+                        // 기존 레거시 포맷 호환용 (혹시 모를 에러 방지)
+                        if (message.userId && message.content) {
+                             const legacyChat = { ...message, user_id: message.userId, date: new Date().toISOString() };
+                             setChats(prev => [...prev, legacyChat]);
+                        }
+                        break;
+                }
             });
         });
+
         return () => { if (stompClient.current) stompClient.current.disconnect(); };
-    }, [task.taskId]);
+    }, [task.taskId, onStatusChange]);
 
     useEffect(() => {
-        // block: "nearest" 추가 -> 화면 전체가 튀는 현상 방지
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }, [chats]);
 
-    // 체크리스트 추가
+
     const handleAddCheckItem = async () => {
         if (!newCheckItem.trim()) return;
         try {
             await api.post(`/api/projects/${projectId}/tasks/${task.taskId}/checklists`, { content: newCheckItem });
             setNewCheckItem('');
             setIsAddingCheck(false);
-            fetchData(); 
         } catch (e) { alert("실패"); }
     };
 
-    // 체크리스트 토글
     const toggleCheckItem = async (item) => {
         try {
-            await api.patch(`/api/projects/${projectId}/tasks/${task.taskId}/checklists/${item.checkListId}`, { is_done: !item.status });
             setChecklist(prev => prev.map(c => c.checkListId === item.checkListId ? { ...c, status: !c.status } : c));
-            const logData = await api.get(`/api/projects/${projectId}/tasks/${task.taskId}/logs`);
-            setLogs(logData || []);
-        } catch (e) { console.error(e); }
+            
+            await api.patch(`/api/projects/${projectId}/tasks/${task.taskId}/checklists/${item.checkListId}`, { is_done: !item.status });
+        } catch (e) { 
+            console.error(e); 
+        }
     };
 
-    // 체크리스트 삭제
     const handleDeleteCheckItem = async (id) => {
         if(!window.confirm("삭제하시겠습니까?")) return;
         try {
-            await api.delete(`/api/projects/${projectId}/tasks/${task.taskId}/checklists/${id}`);
             setChecklist(prev => prev.filter(c => c.checkListId !== id));
-            const logData = await api.get(`/api/projects/${projectId}/tasks/${task.taskId}/logs`);
-            setLogs(logData || []);
+            await api.delete(`/api/projects/${projectId}/tasks/${task.taskId}/checklists/${id}`);
         } catch (e) { alert("실패"); }
     };
 
-    // 채팅 전송
     const handleAddChat = async () => {
         if (!newChat.trim()) return;
         try {
@@ -112,13 +152,11 @@ const TaskDetailPage = ({ projectId, task, myRole, onBack, onEdit, onDelete, onS
         } catch (e) { alert("실패"); }
     };
 
-    // 상태 변경
     const handleStatusUpdate = async (newStatus) => {
         try {
-            await onStatusChange(localTask.taskId, newStatus);
             setLocalTask(prev => ({ ...prev, status: newStatus }));
-            const logData = await api.get(`/api/projects/${projectId}/tasks/${task.taskId}/logs`);
-            setLogs(logData || []);
+            await api.patch(`/api/projects/${projectId}/tasks/${task.taskId}/status`, { status: newStatus });
+            if (onStatusChange) onStatusChange(localTask.taskId, newStatus);
         } catch (e) { console.error(e); }
     };
 
