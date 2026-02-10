@@ -471,18 +471,44 @@
 
 /* 메시지 래퍼 (한 줄 전체) */
 .comment-wrapper {
-  display: flex;
-  width: 100%; /* 너비 100% 필수 */
-  gap: 10px;
+    display: flex;
+    gap: 10px; /* 프로필과 내용 사이 간격 */
+    margin-bottom: 15px;
+    align-items: flex-start; /* 상단 정렬 */
 }
 
 /* --- 나 (오른쪽 정렬) --- */
 .comment-wrapper.me {
-  justify-content: flex-end; /* 오른쪽 끝으로 밀기 */
+    flex-direction: row-reverse; /* 내 메시지는 오른쪽 정렬 */
+}
+
+.comment-profile-area {
+    flex-shrink: 0;
+}
+
+.comment-profile-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
 }
 
 .comment-wrapper.me .comment-content-group {
   align-items: flex-end; /* 내부 요소(시간, 말풍선) 오른쪽 정렬 */
+}
+
+.comment-wrapper.other .comment-content-group {
+    align-items: flex-start; /* 상대 메시지 내용은 왼쪽 정렬 */
+}
+
+/* 유저 이름 */
+.comment-sender-name {
+    font-size: 12px;
+    color: #4b5563;
+    margin-bottom: 4px;
+    margin-left: 2px;
+    font-weight: 500;
 }
 
 .comment-wrapper.me .comment-bubble {
@@ -512,6 +538,12 @@
 
 .comment-wrapper.other .time {
   margin-left: 6px;
+}
+
+.comment-wrapper .time {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 4px;
 }
 
 /* 공통 스타일 */

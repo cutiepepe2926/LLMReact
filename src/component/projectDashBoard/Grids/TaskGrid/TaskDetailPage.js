@@ -263,15 +263,39 @@ const TaskDetailPage = ({ projectId, task, myRole, onBack, onEdit, onDelete, onS
                     <div className="section-block chat-section">
                         <h4>업무 채팅</h4>
                         <div className="comment-list">
-                            {chats.map((chat, i) => (
-                                <div key={i} className={`comment-wrapper ${String(chat.user_id).trim() === currentUserId ? 'me' : 'other'}`}>
-                                    {String(chat.user_id).trim() !== currentUserId && <div className="comment-avatar">{String(chat.user_id).charAt(0).toUpperCase()}</div>}
-                                    <div className="comment-content-group">
-                                        <div className="comment-bubble">{chat.content}</div>
-                                        <span className="time">{chat.date ? formatTimeAgo(chat.date) : '방금'}</span>
+                            {chats.map((chat, i) => {
+                                // 내 메시지인지 확인
+                                const isMe = String(chat.user_id || chat.userId).trim() === String(currentUserId).trim();
+                                
+                                // 프로필 이미지 (없으면 기본 이미지)
+                                const profileImg = chat.filePath || chat.senderFilePath || "/img/Profile.svg";
+                                
+                                // 이름 (없으면 ID 표시)
+                                const senderName = chat.name || chat.senderName || chat.userId;
+
+                                return (
+                                    <div key={i} className={`comment-wrapper ${isMe ? 'me' : 'other'}`}>
+                                        {/* 상대방일 경우에만 프로필 사진 및 이름 표시 */}
+                                        {!isMe && (
+                                            <div className="comment-profile-area">
+                                                <img 
+                                                    src={profileImg} 
+                                                    alt="Profile" 
+                                                    className="comment-profile-img" 
+                                                />
+                                            </div>
+                                        )}
+                                        
+                                        <div className="comment-content-group">
+                                            {/* 상대방일 경우 말풍선 위에 이름 표시 */}
+                                            {!isMe && <div className="comment-sender-name">{senderName}</div>}
+                                            
+                                            <div className="comment-bubble">{chat.content}</div>
+                                            <span className="time">{chat.date ? formatTimeAgo(chat.date) : '방금'}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="comment-input-area">
