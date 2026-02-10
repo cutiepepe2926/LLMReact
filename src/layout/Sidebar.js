@@ -82,7 +82,7 @@ const Sidebar = () => {
 
 
     const fetchSidebarData = useCallback(async () => {
-        if (!projectId) return;
+        if (isProjectContext && !projectId) return;
 
         try {
             if (isProjectContext) {
