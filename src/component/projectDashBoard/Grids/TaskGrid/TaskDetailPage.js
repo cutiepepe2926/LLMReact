@@ -62,7 +62,10 @@ const TaskDetailPage = ({ projectId, task, myRole, onBack, onEdit, onDelete, onS
         return () => { if (stompClient.current) stompClient.current.disconnect(); };
     }, [task.taskId]);
 
-    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chats]);
+    useEffect(() => {
+        // block: "nearest" 추가 -> 화면 전체가 튀는 현상 방지
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, [chats]);
 
     // 체크리스트 추가
     const handleAddCheckItem = async () => {
@@ -193,28 +196,6 @@ const TaskDetailPage = ({ projectId, task, myRole, onBack, onEdit, onDelete, onS
                         </div>
                     </div>
 
-                    <div className="section-block chat-section">
-                        <h4>업무 채팅</h4>
-                        <div className="comment-list">
-                            {chats.map((chat, i) => (
-                                <div key={i} className={`comment-wrapper ${String(chat.user_id).trim() === currentUserId ? 'me' : 'other'}`}>
-                                    {String(chat.user_id).trim() !== currentUserId && <div className="comment-avatar">{String(chat.user_id).charAt(0).toUpperCase()}</div>}
-                                    <div className="comment-content-group">
-                                        <div className="comment-bubble">{chat.content}</div>
-                                        <span className="time">{chat.date ? formatTimeAgo(chat.date) : '방금'}</span>
-                                    </div>
-                                </div>
-                            ))}
-                            <div ref={messagesEndRef} />
-                        </div>
-                        <div className="comment-input-area">
-                            <textarea value={newChat} onChange={e=>setNewChat(e.target.value)} onKeyPress={e => e.key==='Enter' && !e.shiftKey && (e.preventDefault() || handleAddChat())} placeholder="메시지 입력..." />
-                            <button className="btn-send" onClick={handleAddChat}>전송</button>
-                        </div>
-                    </div>
-                </section>
-
-                <aside className="detail-panel right-panel">
                     <div className="log-card">
                         <h3 className="panel-title">활동 로그</h3>
                         <div className="log-scroll-container">
@@ -232,6 +213,28 @@ const TaskDetailPage = ({ projectId, task, myRole, onBack, onEdit, onDelete, onS
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <aside className="detail-panel right-panel">
+                    <div className="section-block chat-section">
+                        <h4>업무 채팅</h4>
+                        <div className="comment-list">
+                            {chats.map((chat, i) => (
+                                <div key={i} className={`comment-wrapper ${String(chat.user_id).trim() === currentUserId ? 'me' : 'other'}`}>
+                                    {String(chat.user_id).trim() !== currentUserId && <div className="comment-avatar">{String(chat.user_id).charAt(0).toUpperCase()}</div>}
+                                    <div className="comment-content-group">
+                                        <div className="comment-bubble">{chat.content}</div>
+                                        <span className="time">{chat.date ? formatTimeAgo(chat.date) : '방금'}</span>
+                                    </div>
+                                </div>
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </div>
+                        <div className="comment-input-area">
+                            <textarea value={newChat} onChange={e=>setNewChat(e.target.value)} onKeyPress={e => e.key==='Enter' && !e.shiftKey && (e.preventDefault() || handleAddChat())} placeholder="메시지 입력..." />
+                            <button className="btn-send" onClick={handleAddChat}>전송</button>
                         </div>
                     </div>
                 </aside>

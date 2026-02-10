@@ -1,16 +1,23 @@
 .task-detail-page {
+  /* grid-column 설정은 유지 (혹시 Grid 안에 있을 경우 대비) */
   grid-column: 1 / -1;
-  width: calc(100% + 64px);
-  margin: -24px -32px;
-  height: auto; 
-  min-height: calc(100vh - 140px);
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
+
+  /* [핵심 수정 1] 부모(ProjectDashBoard)의 패딩(상하 24px, 좌우 32px)을 상쇄하여 꽉 채움 */
+  width: calc(100% + 64px);  /* 좌우 패딩 32px * 2 = 64px 더함 */
+  margin: -24px -32px;       /* 상하좌우 패딩만큼 마이너스 마진 적용 */
+
+  /* [핵심 수정 2] 전체 높이에서 상단 헤더(약 120~140px)를 뺀 높이로 설정 */
+  /* TopNav(약 60px) + ProjectHeader(약 80px) + 여유분 고려 */
+  height: 100%;
+
   background-color: #f8f9fa;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 내부 스크롤 사용, 전체 스크롤 방지 */
+
+  /* 모서리 둥글기 제거 (꽉 찬 화면 느낌) */
   border-radius: 0;
-  z-index: 10;
+  z-index: 10; /* 다른 요소보다 위에 오도록 설정 (가림 방지) */
 }
 
 /* --- 헤더 --- */
@@ -165,22 +172,21 @@
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
-  grid-template-columns: minmax(260px, 280px) 1fr minmax(280px, 320px);
+  /* 왼쪽(280px), 중앙(1fr), 오른쪽(320px) 높이 고정 */
+  /*grid-template-columns: minmax(260px, 280px) 1fr minmax(280px, 320px);*/
+  grid-template-columns: 0.6fr 1.2fr 1.2fr;
   gap: 24px;
   padding: 24px 32px;
-  overflow: visible; 
-  height: auto;
+  overflow: hidden; /* 본문 스크롤 막고 내부 패널에서 스크롤 */
   box-sizing: border-box;
 }
 
 .detail-panel {
-  height: auto;
+  height: 100%; /* 부모 그리드 높이에 맞춤 */
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-height: 0;
-  overflow: visible;
-  box-sizing: border-box;
+  min-height: 0; /* flex 자식의 최소 높이 해제 */
 }
 
 /* 카드 공통 스타일 */
@@ -337,7 +343,7 @@
 
 /* 체크리스트 영역 고정 */
 .checklist-section {
-  flex: 0 0 240px; /* 약 4개 항목 높이 고정 */
+  flex: 0 0 180px; /* 약 4개 항목 높이 고정 */
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
