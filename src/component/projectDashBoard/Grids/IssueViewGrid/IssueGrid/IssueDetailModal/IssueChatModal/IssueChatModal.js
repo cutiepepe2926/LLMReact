@@ -100,7 +100,10 @@ export default function IssueChatModal({ open, onClose, issue, projectId, curren
     // 날짜 포맷팅
     const formatTime = (dateStr) => {
         if (!dateStr) return "";
-        const date = new Date(dateStr);
+        
+        const utcDateStr = dateStr.endsWith('Z') ? dateStr : dateStr + 'Z';
+        const date = new Date(utcDateStr);
+        
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 

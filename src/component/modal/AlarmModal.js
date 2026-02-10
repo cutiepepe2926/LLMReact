@@ -22,14 +22,21 @@ const AlarmModal = ({ onClose, onUpdate }) => {
 
     // 날짜 포맷팅 함수
     const formatDate = (dateString) => {
-        const date = new Date(dateString);
+        const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+        const date = new Date(utcDateString);
+
         const now = new Date();
         const diffMS = now - date;
         const diffHours = diffMS / (1000 * 60 * 60);
 
         if (diffHours < 24) {
+            // 방금 전, 몇 분 전 처리를 위해 1시간 미만 로직도 추가하면 좋습니다 (선택사항)
+            if (diffHours < 1) {
+                const diffMinutes = Math.floor(diffMS / (1000 * 60));
+                return diffMinutes <= 0 ? "Just now" : `${diffMinutes} mins ago`;
+            }
             const hours = Math.floor(diffHours);
-            return `${hours} hours ago`; 
+            return `${hours} hours ago`;
         } else {
             const yy = date.getFullYear().toString().slice(2);
             const mm = (date.getMonth() + 1).toString().padStart(2, '0');

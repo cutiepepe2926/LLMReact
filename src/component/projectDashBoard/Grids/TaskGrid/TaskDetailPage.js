@@ -6,9 +6,13 @@ import './TaskDetailPage.css';
 
 const formatTimeAgo = (dateString) => {
     if (!dateString) return '방금 전';
-    const date = new Date(dateString);
+    
+    const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+    const date = new Date(utcDateString);
+    
     const now = new Date();
     const diff = (now - date) / 1000;
+
     if (diff < 60) return '방금 전';
     if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
